@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import sampleProfile from "../../assets/images/sample_profile.png";
 import classpagePicture from "../../assets/images/ClasspagePicture.png";
 import { motion } from "framer-motion"; // Import motion from framer-motion
-import { supabase } from "../../App";
+import { supabase, userContext } from "../../App";
 
 const ProfileSettingsPage = () => {
   const navigate = useNavigate(); // Initialize useNavigate
+  const userCon = useContext(userContext);
   const [avatarUrl, setAvatarUrl] = useState(sampleProfile);
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
@@ -210,7 +211,9 @@ const ProfileSettingsPage = () => {
       console.log("Logging out...");
       const { error } = await supabase.auth.signOut();
 
-      navigate("/login"); // Route to LoginPage.jsx
+      userCon.setUser({});
+
+      navigate("/"); // Route to LoginPage.jsx
     });
     setIsModalOpen(true);
   };

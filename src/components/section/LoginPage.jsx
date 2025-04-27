@@ -34,11 +34,28 @@ const LoginPage = () => {
       return;
     }
 
-    userCon.setUser({
-      ...userCon.user,
-      email: data.user.email,
-      user_id: data.user.id,
-    });
+    // get user details
+    console.log(data.user.id);
+
+    await supabase
+      .from("tbl_users")
+      .select("*")
+      .eq("id", data.user.id)
+      .single()
+      .then((data2) => {
+        console.log(data2.data);
+
+        userCon.setUser({
+          ...userCon.user,
+          email: data.user.email,
+          user_id: data.user.id,
+          suffix: data2.data.suffix,
+          role: data2.data.role,
+          f_name: data2.data.f_name,
+          m_name: data2.data.m_name,
+          l_name: data2.data.l_name,
+        });
+      });
 
     navigate("/dashboard");
   };

@@ -29,9 +29,9 @@ import QuestionResultPage from "./components/section/QuestionResultPage.jsx";
 import Courses from "./Admin/Courses.jsx";
 import Program from "./Admin/Program.jsx";
 import Educator from "./Admin/Educator.jsx";
-import QuestionResultPage from "./components/section/QuestionResultPage.jsx";
 import ProtectedRoutes from "./helper/ProtectedRoute.jsx";
 import SignupOtp from "./components/section/SignupOtp.jsx";
+import ProtectedAdmin from "./helper/ProtectedAdmin.jsx";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -62,10 +62,8 @@ const AnimatedRoutes = () => {
             <Route path="/forgot-password" element={<ForgotpasswordPage />} />
             <Route path="/verify-code" element={<VerifycodePage />} />
             <Route path="/change-password" element={<ChangepasswordPage />} />
- 
 
             {/* Dashboard Routes - Wrapped with Layout */}
-            {/* <Route element={<userContext.Provider value={userVal} />}> */}
             <Route element={<ProtectedRoutes />}>
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<DashboardPage />} />
@@ -92,14 +90,24 @@ const AnimatedRoutes = () => {
                   element={<CreateAutomaticallyPage />}
                 />
                 <Route path="QuestionResult" element={<QuestionResultPage />} />
+                {/* admin only */}
 
-
-            <Route path="/dashboard/Administration" element={<Program />} />
-            <Route path="/dashboard/Administration/Courses" element={<Courses />} />
-            <Route path="/dashboard/Administration/Educator" element={<Educator />} />
+                <Route element={<ProtectedAdmin />}>
+                  <Route
+                    path="/dashboard/Administration"
+                    element={<Program />}
+                  />
+                  <Route
+                    path="/dashboard/Administration/Courses"
+                    element={<Courses />}
+                  />
+                  <Route
+                    path="/dashboard/Administration/Educator"
+                    element={<Educator />}
+                  />
+                </Route>
               </Route>
             </Route>
-            {/* </Route> */}
 
             {/* Catch-All */}
             <Route path="*" element={<Navigate to="/" />} />

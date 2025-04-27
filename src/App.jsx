@@ -21,6 +21,7 @@ import QuestionResultPage from "./components/section/QuestionResultPage.jsx";
 import Courses from "./Admin/Courses.jsx";
 import Program from "./Admin/Program.jsx";
 import Educator from "./Admin/Educator.jsx";
+import ClassPage from "./components/section/ClassPage.jsx";
 
 // Wrapper to use location inside AnimatePresence
 const AnimatedRoutes = () => {
@@ -48,6 +49,7 @@ const AnimatedRoutes = () => {
           <Route path="CreateManually" element={<CreateManuallyPage />} />
           <Route path="CreateAutomatically" element={<CreateAutomaticallyPage />} />
           <Route path="QuestionResult" element={<QuestionResultPage />} />  
+          <Route path="ClassPage" element={<ClassPage />} />
 
 
             <Route path="/dashboard/Administration" element={<Program />} />

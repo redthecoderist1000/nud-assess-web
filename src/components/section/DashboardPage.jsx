@@ -48,7 +48,7 @@ const DashboardPage = () => {
       </motion.div>
 
       {/* Action Buttons */}
-      <motion.div
+      {/* <motion.div
         className="flex gap-4 px-4 mb-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -65,7 +65,7 @@ const DashboardPage = () => {
             <span>{text}</span>
           </motion.button>
         ))}
-      </motion.div>
+      </motion.div> */}
 
       {/* Stats Grid */}
       <motion.div
@@ -113,13 +113,13 @@ const DashboardPage = () => {
       </motion.div>
 
       {/* Flagged Questions */}
-      <motion.div
+      {/* <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 1.1 }}
       >
         <FlaggedQuestion />
-      </motion.div>
+      </motion.div> */}
     </motion.main>
   );
 };

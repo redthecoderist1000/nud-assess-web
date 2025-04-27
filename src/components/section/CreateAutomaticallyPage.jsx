@@ -151,7 +151,7 @@ const CreateAutomaticallyPage = () => {
       {/* Inline Styles for Floating Labels */}
       <style>{styles}</style>
 
-      <div className="w-full">
+      <div className="w-full p-10">
         <div className="mb-6">
           <h1 className="text-5xl font-bold mb-2">Generate Quiz Automatically</h1>
           <p className="text-gray-600">Input basic details and upload your file to generate a quiz.</p>

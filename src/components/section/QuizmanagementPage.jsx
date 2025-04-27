@@ -65,7 +65,7 @@ const QuizmanagementPage = () => {
         <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-gradient-to-r from-gray-500 to-yellow-300">
           <span className="text-lg font-semibold text-gray-900">Create new quiz?</span>
           <div className="flex space-x-4">
-            <Link
+            {/* <Link
               to="/dashboard/CreateManually"
               className="flex items-center space-x-2 text-gray-800 font-medium hover:text-gray-900"
             >
@@ -77,7 +77,7 @@ const QuizmanagementPage = () => {
                 whileHover={{ scale: 1.2, rotate: -5 }}
                 transition={{ type: "spring", stiffness: 300 }}
               />
-            </Link>
+            </Link> */}
             <Link
               to="/dashboard/CreateAutomatically"
               className="flex items-center space-x-2 text-gray-800 font-medium hover:text-gray-900"

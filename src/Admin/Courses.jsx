@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AdminNav from './AdminNav';
 
 const Program = () => {
-    const programs = ['BSIT', 'BSCS', 'BSECE']; 
+    const programs = ['BSIT', 'BSCS', 'BSECE'];
     const yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 
     const initialSubjects = {
@@ -24,28 +24,37 @@ const Program = () => {
         },
     };
 
-    const educators = ['Educator 1', 'Educator 2', 'Educator 3', 'Educator 4']; 
+    const educators = ['Educator 1', 'Educator 2', 'Educator 3', 'Educator 4'];
 
     const [selectedProgram, setSelectedProgram] = useState('');
     const [selectedYearLevel, setSelectedYearLevel] = useState('');
     const [subjects, setSubjects] = useState(initialSubjects);
-    const [selectedSubject, setSelectedSubject] = useState(null); 
-    const [selectedEducator, setSelectedEducator] = useState(''); 
-    const [showModal, setShowModal] = useState(false); 
+    const [editingIndex, setEditingIndex] = useState(null); // Track the index of the subject being edited
+    const [editedSubject, setEditedSubject] = useState({ name: '', code: '', faculty: '' }); // Track the edited subject
 
-    const handleAssignFaculty = (program, yearLevel, subjectIndex) => {
-        setSelectedSubject({ program, yearLevel, subjectIndex });
-        setShowModal(true);
+    const handleEditClick = (program, yearLevel, index) => {
+        setEditingIndex(index);
+        setEditedSubject({ ...subjects[program][yearLevel][index] });
     };
 
-    const handleSaveFaculty = () => {
+    const handleSaveEdit = (program, yearLevel) => {
         const updatedSubjects = { ...subjects };
-        const { program, yearLevel, subjectIndex } = selectedSubject;
-        updatedSubjects[program][yearLevel][subjectIndex].faculty = selectedEducator;
+        updatedSubjects[program][yearLevel][editingIndex] = editedSubject;
         setSubjects(updatedSubjects);
-        setShowModal(false);
-        setSelectedSubject(null);
-        setSelectedEducator('');
+        setEditingIndex(null);
+        setEditedSubject({ name: '', code: '', faculty: '' });
+    };
+
+    const handleCancelEdit = () => {
+        setEditingIndex(null);
+        setEditedSubject({ name: '', code: '', faculty: '' });
+    };
+
+    const handleAddRow = (program, yearLevel) => {
+        const updatedSubjects = { ...subjects };
+        const newSubject = { name: 'New Subject', code: 'New Code', faculty: 'No faculty assigned' };
+        updatedSubjects[program][yearLevel].push(newSubject);
+        setSubjects(updatedSubjects);
     };
 
     return (
@@ -85,80 +94,100 @@ const Program = () => {
                     </select>
                 </div>
                 {selectedProgram && selectedYearLevel && subjects[selectedProgram]?.[selectedYearLevel] && (
-                    <table className="w-full border-collapse border border-gray-300">
-                        <thead>
-                            <tr className="bg-blue-700 text-white">
-                                <th className="border border-gray-300 px-4 py-2">Subject Name</th>
-                                <th className="border border-gray-300 px-4 py-2">Subject Code</th>
-                                <th className="border border-gray-300 px-4 py-2">Faculty Incharge</th>
-                                <th className="border border-gray-300 px-4 py-2">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {subjects[selectedProgram][selectedYearLevel].map((subject, index) => (
-                                <tr key={index} className="text-center">
-                                    <td className="border border-gray-300 px-4 py-2">{subject.name}</td>
-                                    <td className="border border-gray-300 px-4 py-2">{subject.code}</td>
-                                    <td className="border border-gray-300 px-4 py-2">{subject.faculty}</td>
-                                    <td className="border border-gray-300 px-4 py-2">
-                                        <button
-                                            className="text-blue-500 hover:underline mr-2"
-                                            onClick={() =>
-                                                handleAssignFaculty(selectedProgram, selectedYearLevel, index)
-                                            }
-                                        >
-                                            Assign
-                                        </button>
-                                        <button
-                                            className="text-blue-500 hover:underline"
-                                            onClick={() =>
-                                                handleAssignFaculty(selectedProgram, selectedYearLevel, index)
-                                            }
-                                        >
-                                            Edit
-                                        </button>
-                                    </td>
+                    <>
+                        <button
+                            className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4 hover:bg-blue-600"
+                            onClick={() => handleAddRow(selectedProgram, selectedYearLevel)}
+                        >
+                            Add Row
+                        </button>
+                        <table className="w-full border-collapse border border-gray-300">
+                            <thead>
+                                <tr className="bg-blue-700 text-white">
+                                    <th className="border border-gray-300 px-4 py-2">Subject Name</th>
+                                    <th className="border border-gray-300 px-4 py-2">Subject Code</th>
+                                    <th className="border border-gray-300 px-4 py-2">Faculty Incharge</th>
+                                    <th className="border border-gray-300 px-4 py-2">Action</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-                {showModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                        <div className="bg-white rounded-lg shadow-lg p-5 w-1/3">
-                            <h2 className="text-xl font-bold mb-4">Assign Faculty</h2>
-                            <div className="mb-4">
-                                <label className="block font-semibold mb-2">Choose Educator:</label>
-                                <select
-                                    className="border border-gray-300 rounded-md px-2 py-1 w-full"
-                                    value={selectedEducator}
-                                    onChange={(e) => setSelectedEducator(e.target.value)}
-                                >
-                                    <option value="">Select Educator</option>
-                                    {educators.map((educator, index) => (
-                                        <option key={index} value={educator}>
-                                            {educator}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex justify-between">
-                                <button
-                                    className="text-red-500 hover:underline"
-                                    onClick={() => setShowModal(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    className="bg-blue-700 text-white px-4 py-2 rounded-md"
-                                    onClick={handleSaveFaculty}
-                                    disabled={!selectedEducator}
-                                >
-                                    Save
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                            </thead>
+                            <tbody>
+                                {subjects[selectedProgram][selectedYearLevel].map((subject, index) => (
+                                    <tr key={index} className="text-center">
+                                        {editingIndex === index ? (
+                                            <>
+                                                <td className="border border-gray-300 px-4 py-2">
+                                                    <input
+                                                        type="text"
+                                                        value={editedSubject.name}
+                                                        onChange={(e) =>
+                                                            setEditedSubject({ ...editedSubject, name: e.target.value })
+                                                        }
+                                                        className="border border-gray-300 rounded-md px-2 py-1 w-full"
+                                                    />
+                                                </td>
+                                                <td className="border border-gray-300 px-4 py-2">
+                                                    <input
+                                                        type="text"
+                                                        value={editedSubject.code}
+                                                        onChange={(e) =>
+                                                            setEditedSubject({ ...editedSubject, code: e.target.value })
+                                                        }
+                                                        className="border border-gray-300 rounded-md px-2 py-1 w-full"
+                                                    />
+                                                </td>
+                                                <td className="border border-gray-300 px-4 py-2">
+                                                    <select
+                                                        value={editedSubject.faculty}
+                                                        onChange={(e) =>
+                                                            setEditedSubject({ ...editedSubject, faculty: e.target.value })
+                                                        }
+                                                        className="border border-gray-300 rounded-md px-2 py-1 w-full"
+                                                    >
+                                                        <option value="">Select Faculty</option>
+                                                        {educators.map((educator, index) => (
+                                                            <option key={index} value={educator}>
+                                                                {educator}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </td>
+                                                <td className="border border-gray-300 px-4 py-2">
+                                                    <button
+                                                        className="text-green-500 hover:underline mr-2"
+                                                        onClick={() => handleSaveEdit(selectedProgram, selectedYearLevel)}
+                                                    >
+                                                        Save
+                                                    </button>
+                                                    <button
+                                                        className="text-red-500 hover:underline"
+                                                        onClick={handleCancelEdit}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </td>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <td className="border border-gray-300 px-4 py-2">{subject.name}</td>
+                                                <td className="border border-gray-300 px-4 py-2">{subject.code}</td>
+                                                <td className="border border-gray-300 px-4 py-2">{subject.faculty}</td>
+                                                <td className="border border-gray-300 px-4 py-2">
+                                                    <button
+                                                        className="text-blue-500 hover:underline mr-2"
+                                                        onClick={() =>
+                                                            handleEditClick(selectedProgram, selectedYearLevel, index)
+                                                        }
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                </td>
+                                            </>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </>
                 )}
             </div>
         </div>

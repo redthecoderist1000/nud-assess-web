@@ -29,6 +29,9 @@ import QuestionResultPage from "./components/section/QuestionResultPage.jsx";
 import Courses from "./Admin/Courses.jsx";
 import Program from "./Admin/Program.jsx";
 import Educator from "./Admin/Educator.jsx";
+
+import ClassPage from "./components/section/ClassPage.jsx";
+
 import ProtectedRoutes from "./helper/ProtectedRoute.jsx";
 import SignupOtp from "./components/section/SignupOtp.jsx";
 import ProtectedAdmin from "./helper/ProtectedAdmin.jsx";
@@ -59,9 +62,6 @@ const AnimatedRoutes = () => {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/signup-otp" element={<SignupOtp />} />
 
-            <Route path="/forgot-password" element={<ForgotpasswordPage />} />
-            <Route path="/verify-code" element={<VerifycodePage />} />
-            <Route path="/change-password" element={<ChangepasswordPage />} />
 
             {/* Dashboard Routes - Wrapped with Layout */}
             <Route element={<ProtectedRoutes />}>

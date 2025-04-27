@@ -24,6 +24,7 @@ const LoginPage = () => {
     setError("");
     console.log("Logging in...");
 
+
     // alert(email + password);
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
@@ -67,7 +68,6 @@ const LoginPage = () => {
       transition={{ duration: 0.5 }}
       className="h-screen flex flex-col bg-white relative"
     >
-      {/* Logo */}
       <motion.header
         className="absolute top-6 left-10"
         initial={{ opacity: 0, x: -100 }}
@@ -77,9 +77,7 @@ const LoginPage = () => {
         <img src={logo} alt="NUD Assess Logo" className="h-10" />
       </motion.header>
 
-      {/* Main Container */}
       <div className="flex flex-grow items-center justify-center p-10">
-        {/* Left Side - Login Form */}
         <motion.div
           className="w-1/2 flex justify-center"
           initial={{ opacity: 0, x: -100 }}
@@ -104,7 +102,6 @@ const LoginPage = () => {
               Login to access your NUD Assess account
             </motion.p>
 
-            {/* Input Fields */}
             <div className="space-y-4">
               <motion.div
                 className="relative"
@@ -185,6 +182,7 @@ const LoginPage = () => {
             >
               Login
             </motion.button>
+          </div>
 
             {/* Signup Link */}
             <motion.p
@@ -226,7 +224,6 @@ const LoginPage = () => {
           </form>
         </motion.div>
 
-        {/* Right Side - Image */}
         <motion.div
           className="w-1/2 flex justify-center items-center"
           initial={{ opacity: 0, x: 100 }}

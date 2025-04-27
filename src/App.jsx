@@ -17,7 +17,10 @@ import ReportAndAnalyticsPage from "./components/section/ReportAndAnalyticsPage.
 import ProfileSettingsPage from "./components/section/ProfileSettingsPage.jsx";
 import CreateAutomaticallyPage from "./components/section/CreateAutomaticallyPage.jsx";
 import CreateManuallyPage from "./components/section/CreateManuallyPage.jsx";
-import QuestionResultPage from "./components/section/QuestionResultPage.jsx"; 
+import QuestionResultPage from "./components/section/QuestionResultPage.jsx";
+import Courses from "./Admin/Courses.jsx";
+import Program from "./Admin/Program.jsx";
+import Educator from "./Admin/Educator.jsx";
 
 // Wrapper to use location inside AnimatePresence
 const AnimatedRoutes = () => {
@@ -32,6 +35,7 @@ const AnimatedRoutes = () => {
         <Route path="/forgot-password" element={<ForgotpasswordPage />} />  
         <Route path="/verify-code" element={<VerifycodePage />} />  
         <Route path="/change-password" element={<ChangepasswordPage />} />  
+ 
 
         {/* Dashboard Routes - Wrapped with Layout */}
         <Route path="/dashboard" element={<DashboardLayout />}>
@@ -44,6 +48,11 @@ const AnimatedRoutes = () => {
           <Route path="CreateManually" element={<CreateManuallyPage />} />
           <Route path="CreateAutomatically" element={<CreateAutomaticallyPage />} />
           <Route path="QuestionResult" element={<QuestionResultPage />} />  
+
+
+            <Route path="/dashboard/Administration" element={<Program />} />
+            <Route path="/dashboard/Administration/Courses" element={<Courses />} />
+            <Route path="/dashboard/Administration/Educator" element={<Educator />} />
         </Route>
 
         {/* Catch-All */}

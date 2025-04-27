@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import createIcon from "../../assets/images/create_icon.png";
@@ -8,9 +8,11 @@ import LineChart from "../elements/LineChart";
 import HorizontalLineChart from "../elements/HorizontalLineChart";
 import DoughnutChart from "../elements/DoughnutChart";
 import FlaggedQuestion from "../elements/FlaggedQuestions";
+import { userContext } from "../../App";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const userCon = useContext(userContext);
 
   const handleButtonClick = (buttonName) => {
     if (buttonName === "Create Quiz" || buttonName === "Create Questions") {
@@ -36,13 +38,21 @@ const DashboardPage = () => {
       >
         <div>
           <h1 className="text-5xl font-bold mb-2">Dashboard</h1>
-          <p className="text-gray-600">Monitor quiz performance and student engagement.</p>
+          <p className="text-gray-600">
+            Monitor quiz performance and student engagement.
+          </p>
         </div>
         <div className="inline-flex items-center px-6 p-2 border border-gray-300 rounded-full shadow-sm">
-          <img src={profilePic} alt="Profile" className="w-8 h-8 rounded-full mr-2" />
+          <img
+            src={profilePic}
+            alt="Profile"
+            className="w-8 h-8 rounded-full mr-2"
+          />
           <div className="flex flex-col">
-            <span className="text-black font-semibold text-sm">Juan Dela Cruz</span>
-            <span className="text-gray-400 text-xs">Professor</span>
+            <span className="text-black font-semibold text-sm">
+              {userCon.user.uname}
+            </span>
+            <span className="text-gray-400 text-xs">{userCon.user.role}</span>
           </div>
         </div>
       </motion.div>
@@ -54,6 +64,7 @@ const DashboardPage = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
+
         {["Create Quiz", "Create Questions", "Create Class"].map((text, index) => (
           <motion.button
             key={index}
@@ -67,6 +78,7 @@ const DashboardPage = () => {
         ))}
       </motion.div> */}
 
+
       {/* Stats Grid */}
       <motion.div
         className="grid grid-cols-4 gap-4 p-4 w-full"
@@ -74,7 +86,12 @@ const DashboardPage = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        {["Total Quizzes", "Active Quizzes", "Total Questions", "Total Students"].map((label, index) => (
+        {[
+          "Total Quizzes",
+          "Active Quizzes",
+          "Total Questions",
+          "Total Students",
+        ].map((label, index) => (
           <motion.div
             key={index}
             className="flex flex-col items-start justify-center p-8 rounded-lg border border-gray-300 shadow-xl w-full"
@@ -86,7 +103,9 @@ const DashboardPage = () => {
               <img src={bookmarkIcon} alt="Icon" className="w-5 h-5" />
               {label}
             </span>
-            <span className="text-2xl font-bold">{[25, 30, 2940, 100][index]}</span>
+            <span className="text-2xl font-bold">
+              {[25, 30, 2940, 100][index]}
+            </span>
           </motion.div>
         ))}
       </motion.div>

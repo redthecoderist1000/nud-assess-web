@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate for redirection
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "../../assets/images/logo.png";
 import signupImage from "../../assets/images/signup_image.png";
 import microsoftLogo from "../../assets/images/microsoftlogo.png";
+import { signupContext } from "../../App";
 
 const SignupPage = () => {
+  const signupData = useContext(signupContext);
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -15,6 +17,8 @@ const SignupPage = () => {
     confirmPassword: "",
     agreeTerms: false,
   });
+  const [errorMessage, setErrorMessage] = useState("");
+
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
   const [modalContent, setModalContent] = useState(""); // State for modal content
 
@@ -30,53 +34,60 @@ const SignupPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  
+
     // Basic field validations
     if (!formData.firstName.trim()) {
-      alert("First Name is required.");
+      setErrorMessage("First Name is required.");
+
       return;
     }
     if (!formData.lastName.trim()) {
-      alert("Last Name is required.");
+      setErrorMessage("Last Name is required.");
       return;
     }
     if (!formData.email.trim()) {
-      alert("Email is required.");
+      setErrorMessage("Email is required.");
       return;
     }
     if (!formData.password.trim()) {
-      alert("Password is required.");
+      setErrorMessage("Password is required.");
       return;
     }
     if (!formData.confirmPassword.trim()) {
-      alert("Please confirm your password.");
+      alsetErrorMessageert("Please confirm your password.");
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match.");
+      setErrorMessage("Passwords do not match.");
       return;
     }
     if (!formData.agreeTerms) {
-      alert("You must agree to Terms and Privacy Policies.");
-      return;
-    }
-  
-    // List of allowed domains
-    const allowedDomains = ["@gmail.com", "@yahoo.com", "@outlook.com"];
-  
-    // Extract the domain from the email
-    const emailDomain = formData.email.substring(formData.email.lastIndexOf("@"));
-  
-    // Check if the email domain is in the allowed list
-    if (!allowedDomains.includes(emailDomain)) {
-      alert(
-        "Please enter a valid Email address (e.g., example@gmail.com)."
+      setErrorMessage(
+        "You must agree to Terms and Privacy Policies to continue."
       );
       return;
     }
-  
+
+    // List of allowed domains
+    const allowedDomains = ["@nu-dasma.edu.ph"];
+
+    // Extract the domain from the email
+    const emailDomain = formData.email.substring(
+      formData.email.lastIndexOf("@")
+    );
+
+    // Check if the email domain is in the allowed list
+    if (!allowedDomains.includes(emailDomain)) {
+      setErrorMessage(
+        "Please enter a valid Email address (e.g., example@nu-dasma.edu.ph)."
+      );
+      return;
+    }
+
     console.log("Account creation successful", formData);
-    navigate("/login");
+    signupData.setSignupData(formData);
+    navigate("/");
+    // navigate("/signup-otp");
   };
 
   // Function to open modal with specific content
@@ -159,6 +170,7 @@ const SignupPage = () => {
                   id="firstName"
                   className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                   placeholder=" "
+                  required
                 />
                 <label
                   htmlFor="firstName"
@@ -183,6 +195,7 @@ const SignupPage = () => {
                     id="middleName"
                     className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                     placeholder=" "
+                    required
                   />
                   <label
                     htmlFor="middleName"
@@ -205,6 +218,7 @@ const SignupPage = () => {
                     id="lastName"
                     className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                     placeholder=" "
+                    required
                   />
                   <label
                     htmlFor="lastName"
@@ -229,6 +243,7 @@ const SignupPage = () => {
                   id="email"
                   className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                   placeholder=" "
+                  required
                 />
                 <label
                   htmlFor="email"
@@ -252,6 +267,7 @@ const SignupPage = () => {
                   id="password"
                   className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                   placeholder=" "
+                  required
                 />
                 <label
                   htmlFor="password"
@@ -275,6 +291,7 @@ const SignupPage = () => {
                   id="confirmPassword"
                   className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                   placeholder=" "
+                  required
                 />
                 <label
                   htmlFor="confirmPassword"
@@ -300,14 +317,14 @@ const SignupPage = () => {
                   onClick={() =>
                     openModal(
                       "Terms and Conditions:\n" +
-                      "1. Acceptance of Terms:\n" +
-                      "   By accessing or using our services, you agree to comply with and be bound by these Terms and Conditions.\n" +
-                      "2. User Responsibilities:\n" +
-                      "   You are responsible for maintaining the confidentiality of your account credentials.\n" +
-                      "3. Use of Services:\n" +
-                      "   Our services are intended for personal and lawful use only.\n" +
-                      "4. Intellectual Property:\n" +
-                      "   All content, trademarks, logos, and intellectual property on this platform.\n"
+                        "1. Acceptance of Terms:\n" +
+                        "   By accessing or using our services, you agree to comply with and be bound by these Terms and Conditions.\n" +
+                        "2. User Responsibilities:\n" +
+                        "   You are responsible for maintaining the confidentiality of your account credentials.\n" +
+                        "3. Use of Services:\n" +
+                        "   Our services are intended for personal and lawful use only.\n" +
+                        "4. Intellectual Property:\n" +
+                        "   All content, trademarks, logos, and intellectual property on this platform.\n"
                     )
                   }
                   className="text-amber-300 hover:underline focus:outline-none"
@@ -320,9 +337,9 @@ const SignupPage = () => {
                   onClick={() =>
                     openModal(
                       "Privacy Policy:\n" +
-                      "1. We collect personal data for security purposes.\n" +
-                      "2. Your information is kept confidential.\n" +
-                      "3. We do not share your data with third parties."
+                        "1. We collect personal data for security purposes.\n" +
+                        "2. Your information is kept confidential.\n" +
+                        "3. We do not share your data with third parties."
                     )
                   }
                   className="text-amber-300 hover:underline focus:outline-none"
@@ -331,6 +348,8 @@ const SignupPage = () => {
                 </button>
               </label>
             </div>
+            {/* error message */}
+            <p className="text-red-500 mt-4">{errorMessage}</p>
             {/* Submit Button */}
             <motion.button
               type="submit"
@@ -339,7 +358,7 @@ const SignupPage = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
             >
-              Create account
+              Continue
             </motion.button>
             {/* Additional Feature */}
             <motion.div
@@ -354,18 +373,20 @@ const SignupPage = () => {
                   Login
                 </Link>
               </p>
-              <div className="flex items-center my-4">
+              {/* <div className="flex items-center my-4">
                 <div className="flex-grow h-px bg-gray-300"></div>
-                <span className="px-2 text-sm text-gray-500">or login with</span>
+                <span className="px-2 text-sm text-gray-500">
+                  or login with
+                </span>
                 <div className="flex-grow h-px bg-gray-300"></div>
-              </div>
-              <button
+              </div> */}
+              {/* <button
                 type="button"
                 className="flex items-center justify-center w-full p-3 border border-gray-300 rounded-md hover:bg-[#35408E] hover:text-white transition-colors duration-200"
               >
                 <img src={microsoftLogo} alt="Microsoft" className="w-5 h-5 mr-2" />
                 Log in with Microsoft
-              </button>
+              </button> */}
             </motion.div>
           </form>
         </motion.div>
@@ -386,7 +407,9 @@ const SignupPage = () => {
               className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full"
             >
               <h2 className="text-xl font-bold mb-4">Information</h2>
-              <p className="text-gray-700 whitespace-pre-line">{modalContent}</p>
+              <p className="text-gray-700 whitespace-pre-line">
+                {modalContent}
+              </p>
               <button
                 onClick={closeModal}
                 className="mt-6 w-full p-2 bg-[#35408E] text-white rounded-md hover:bg-[#2c357e] transform transition duration-300 hover:scale-105"

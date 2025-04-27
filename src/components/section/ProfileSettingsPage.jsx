@@ -1,11 +1,14 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
+import React, { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import sampleProfile from "../../assets/images/sample_profile.png";
 import classpagePicture from "../../assets/images/ClasspagePicture.png";
-import { motion } from "framer-motion";
+import { motion } from "framer-motion"; // Import motion from framer-motion
+import { supabase, userContext } from "../../App";
 
 const ProfileSettingsPage = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize useNavigate
+  const userCon = useContext(userContext);
   const [avatarUrl, setAvatarUrl] = useState(sampleProfile);
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
@@ -49,6 +52,29 @@ const ProfileSettingsPage = () => {
       return false;
     }
     return true;
+
+    // Check for common domain typos
+    const commonDomains = [
+      "gmail.com",
+      "yahoo.com",
+      "hotmail.com",
+      "outlook.com",
+    ];
+    const emailParts = email.trim().split("@");
+    if (emailParts.length === 2) {
+      const domain = emailParts[1].toLowerCase();
+      const isDomainValid = commonDomains.some((commonDomain) =>
+        domain.includes(commonDomain)
+      );
+      if (!isDomainValid) {
+        alert(
+          "The email domain seems incorrect. Please double-check the domain (e.g., gmail.com)."
+        );
+        return false;
+      }
+    }
+
+    return true; // All validations passed
   };
 
   const validatePrivacy = () => {
@@ -84,6 +110,95 @@ const ProfileSettingsPage = () => {
     });
     setIsModalOpen(true);
   };
+  // Function to handle profile update and redirect to DashboardPage or LoginPage
+  const handleUpdate = () => {
+    // Check if all fields are empty
+    const isPersonalInfoEmpty =
+      !firstName.trim() &&
+      !middleName.trim() &&
+      !lastName.trim() &&
+      !email.trim();
+    const isPrivacyEmpty =
+      !currentPassword.trim() && !newPassword.trim() && !confirmPassword.trim();
+    const isAvatarUpdated = avatarUrl !== sampleProfile;
+
+    // If all fields are empty and no avatar change, show an alert
+    if (isPersonalInfoEmpty && isPrivacyEmpty && !isAvatarUpdated) {
+      alert("No changes detected. Please provide information to update.");
+      return;
+    }
+
+    let isPersonalInfoValid = true;
+    let isPrivacyValid = true;
+
+    // Validate Personal Info only if any field is filled
+    if (!isPersonalInfoEmpty) {
+      isPersonalInfoValid = validatePersonalInfo();
+    }
+
+    // Validate Privacy only if any password field is filled
+    if (!isPrivacyEmpty) {
+      isPrivacyValid = validatePrivacy();
+    }
+
+    // Stop execution if any validation fails
+    if (!isPersonalInfoValid || !isPrivacyValid) {
+      return;
+    }
+
+    // Determine which sections have been updated
+    const isPersonalInfoUpdated = !isPersonalInfoEmpty;
+    const isPrivacyUpdated = !isPrivacyEmpty;
+
+    // Prepare confirmation messages
+    let confirmationMessage = "";
+    if (isPersonalInfoUpdated && isPrivacyUpdated && isAvatarUpdated) {
+      confirmationMessage =
+        "Are you sure you want to change your personal info, password, and avatar?";
+    } else if (isPersonalInfoUpdated && isPrivacyUpdated) {
+      confirmationMessage =
+        "Are you sure you want to change your personal info and password?";
+    } else if (isPersonalInfoUpdated && isAvatarUpdated) {
+      confirmationMessage =
+        "Are you sure you want to change your personal info and avatar?";
+    } else if (isPrivacyUpdated && isAvatarUpdated) {
+      confirmationMessage =
+        "Are you sure you want to change your password and avatar?";
+    } else if (isPersonalInfoUpdated) {
+      confirmationMessage =
+        "Are you sure you want to change your personal info?";
+    } else if (isPrivacyUpdated) {
+      confirmationMessage = "Are you sure you want to change your password?";
+    } else if (isAvatarUpdated) {
+      confirmationMessage = "Are you sure you want to change your avatar?";
+    }
+
+    // Show custom modal if any section is updated
+    if (confirmationMessage) {
+      setModalMessage(confirmationMessage);
+      setOnConfirmAction(() => () => {
+        console.log("Updating user profile...");
+        alert("Profile updated successfully!");
+
+        // Special handling for password updates
+        if (isPrivacyUpdated) {
+          setIsModalOpen(false); // Close the modal before showing the next one
+          setModalMessage(
+            "You have updated your password. Are you sure you want to log out?"
+          );
+          setOnConfirmAction(() => () => navigate("/login"));
+          setIsModalOpen(true); // Open the logout confirmation modal
+        } else {
+          navigate("/dashboard");
+        }
+      });
+      setIsModalOpen(true);
+      return;
+    }
+
+    // Log update and prepare redirection logic
+    console.log("Updating user profile...");
+    alert("Profile updated successfully!");
 
   const handleUpdatePrivacy = () => {
     if (!validatePrivacy()) return;
@@ -98,9 +213,14 @@ const ProfileSettingsPage = () => {
 
   const handleLogout = () => {
     setModalMessage("Are you sure you want to log out?");
-    setOnConfirmAction(() => () => {
+    setOnConfirmAction(() => async () => {
       console.log("Logging out...");
-      navigate("/login");
+
+      const { error } = await supabase.auth.signOut();
+
+      userCon.setUser({});
+
+      navigate("/"); // Route to LoginPage.jsx
     });
     setIsModalOpen(true);
   };
@@ -116,10 +236,17 @@ const ProfileSettingsPage = () => {
         <div className="relative w-full">
           <div
             className="w-full h-48 bg-cover bg-center mb-5 rounded-t-lg"
-            style={{ backgroundImage: `url(${classpagePicture})`, backgroundSize: "cover" }}
+            style={{
+              backgroundImage: `url(${classpagePicture})`,
+              backgroundSize: "cover",
+            }}
           ></div>
           <div className="absolute top-35 right-0 mt-[-2rem] mr-4 z-10">
-            <img src={avatarUrl} alt="Profile" className="w-30 h-30 rounded-full" />
+            <img
+              src={avatarUrl}
+              alt="Profile"
+              className="w-30 h-30 rounded-full"
+            />
           </div>
         </div>
         <div className="px-4 md:px-10 py-8">

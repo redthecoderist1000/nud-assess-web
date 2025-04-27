@@ -1,7 +1,15 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import React, { createContext, useContext, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { AnimatePresence } from "framer-motion"; // ← ADD THIS
 import "./index.css";
+
+import { createClient } from "@supabase/supabase-js";
 
 import LoginPage from "./components/section/LoginPage.jsx";
 import SignupPage from "./components/section/SignupPage.jsx";
@@ -9,7 +17,7 @@ import ForgotpasswordPage from "./components/section/ForgotpasswordPage.jsx";
 import VerifycodePage from "./components/section/VerifycodePage.jsx";
 import ChangepasswordPage from "./components/section/ChangepasswordPage.jsx";
 import DashboardLayout from "./components/elements/DashboardLayout";
-import DashboardPage from "./components/section/DashboardPage.jsx";  
+import DashboardPage from "./components/section/DashboardPage.jsx";
 import QuizmanagementPage from "./components/section/QuizmanagementPage.jsx";
 import QuestionManagementPage from "./components/section/QuestionManagement.jsx";
 import ClassManagementPage from "./components/section/ClassManagementPage.jsx";
@@ -21,46 +29,92 @@ import QuestionResultPage from "./components/section/QuestionResultPage.jsx";
 import Courses from "./Admin/Courses.jsx";
 import Program from "./Admin/Program.jsx";
 import Educator from "./Admin/Educator.jsx";
+
 import ClassPage from "./components/section/ClassPage.jsx";
+
+import ProtectedRoutes from "./helper/ProtectedRoute.jsx";
+import SignupOtp from "./components/section/SignupOtp.jsx";
+import ProtectedAdmin from "./helper/ProtectedAdmin.jsx";
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const userContext = createContext();
+export const signupContext = createContext();
 
 // Wrapper to use location inside AnimatePresence
 const AnimatedRoutes = () => {
   const location = useLocation();
+  const [user, setUser] = useState({});
+  const [signupData, setSignupData] = useState({});
+
+  const userVal = { user, setUser };
+  const signupVal = { signupData, setSignupData };
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        {/* Authentication Routes */}
-        <Route path="/" element={<LoginPage />} />  
-        <Route path="/signup" element={<SignupPage />} />  
-        <Route path="/forgot-password" element={<ForgotpasswordPage />} />  
-        <Route path="/verify-code" element={<VerifycodePage />} />  
-        <Route path="/change-password" element={<ChangepasswordPage />} />  
- 
-
-        {/* Dashboard Routes - Wrapped with Layout */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="QuizManagement" element={<QuizmanagementPage />} />
-          <Route path="QuestionManagement" element={<QuestionManagementPage />} />
-          <Route path="ClassManagement" element={<ClassManagementPage />} />
-          <Route path="ReportAndAnalytics" element={<ReportAndAnalyticsPage />} />
-          <Route path="ProfileSettings" element={<ProfileSettingsPage />} />
-          <Route path="CreateManually" element={<CreateManuallyPage />} />
-          <Route path="CreateAutomatically" element={<CreateAutomaticallyPage />} />
-          <Route path="QuestionResult" element={<QuestionResultPage />} />  
-          <Route path="ClassPage" element={<ClassPage />} />
+    <signupContext.Provider value={signupVal}>
+      <userContext.Provider value={userVal}>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            {/* Authentication Routes */}
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/signup-otp" element={<SignupOtp />} />
 
 
-            <Route path="/dashboard/Administration" element={<Program />} />
-            <Route path="/dashboard/Administration/Courses" element={<Courses />} />
-            <Route path="/dashboard/Administration/Educator" element={<Educator />} />
-        </Route>
+            {/* Dashboard Routes - Wrapped with Layout */}
+            <Route element={<ProtectedRoutes />}>
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="QuizManagement" element={<QuizmanagementPage />} />
+                <Route
+                  path="QuestionManagement"
+                  element={<QuestionManagementPage />}
+                />
+                <Route
+                  path="ClassManagement"
+                  element={<ClassManagementPage />}
+                />
+                <Route
+                  path="ReportAndAnalytics"
+                  element={<ReportAndAnalyticsPage />}
+                />
+                <Route
+                  path="ProfileSettings"
+                  element={<ProfileSettingsPage />}
+                />
+                <Route path="CreateManually" element={<CreateManuallyPage />} />
+                <Route
+                  path="CreateAutomatically"
+                  element={<CreateAutomaticallyPage />}
+                />
+                <Route path="QuestionResult" element={<QuestionResultPage />} />
+                {/* admin only */}
 
-        {/* Catch-All */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </AnimatePresence>
+                <Route element={<ProtectedAdmin />}>
+                  <Route
+                    path="/dashboard/Administration"
+                    element={<Program />}
+                  />
+                  <Route
+                    path="/dashboard/Administration/Courses"
+                    element={<Courses />}
+                  />
+                  <Route
+                    path="/dashboard/Administration/Educator"
+                    element={<Educator />}
+                  />
+                </Route>
+              </Route>
+            </Route>
+
+            {/* Catch-All */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </AnimatePresence>
+      </userContext.Provider>
+    </signupContext.Provider>
   );
 };
 

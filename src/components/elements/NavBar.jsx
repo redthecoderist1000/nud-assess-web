@@ -9,10 +9,77 @@ import classManagementIcon from "../../assets/images/classmanagement_icon.png";
 import reportAnalyticsIcon from "../../assets/images/reportanalytics_icon.png";
 import profileSettingIcon from "../../assets/images/profilesetting_icon.png";
 import createQuizIcon from "../../assets/images/quizmanagementwhite_icon.png";
+import { useContext } from "react";
+import { userContext } from "../../App";
 
 const NavBar = () => {
+  const userCon = useContext(userContext);
   const navigate = useNavigate();
   const location = useLocation(); // Get the current route
+
+  const navItems =
+    userCon.user.role == "Admin"
+      ? [
+          { to: "/dashboard", label: "Dashboard", icon: dashboardIcon },
+          {
+            to: "/dashboard/QuizManagement",
+            label: "Quiz Management",
+            icon: quizManagementIcon,
+          },
+          {
+            to: "/dashboard/QuestionManagement",
+            label: "Question Management",
+            icon: questionManagementIcon,
+          },
+          {
+            to: "/dashboard/ClassManagement",
+            label: "Class Management",
+            icon: classManagementIcon,
+          },
+          {
+            to: "/dashboard/ReportAndAnalytics",
+            label: "Report and Analytics",
+            icon: reportAnalyticsIcon,
+          },
+          {
+            to: "/dashboard/Administration",
+            label: "Administration",
+            icon: adminIcon,
+          },
+          {
+            to: "/dashboard/ProfileSettings",
+            label: "Profile Settings",
+            icon: profileSettingIcon,
+          },
+        ]
+      : [
+          { to: "/dashboard", label: "Dashboard", icon: dashboardIcon },
+          {
+            to: "/dashboard/QuizManagement",
+            label: "Quiz Management",
+            icon: quizManagementIcon,
+          },
+          {
+            to: "/dashboard/QuestionManagement",
+            label: "Question Management",
+            icon: questionManagementIcon,
+          },
+          {
+            to: "/dashboard/ClassManagement",
+            label: "Class Management",
+            icon: classManagementIcon,
+          },
+          {
+            to: "/dashboard/ReportAndAnalytics",
+            label: "Report and Analytics",
+            icon: reportAnalyticsIcon,
+          },
+          {
+            to: "/dashboard/ProfileSettings",
+            label: "Profile Settings",
+            icon: profileSettingIcon,
+          },
+        ];
 
   return (
     <aside className="sidebar w-72 min-h-screen bg-[#DDE4F5] shadow-md p-6 flex-col hidden md:flex">
@@ -23,23 +90,21 @@ const NavBar = () => {
 
       {/* Profile Section */}
       <div className="flex flex-col items-center mb-10">
-        <img src={profilePic} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
-        <h2 className="text-lg font-semibold text-blue-900 mt-2">Jae-Yi Yoo</h2>
-        <p className="text-gray-500">Educator</p>
+        <img
+          src={profilePic}
+          alt="Profile"
+          className="w-24 h-24 rounded-full object-cover"
+        />
+        <h2 className="text-lg font-semibold text-blue-900 mt-2">
+          {userCon.user.f_name + " " + userCon.user.l_name}
+        </h2>
+        <p className="text-gray-500">{userCon.user.role}</p>
       </div>
 
       {/* Navigation Links */}
       <nav className="flex-1 space-y-4">
         <ul className="space-y-2">
-          {[
-            { to: "/dashboard", label: "Dashboard", icon: dashboardIcon },
-            { to: "/dashboard/QuizManagement", label: "Quiz Management", icon: quizManagementIcon },
-            { to: "/dashboard/QuestionManagement", label: "Question Management", icon: questionManagementIcon },
-            { to: "/dashboard/ClassManagement", label: "Class Management", icon: classManagementIcon },
-            { to: "/dashboard/ReportAndAnalytics", label: "Report and Analytics", icon: reportAnalyticsIcon },
-            { to: "/dashboard/Administration", label: "Administration", icon: adminIcon },
-            { to: "/dashboard/ProfileSettings", label: "Profile Settings", icon: profileSettingIcon },
-          ].map(({ to, label, icon }, index) => (
+          {navItems.map(({ to, label, icon }, index) => (
             <li key={index}>
               <Link
                 to={to}
@@ -64,7 +129,11 @@ const NavBar = () => {
           className="w-2/3 bg-[#2D3B87] rounded-xl text-white flex flex-col justify-center items-center shadow-lg p-3 hover:bg-[#1E2A6E] transition-colors duration-300"
         >
           <div className="flex items-center space-x-2">
-            <img src={createQuizIcon} alt="Create Quiz Icon" className="w-5 h-5" />
+            <img
+              src={createQuizIcon}
+              alt="Create Quiz Icon"
+              className="w-5 h-5"
+            />
             <span className="text-md font-semibold">Create Quiz</span>
           </div>
           <p className="text-xs text-amber-300 mt-2 text-center">

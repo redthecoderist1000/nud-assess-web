@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
+import adminIcon from "../../assets/images/admin_icon.png";
 import profilePic from "../../assets/images/sample_profile.png";
 import dashboardIcon from "../../assets/images/dashboard_icon.png";
 import quizManagementIcon from "../../assets/images/quizmanagement_icon.png";
@@ -36,6 +37,7 @@ const NavBar = () => {
             { to: "/dashboard/QuestionManagement", label: "Question Management", icon: questionManagementIcon },
             { to: "/dashboard/ClassManagement", label: "Class Management", icon: classManagementIcon },
             { to: "/dashboard/ReportAndAnalytics", label: "Report and Analytics", icon: reportAnalyticsIcon },
+            { to: "/dashboard/Administration", label: "Administration", icon: adminIcon },
             { to: "/dashboard/ProfileSettings", label: "Profile Settings", icon: profileSettingIcon },
           ].map(({ to, label, icon }, index) => (
             <li key={index}>

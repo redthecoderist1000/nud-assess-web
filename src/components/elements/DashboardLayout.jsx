@@ -9,7 +9,7 @@ const DashboardLayout = () => {
       <Sidebar />
 
       {/* Main Content Area (This is where DashboardPage will be inserted) */}
-      <div className="flex-1 p-6 overflow-auto ">
+      <div className="flex-1 overflow-auto ">
         <Outlet /> {/* This will render DashboardPage when at /dashboard */}
       </div>
     </div>

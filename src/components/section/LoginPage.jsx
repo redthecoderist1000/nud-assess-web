@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
 import loginImage from "../../assets/images/login_image.png";
@@ -7,49 +7,40 @@ import hideIcon from "../../assets/images/hide.png";
 import unhideIcon from "../../assets/images/unhide.png";
 import { motion } from "framer-motion";
 
+import { supabase, userContext } from "../../App";
+
 const LoginPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const userCon = useContext(userContext);
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      setError("Email and password are required.");
-      alert("Email and password are required.");
-    } 
-    // List of allowed domains
-    else {
-      const allowedDomains = ["@gmail.com", "@yahoo.com", "@outlook.com"];
-  
-      // Extract the domain from the email
-      const emailDomain = email.substring(email.lastIndexOf("@"));
-  
-      // Check if the email domain is in the allowed list
-      if (!allowedDomains.includes(emailDomain)) {
-        setError(
-          "Please enter a valid Email address (e.g., example@gmail.com).."
-        );
-        alert(
-          "Please enter a valid Email address (e.g., example@gmail.com)."
-        );
-      } 
-      // General email validation using regex
-      else if (
-        !/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-          email
-        )
-      ) {
-        setError("Please enter a valid email.");
-        alert("Please enter a valid email.");
-      } 
-      else {
-        setError("");
-        console.log("Logging in...");
-        navigate("/dashboard");
-      }
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    // correct na
+    setError("");
+    console.log("Logging in...");
+
+    // alert(email + password);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+    if (data.session == null) {
+      console.log("Error: " + error);
+      return;
     }
+
+    userCon.setUser({
+      ...userCon.user,
+      email: data.user.email,
+      user_id: data.user.id,
+    });
+
+    navigate("/dashboard");
   };
 
   return (
@@ -78,7 +69,7 @@ const LoginPage = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="w-full max-w-md">
+          <form className="w-full max-w-md" onSubmit={handleLogin}>
             <motion.h1
               className="text-4xl font-bold mb-3"
               initial={{ opacity: 0, y: -50 }}
@@ -110,7 +101,8 @@ const LoginPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                  placeholder=" "
+                  placeholder=""
+                  pattern="r'^[a-zA-Z0-9._%+-]+@(nu-dasma\.edu\.ph)$'"
                   required
                 />
                 <label
@@ -164,9 +156,12 @@ const LoginPage = () => {
               </span>
             </div>
 
+            <p className="text-red-500 text-sm mt-3">{error}</p>
+
             {/* Login Button */}
             <motion.button
-              onClick={handleLogin}
+              type="submit"
+              // onClick={handleLogin}
               className="w-full mt-4 p-3 bg-[#35408E] text-white rounded-md"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
@@ -191,14 +186,14 @@ const LoginPage = () => {
             </motion.p>
 
             {/* Separator */}
-            <div className="flex items-center my-6">
+            {/* <div className="flex items-center my-6">
               <hr className="flex-grow border-gray-300" />
               <span className="px-3 text-gray-400">Or login with</span>
               <hr className="flex-grow border-gray-300" />
-            </div>
+            </div> */}
 
             {/* Microsoft Login */}
-            <motion.button
+            {/* <motion.button
               className="flex items-center justify-center w-full p-3 border border-gray-300 rounded-md hover:bg-[#35408E] hover:text-white transition-colors duration-200"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -210,8 +205,8 @@ const LoginPage = () => {
                 className="w-5 h-5 mr-3"
               />
               Log in with Microsoft
-            </motion.button>
-          </div>
+            </motion.button> */}
+          </form>
         </motion.div>
 
         {/* Right Side - Image */}

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import sampleProfile from "../../assets/images/sample_profile.png";
 import classpagePicture from "../../assets/images/ClasspagePicture.png";
 import { motion } from "framer-motion"; // Import motion from framer-motion
+import { supabase } from "../../App";
 
 const ProfileSettingsPage = () => {
   const navigate = useNavigate(); // Initialize useNavigate
@@ -55,7 +56,12 @@ const ProfileSettingsPage = () => {
     }
 
     // Check for common domain typos
-    const commonDomains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"];
+    const commonDomains = [
+      "gmail.com",
+      "yahoo.com",
+      "hotmail.com",
+      "outlook.com",
+    ];
     const emailParts = email.trim().split("@");
     if (emailParts.length === 2) {
       const domain = emailParts[1].toLowerCase();
@@ -107,11 +113,12 @@ const ProfileSettingsPage = () => {
   const handleUpdate = () => {
     // Check if all fields are empty
     const isPersonalInfoEmpty =
-      !firstName.trim() && !middleName.trim() && !lastName.trim() && !email.trim();
+      !firstName.trim() &&
+      !middleName.trim() &&
+      !lastName.trim() &&
+      !email.trim();
     const isPrivacyEmpty =
-      !currentPassword.trim() &&
-      !newPassword.trim() &&
-      !confirmPassword.trim();
+      !currentPassword.trim() && !newPassword.trim() && !confirmPassword.trim();
     const isAvatarUpdated = avatarUrl !== sampleProfile;
 
     // If all fields are empty and no avatar change, show an alert
@@ -157,7 +164,8 @@ const ProfileSettingsPage = () => {
       confirmationMessage =
         "Are you sure you want to change your password and avatar?";
     } else if (isPersonalInfoUpdated) {
-      confirmationMessage = "Are you sure you want to change your personal info?";
+      confirmationMessage =
+        "Are you sure you want to change your personal info?";
     } else if (isPrivacyUpdated) {
       confirmationMessage = "Are you sure you want to change your password?";
     } else if (isAvatarUpdated) {
@@ -174,7 +182,9 @@ const ProfileSettingsPage = () => {
         // Special handling for password updates
         if (isPrivacyUpdated) {
           setIsModalOpen(false); // Close the modal before showing the next one
-          setModalMessage("You have updated your password. Are you sure you want to log out?");
+          setModalMessage(
+            "You have updated your password. Are you sure you want to log out?"
+          );
           setOnConfirmAction(() => () => navigate("/login"));
           setIsModalOpen(true); // Open the logout confirmation modal
         } else {
@@ -196,8 +206,10 @@ const ProfileSettingsPage = () => {
   // Function to handle logout and redirect to LoginPage
   const handleLogout = () => {
     setModalMessage("Are you sure you want to log out?");
-    setOnConfirmAction(() => () => {
+    setOnConfirmAction(() => async () => {
       console.log("Logging out...");
+      const { error } = await supabase.auth.signOut();
+
       navigate("/login"); // Route to LoginPage.jsx
     });
     setIsModalOpen(true);
@@ -215,10 +227,17 @@ const ProfileSettingsPage = () => {
         <div className="relative w-full">
           <div
             className="w-full h-48 bg-cover bg-center mb-5 rounded-t-lg"
-            style={{ backgroundImage: `url(${classpagePicture})`, backgroundSize: "cover" }}
+            style={{
+              backgroundImage: `url(${classpagePicture})`,
+              backgroundSize: "cover",
+            }}
           ></div>
           <div className="absolute top-35 right-0 mt-[-2rem] mr-4 z-10">
-            <img src={avatarUrl} alt="Profile" className="w-30 h-30 rounded-full" />
+            <img
+              src={avatarUrl}
+              alt="Profile"
+              className="w-30 h-30 rounded-full"
+            />
           </div>
         </div>
         {/* Main Content Container */}

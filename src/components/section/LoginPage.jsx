@@ -24,7 +24,6 @@ const LoginPage = () => {
     setError("");
     console.log("Logging in...");
 
-
     // alert(email + password);
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
@@ -182,7 +181,6 @@ const LoginPage = () => {
             >
               Login
             </motion.button>
-          </div>
 
             {/* Signup Link */}
             <motion.p

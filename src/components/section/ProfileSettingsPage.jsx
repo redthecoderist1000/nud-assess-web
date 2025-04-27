@@ -1,4 +1,3 @@
-
 import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import sampleProfile from "../../assets/images/sample_profile.png";
@@ -102,7 +101,9 @@ const ProfileSettingsPage = () => {
 
   const handleUpdatePersonalInfo = () => {
     if (!validatePersonalInfo()) return;
-    setModalMessage("Are you sure you want to update your personal information?");
+    setModalMessage(
+      "Are you sure you want to update your personal information?"
+    );
     setOnConfirmAction(() => () => {
       console.log("Updating personal information...");
       alert("Personal information updated successfully!");
@@ -199,7 +200,7 @@ const ProfileSettingsPage = () => {
     // Log update and prepare redirection logic
     console.log("Updating user profile...");
     alert("Profile updated successfully!");
-
+  };
   const handleUpdatePrivacy = () => {
     if (!validatePrivacy()) return;
     setModalMessage("Are you sure you want to update your password?");
@@ -255,7 +256,9 @@ const ProfileSettingsPage = () => {
             <div className="w-full md:w-1/3">
               <section>
                 <h3 className="text-lg font-bold mb-2">Personal Info</h3>
-                <p className="text-gray-600 mb-4">You can change your personal settings here.</p>
+                <p className="text-gray-600 mb-4">
+                  You can change your personal settings here.
+                </p>
               </section>
             </div>
             <div className="w-full md:w-2/3">
@@ -344,7 +347,9 @@ const ProfileSettingsPage = () => {
             <div className="w-full md:w-1/3">
               <section>
                 <h3 className="text-lg font-bold mb-2">Privacy</h3>
-                <p className="text-gray-600 mb-4">You can change your password here.</p>
+                <p className="text-gray-600 mb-4">
+                  You can change your password here.
+                </p>
               </section>
             </div>
             <div className="w-full md:w-2/3">
@@ -412,7 +417,9 @@ const ProfileSettingsPage = () => {
             <div className="w-full md:w-1/3">
               <section>
                 <h3 className="text-lg font-bold mb-2">Log out</h3>
-                <p className="text-gray-600 mb-4">You can log out your account here.</p>
+                <p className="text-gray-600 mb-4">
+                  You can log out your account here.
+                </p>
               </section>
             </div>
             <div className="mt-4 text-right md:w-2/3">

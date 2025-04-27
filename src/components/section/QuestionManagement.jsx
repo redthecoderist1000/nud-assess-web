@@ -24,27 +24,27 @@ const QuestionManagementPage = () => {
   const yearSubjects = {
     "1st Year": [
       { code: "CCTAPDVL - INF221", name: "Introduction to Programming" },
-      { code: "CCTAPDVL - INF222", name: "Basic Mathematics" }
+      { code: "CCTAPDVL - INF222", name: "Basic Mathematics" },
     ],
     "2nd Year": [
       { code: "CCTAPDVL - INF223", name: "Data Structures and Algorithms" },
-      { code: "CCTAPDVL - INF224", name: "Object-Oriented Programming" }
+      { code: "CCTAPDVL - INF224", name: "Object-Oriented Programming" },
     ],
     "3rd Year": [
       { code: "CCTAPDVL - INF225", name: "Software Engineering" },
-      { code: "CCTAPDVL - INF226", name: "Operating Systems" }
+      { code: "CCTAPDVL - INF226", name: "Operating Systems" },
     ],
     "4th Year": [
       { code: "CCTAPDVL - INF227", name: "Capstone Project" },
-      { code: "CCTAPDVL - INF228", name: "Machine Learning" }
-    ]
+      { code: "CCTAPDVL - INF228", name: "Machine Learning" },
+    ],
   };
 
   const yearButtons = [
     { year: "1st Year", color: "bg-gray-600", icon: firstYearIcon },
     { year: "2nd Year", color: "bg-blue-900", icon: secondYearIcon },
     { year: "3rd Year", color: "bg-gray-600", icon: thirdYearIcon },
-    { year: "4th Year", color: "bg-[#2D3B87]", icon: fourthYearIcon }
+    { year: "4th Year", color: "bg-[#2D3B87]", icon: fourthYearIcon },
   ];
 
   return (
@@ -58,12 +58,15 @@ const QuestionManagementPage = () => {
         <div>
           <h1 className="text-5xl font-bold mb-4">Question Management</h1>
           <p className="text-gray-600 mb-6">
-            Design and customize quizzes with questions, options, and scoring rules.
+            Design and customize quizzes with questions, options, and scoring
+            rules.
           </p>
         </div>
 
         <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-gradient-to-r from-gray-500 to-yellow-300">
-          <span className="text-lg font-semibold text-gray-900">Create new quiz?</span>
+          <span className="text-lg font-semibold text-gray-900">
+            Create new question?
+          </span>
           <div className="flex space-x-4">
             {/* <Link
               to="/dashboard/CreateManually"
@@ -109,7 +112,9 @@ const QuestionManagementPage = () => {
         </div>
 
         <div className="col-span-2 bg-white rounded-lg shadow-lg border mt-6 w-full overflow">
-          <div className="bg-blue-900 text-yellow-400 text-xl font-bold p-4 rounded-t-lg">{selectedYear}</div>
+          <div className="bg-blue-900 text-yellow-400 text-xl font-bold p-4 rounded-t-lg">
+            {selectedYear}
+          </div>
           <div className="p-4">
             {yearSubjects[selectedYear].map((subject, index) => (
               <div key={index} className="border-b py-2">
@@ -118,11 +123,16 @@ const QuestionManagementPage = () => {
                     <h3 className="font-bold">{subject.code}</h3>
                     <p className="text-gray-500 text-sm">{subject.name}</p>
                   </div>
-                  <button onClick={() => toggleDropdown(index)} className="text-gray-600">
+                  <button
+                    onClick={() => toggleDropdown(index)}
+                    className="text-gray-600"
+                  >
                     {openDropdown === index ? "▲" : "▼"}
                   </button>
                 </div>
-                <div className={`transition-max-height duration-300 ease-in-out overflow-hidden ${openDropdown === index ? "max-h-40" : "max-h-0"}`}>
+                <div
+                  className={`transition-max-height duration-300 ease-in-out overflow-hidden ${openDropdown === index ? "max-h-40" : "max-h-0"}`}
+                >
                   <div className="py-2 text-gray-700">
                     <p>Lesson 1 - Introduction</p>
                     <p>Lesson 2 - Fundamentals</p>

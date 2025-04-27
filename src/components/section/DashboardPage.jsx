@@ -50,7 +50,7 @@ const DashboardPage = () => {
           />
           <div className="flex flex-col">
             <span className="text-black font-semibold text-sm">
-              {userCon.user.uname}
+              {userCon.user.f_name + " " + userCon.user.l_name}
             </span>
             <span className="text-gray-400 text-xs">{userCon.user.role}</span>
           </div>
@@ -77,7 +77,6 @@ const DashboardPage = () => {
           </motion.button>
         ))}
       </motion.div> */}
-
 
       {/* Stats Grid */}
       <motion.div

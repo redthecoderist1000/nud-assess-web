@@ -69,7 +69,7 @@ const SignupPage = () => {
     }
 
     // List of allowed domains
-    const allowedDomains = ["@nu-dasma.edu.ph", "@students.nu-dasma.edu.ph"];
+    const allowedDomains = ["@nu-dasma.edu.ph"];
 
     // Extract the domain from the email
     const emailDomain = formData.email.substring(
@@ -79,14 +79,15 @@ const SignupPage = () => {
     // Check if the email domain is in the allowed list
     if (!allowedDomains.includes(emailDomain)) {
       setErrorMessage(
-        "Please enter a valid Email address (e.g., example@gmail.com)."
+        "Please enter a valid Email address (e.g., example@nu-dasma.edu.ph)."
       );
       return;
     }
 
     console.log("Account creation successful", formData);
     signupData.setSignupData(formData);
-    navigate("/signup-otp");
+    navigate("/");
+    // navigate("/signup-otp");
   };
 
   // Function to open modal with specific content

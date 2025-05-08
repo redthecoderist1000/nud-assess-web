@@ -9,19 +9,21 @@ const ClassAnalyticsChart = ({ classes }) => {
   }));
 
   return (
-    <div className="bg-gray-100 border rounded-lg p-5">
-      <h3 className="font-bold text-lg text-yellow-500">Class Analytics</h3>
-      <p className="text-sm text-gray-500">See here your class data.</p>
+    <div className="border rounded-lg bg-indigo-100">
+      <div className="items-center justify-between mb-4 bg-blue-900 p-5">
+        <h3 className="font-bold text-lg text-yellow-500">Class Analytics</h3>
+        <p className="text-sm text-white">See here your class data.</p>
+      </div>
 
       {/* Total Classes */}
-      <div className="bg-white mt-3 py-2 px-4 rounded-md shadow">
+      <div className="bg-white m-5 py-2 px-4 rounded-md shadow">
         <p className="text-gray-500 text-sm">Total class:</p>
         <p className="text-xl font-bold text-gray-800">{classes.length}</p>
       </div>
 
       {/* Chart */}
-      <div className="mt-3">
-        <ResponsiveContainer width="100%" height={150}>
+      <div className="m-5">
+        <ResponsiveContainer width="100%" height={350}>
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="name" tick={{ fill: "#4B5563", fontSize: 12 }} />

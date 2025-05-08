@@ -1,15 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import manuallyIcon from "../../assets/images/manually.png";
-import automaticallyIcon from "../../assets/images/automatically.png";
-import firstYearIcon from "../../assets/images/1st.png";
-import secondYearIcon from "../../assets/images/2nd.png";
-import thirdYearIcon from "../../assets/images/3rd.png";
-import fourthYearIcon from "../../assets/images/4th.png";
+import { motion } from "framer-motion";
+import QuizModal from "../elements/QuizModal";
+import QuestionRepoModal from "../elements/QuestionRepoModal";
 import VerticalBarChart from "../elements/VerticalBarChart";
-import { motion } from "framer-motion"; // 🌟 The spice
 
 const QuizmanagementPage = () => {
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [isRepoModalOpen, setIsRepoModalOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [selectedYear, setSelectedYear] = useState("1st Year");
 
@@ -17,8 +14,14 @@ const QuizmanagementPage = () => {
     setOpenDropdown(openDropdown === index ? null : index);
   };
 
-  const selectYear = (year) => {
-    setSelectedYear(year);
+  const selectYear = (event) => {
+    setSelectedYear(event.target.value);
+  };
+
+  const handleQuizOptionSelect = (option) => {
+    console.log(`${option} selected`);
+    setIsQuizModalOpen(false); // Close QuizModal
+    setIsRepoModalOpen(true); // Open QuestionRepoModal
   };
 
   const yearSubjects = {
@@ -40,13 +43,6 @@ const QuizmanagementPage = () => {
     ]
   };
 
-  const yearButtons = [
-    { year: "1st Year", color: "bg-gray-600", icon: firstYearIcon },
-    { year: "2nd Year", color: "bg-blue-900", icon: secondYearIcon },
-    { year: "3rd Year", color: "bg-gray-600", icon: thirdYearIcon },
-    { year: "4th Year", color: "bg-[#2D3B87]", icon: fourthYearIcon }
-  ];
-
   return (
     <motion.div
       className="flex h-screen overflow"
@@ -54,7 +50,7 @@ const QuizmanagementPage = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
-      <main className="flex-1 p-6 min-h-screen flex flex-col justify-between">
+      <main className="flex-1 p-6 min-h-screen flex flex-col justify-start">
         <div>
           <h1 className="text-5xl font-bold mb-4">Quiz Management</h1>
           <p className="text-gray-600 mb-6">
@@ -62,54 +58,31 @@ const QuizmanagementPage = () => {
           </p>
         </div>
 
-        <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-gradient-to-r from-gray-500 to-yellow-300">
-          <span className="text-lg font-semibold text-gray-900">Create new quiz?</span>
-          <div className="flex space-x-4">
-            {/* <Link
-              to="/dashboard/CreateManually"
-              className="flex items-center space-x-2 text-gray-800 font-medium hover:text-gray-900"
-            >
-              <span>Create manually</span>
-              <motion.img
-                src={manuallyIcon}
-                className="w-10"
-                alt="Manual"
-                whileHover={{ scale: 1.2, rotate: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              />
-            </Link> */}
-            <Link
-              to="/dashboard/CreateAutomatically"
-              className="flex items-center space-x-2 text-gray-800 font-medium hover:text-gray-900"
-            >
-              <span>Create automatically</span>
-              <motion.img
-                src={automaticallyIcon}
-                className="w-10"
-                alt="Auto"
-                whileHover={{ scale: 1.2, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              />
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-4 gap-4 mt-4">
-          {yearButtons.map((item, index) => (
-            <motion.div
-              key={index}
-              className={`rounded-lg p-4 flex flex-col items-center cursor-pointer transition-all duration-300 ${item.color} hover:scale-110 hover:shadow-2xl ${selectedYear === item.year ? "ring-4 ring-yellow-300" : ""}`}
-              whileHover={{ scale: 1.1, rotate: 1 }}
-              onClick={() => selectYear(item.year)}
-            >
-              <h2 className="text-xl font-bold text-yellow-400">{item.year}</h2>
-              <img src={item.icon} alt={item.year} className="w-40 mt-2" />
-            </motion.div>
-          ))}
+        <div className="flex items-center justify-end py-3 px-4 rounded-lg">
+          <button
+            onClick={() => setIsQuizModalOpen(true)}
+            className="bg-blue-900 text-white py-2 px-4 rounded-lg hover:bg-blue-800"
+          >
+            Create Quiz
+          </button>
         </div>
 
         <div className="col-span-2 bg-white rounded-lg shadow-lg border mt-6 w-full overflow">
-          <div className="bg-blue-900 text-yellow-400 text-xl font-bold p-4 rounded-t-lg">{selectedYear}</div>
+          <div className="bg-blue-900 text-yellow-400 text-xl font-bold p-4 rounded-t-lg flex justify-between items-center">
+            <span>{selectedYear}</span>
+            <select
+              id="yearDropdown"
+              value={selectedYear}
+              onChange={selectYear}
+              className="p-2 border rounded-lg bg-white text-blue-900"
+            >
+              {Object.keys(yearSubjects).map((year, index) => (
+                <option key={index} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="p-4">
             {yearSubjects[selectedYear].map((subject, index) => (
               <div key={index} className="border-b py-2">
@@ -138,6 +111,19 @@ const QuizmanagementPage = () => {
           <VerticalBarChart />
         </div>
       </main>
+
+      {/* Quiz Modal */}
+      <QuizModal
+        isOpen={isQuizModalOpen}
+        onClose={() => setIsQuizModalOpen(false)}
+        onSelectOption={handleQuizOptionSelect}
+      />
+
+      {/* Question Repository Modal */}
+      <QuestionRepoModal
+        isOpen={isRepoModalOpen}
+        onClose={() => setIsRepoModalOpen(false)}
+      />
     </motion.div>
   );
 };

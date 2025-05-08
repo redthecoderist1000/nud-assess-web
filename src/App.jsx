@@ -26,6 +26,9 @@ import ProfileSettingsPage from "./components/section/ProfileSettingsPage.jsx";
 import CreateAutomaticallyPage from "./components/section/CreateAutomaticallyPage.jsx";
 import CreateManuallyPage from "./components/section/CreateManuallyPage.jsx";
 import QuestionResultPage from "./components/section/QuestionResultPage.jsx";
+import CreateClass from "./components/elements/CreateClass.jsx";
+import CreateQuestionManually from "./components/section/CreateQuestionManually.jsx";
+import CreateQuestionAutomatically from "./components/section/CreateQuestionAutomatically.jsx";
 import Courses from "./Admin/Courses.jsx";
 import Program from "./Admin/Program.jsx";
 import Educator from "./Admin/Educator.jsx";
@@ -62,6 +65,10 @@ const AnimatedRoutes = () => {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/signup-otp" element={<SignupOtp />} />
 
+            <Route path="/class/:id" element={<ClassPage />} />
+            <Route path="/create-class" element={<CreateClass />} />
+
+
 
             {/* Dashboard Routes - Wrapped with Layout */}
             <Route element={<ProtectedRoutes />}>
@@ -84,10 +91,20 @@ const AnimatedRoutes = () => {
                   path="ProfileSettings"
                   element={<ProfileSettingsPage />}
                 />
-                <Route path="CreateManually" element={<CreateManuallyPage />} />
+                <Route 
+                path="CreateManually" 
+                element={<CreateManuallyPage />} />
                 <Route
                   path="CreateAutomatically"
                   element={<CreateAutomaticallyPage />}
+                />
+                <Route
+                  path="CreateQuestionManually"
+                  element={<CreateQuestionManually />}
+                />
+                <Route
+                  path="CreateQuestionAutomatically"
+                  element={<CreateQuestionAutomatically />}
                 />
                 <Route path="QuestionResult" element={<QuestionResultPage />} />
                 {/* admin only */}
@@ -110,7 +127,6 @@ const AnimatedRoutes = () => {
             </Route>
 
             {/* Catch-All */}
-            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </AnimatePresence>
       </userContext.Provider>

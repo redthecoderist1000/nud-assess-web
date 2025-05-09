@@ -57,7 +57,7 @@ const CreateAutomaticallyPage = () => {
     quizName: "",
     lesson: "",
     course: "",
-    class: "Class A", // Default value
+    class: "Class A", 
     timeLimit: "",
     startDate: "",
     endDate: "",

@@ -62,7 +62,6 @@ const AnimatedRoutes = () => {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/signup-otp" element={<SignupOtp />} />
 
-
             {/* Dashboard Routes - Wrapped with Layout */}
             <Route element={<ProtectedRoutes />}>
               <Route path="/dashboard" element={<DashboardLayout />}>
@@ -90,9 +89,9 @@ const AnimatedRoutes = () => {
                   element={<CreateAutomaticallyPage />}
                 />
                 <Route path="QuestionResult" element={<QuestionResultPage />} />
-                {/* admin only */}
 
                 <Route element={<ProtectedAdmin />}>
+                  {/* admin only */}
                   <Route
                     path="/dashboard/Administration"
                     element={<Program />}

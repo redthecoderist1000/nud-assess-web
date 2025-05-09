@@ -15,6 +15,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const userCon = useContext(userContext);
 
   const handleLogin = async (e) => {
@@ -22,6 +23,7 @@ const LoginPage = () => {
 
     // correct na
     setError("");
+    setIsLoading(true);
     console.log("Logging in...");
 
     // alert(email + password);
@@ -30,7 +32,10 @@ const LoginPage = () => {
       password: password,
     });
     if (data.session == null) {
-      console.log("Error: " + error);
+      // console.log("Error: " + error);
+      alert("Error: " + error);
+      setIsLoading(false);
+
       return;
     }
 
@@ -58,6 +63,7 @@ const LoginPage = () => {
       });
 
     navigate("/dashboard");
+    setIsLoading(false);
   };
 
   return (
@@ -175,11 +181,16 @@ const LoginPage = () => {
             <motion.button
               type="submit"
               // onClick={handleLogin}
-              className="w-full mt-4 p-3 bg-[#35408E] text-white rounded-md"
+              className={
+                isLoading
+                  ? "w-full mt-4 p-3 bg-[#969697] text-white rounded-md"
+                  : "w-full mt-4 p-3 bg-[#35408E] text-white rounded-md"
+              }
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
+              disabled={isLoading}
             >
-              Login
+              {isLoading ? "..." : "Log in"}
             </motion.button>
 
             {/* Signup Link */}

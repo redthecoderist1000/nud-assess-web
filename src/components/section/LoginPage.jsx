@@ -7,9 +7,12 @@ import hideIcon from "../../assets/images/hide.png";
 import unhideIcon from "../../assets/images/unhide.png";
 import { motion } from "framer-motion";
 
-import { supabase, userContext } from "../../App";
+import { userContext } from "../../App";
+import { supabase } from "../../helper/Supabase";
+import { authContext } from "./AuthPage";
 
 const LoginPage = () => {
+  const setIsRegister = useContext(authContext);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,7 +65,7 @@ const LoginPage = () => {
         });
       });
 
-    navigate("/dashboard");
+    // navigate("/dashboard");
     setIsLoading(false);
   };
 
@@ -164,9 +167,9 @@ const LoginPage = () => {
 
             {/* Remember Me & Forgot Password */}
             <div className="flex justify-between items-center mt-3">
-              <label className="flex items-center text-gray-600">
+              {/* <label className="flex items-center text-gray-600">
                 <input type="checkbox" className="mr-2" /> Remember me
-              </label>
+              </label> */}
               <span
                 onClick={() => navigate("/forgot-password")}
                 className="text-amber-400 text-sm cursor-pointer hover:underline"
@@ -202,7 +205,7 @@ const LoginPage = () => {
             >
               Don't have an account?{" "}
               <span
-                onClick={() => navigate("/signup")}
+                onClick={() => setIsRegister(true)}
                 className="text-amber-400 cursor-pointer hover:underline"
               >
                 Sign Up

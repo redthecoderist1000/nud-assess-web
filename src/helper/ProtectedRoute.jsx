@@ -1,20 +1,18 @@
 import { useContext } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { userContext } from "../App";
+import { supabase } from "./Supabase";
 
 const ProtectedRoutes = () => {
+  // const userTest = supabase.auth.getUser();
   const userCon = useContext(userContext);
-  let isAuthtenticated = false;
+  let isAuthenticated = false;
 
   if (userCon.user.email && userCon.user.user_id) {
-    isAuthtenticated = true;
+    isAuthenticated = true;
   }
 
-  return userCon.user.email && userCon.user.user_id ? (
-    <Outlet />
-  ) : (
-    <Navigate to="/" />
-  );
+  return isAuthenticated ? <Outlet /> : <Navigate to="/" />;
 };
 
 export default ProtectedRoutes;

@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import sampleProfile from "../../assets/images/sample_profile.png";
 import classpagePicture from "../../assets/images/ClasspagePicture.png";
 import { motion } from "framer-motion"; // Import motion from framer-motion
-import { supabase, userContext } from "../../App";
+import { userContext } from "../../App";
+import { supabase } from "../../helper/Supabase";
 
 const ProfileSettingsPage = () => {
   const navigate = useNavigate(); // Initialize useNavigate
@@ -221,7 +222,7 @@ const ProfileSettingsPage = () => {
 
       userCon.setUser({});
 
-      navigate("/"); // Route to LoginPage.jsx
+      // navigate("/"); // Route to LoginPage.jsx
     });
     setIsModalOpen(true);
   };

@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-const QuestionRepoModal = ({ isOpen, onClose }) => {
+const QuestionRepoModal = ({ isOpen, onClose, onSelect }) => {
   if (!isOpen) return null;
 
   return (
@@ -17,7 +17,7 @@ const QuestionRepoModal = ({ isOpen, onClose }) => {
           <li>
             <button
               className="w-full bg-white text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-200"
-              onClick={() => alert("Final Exam selected")}
+              onClick={() => onSelect("Final Exam")}
             >
               Final Exam
             </button>
@@ -25,7 +25,7 @@ const QuestionRepoModal = ({ isOpen, onClose }) => {
           <li>
             <button
               className="w-full bg-white text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-200"
-              onClick={() => alert("Quiz selected")}
+              onClick={() => onSelect("Quiz")}
             >
               Quiz
             </button>
@@ -33,7 +33,7 @@ const QuestionRepoModal = ({ isOpen, onClose }) => {
           <li>
             <button
               className="w-full bg-white text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-200"
-              onClick={() => alert("Personal selected")}
+              onClick={() => onSelect("Personal")}
             >
               Personal
             </button>

@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import automaticallyIcon from "../../assets/images/automatically.png";
-import VerticalBarChart from "../elements/VerticalBarChart";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import VerticalBarChart from "../elements/VerticalBarChart";
+import QuestionRepoModal from "../elements/QuestionRepoModal";
 
 const QuestionManagementPage = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [selectedYear, setSelectedYear] = useState("1st Year");
+  const [repoModalOpen, setRepoModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleDropdown = (index) => {
     setOpenDropdown(openDropdown === index ? null : index);
@@ -14,6 +16,11 @@ const QuestionManagementPage = () => {
 
   const selectYear = (event) => {
     setSelectedYear(event.target.value);
+  };
+
+  const handleRepoSelect = (choice) => {
+    setRepoModalOpen(false);
+    navigate("/dashboard/CreateQuestionAutomatically");
   };
 
   const yearSubjects = {
@@ -52,12 +59,12 @@ const QuestionManagementPage = () => {
 
         <div className="flex items-center justify-end py-3 px-4 rounded-lg">
           <div className="flex space-x-4">
-            <Link
-              to="/dashboard/CreateAutomatically"
-              className="bg-blue-900 text-white py-2 px-4 rounded-lg hover:bg-blue-800">
+            <button
+              className="bg-blue-900 text-white py-2 px-4 rounded-lg hover:bg-blue-800"
+              onClick={() => setRepoModalOpen(true)}
+            >
               <span>Create Questions</span>
-
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -111,6 +118,13 @@ const QuestionManagementPage = () => {
         <div className="mt-6">
           <VerticalBarChart />
         </div>
+
+        {/* Question Repo Modal */}
+        <QuestionRepoModal
+          isOpen={repoModalOpen}
+          onClose={() => setRepoModalOpen(false)}
+          onSelect={handleRepoSelect}
+        />
       </main>
     </motion.div>
   );

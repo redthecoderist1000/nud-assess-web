@@ -1,14 +1,20 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import QuizModal from "../elements/QuizModal";
 import QuestionRepoModal from "../elements/QuestionRepoModal";
 import VerticalBarChart from "../elements/VerticalBarChart";
+import TOS from "./TOS";
+import CreateAutomaticallyPage from "./CreateAutomaticallyPage";
 
 const QuizmanagementPage = () => {
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [isRepoModalOpen, setIsRepoModalOpen] = useState(false);
+  const [showTOS, setShowTOS] = useState(false);
+  const [showCreateAuto, setShowCreateAuto] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [selectedYear, setSelectedYear] = useState("1st Year");
+  const navigate = useNavigate();
 
   const toggleDropdown = (index) => {
     setOpenDropdown(openDropdown === index ? null : index);
@@ -19,9 +25,20 @@ const QuizmanagementPage = () => {
   };
 
   const handleQuizOptionSelect = (option) => {
-    console.log(`${option} selected`);
-    setIsQuizModalOpen(false); // Close QuizModal
-    setIsRepoModalOpen(true); // Open QuestionRepoModal
+    setIsQuizModalOpen(false);
+    setIsRepoModalOpen(true);
+  };
+
+  // Show TOS after selecting in QuestionRepoModal
+  const handleRepoSelect = (selectedOption) => {
+    setIsRepoModalOpen(false);
+    setShowTOS(true);
+  };
+
+  // Show CreateAutomaticallyPage after clicking Next in TOS
+  const handleTOSNext = () => {
+    setShowTOS(false);
+    setShowCreateAuto(true);
   };
 
   const yearSubjects = {
@@ -42,6 +59,27 @@ const QuizmanagementPage = () => {
       { code: "CCTAPDVL - INF228", name: "Machine Learning" }
     ]
   };
+
+  // Render flow
+  if (showCreateAuto) {
+    return <CreateAutomaticallyPage />;
+  }
+
+  if (showTOS) {
+    return (
+      <div>
+        <TOS />
+        <div className="flex justify-end mt-6 pr-10">
+          <button
+            className="bg-[#35408E] text-white px-8 py-2 rounded hover:bg-[#2c357e] transition text-lg font-semibold shadow"
+            onClick={handleTOSNext}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -123,6 +161,7 @@ const QuizmanagementPage = () => {
       <QuestionRepoModal
         isOpen={isRepoModalOpen}
         onClose={() => setIsRepoModalOpen(false)}
+        onSelect={handleRepoSelect}
       />
     </motion.div>
   );

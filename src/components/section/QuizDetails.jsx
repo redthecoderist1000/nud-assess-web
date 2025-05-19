@@ -7,7 +7,7 @@ const QUESTION_TYPES = [
   "Identification",
 ];
 
-const QuestionResultPage = () => {
+const QuizDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const formData = location.state?.formData || {};
@@ -481,32 +481,14 @@ const QuestionResultPage = () => {
 
       <div className="flex justify-between mt-8 flex-wrap gap-4">
         <button
-          onClick={() => setEditMode((prev) => !prev)}
+          onClick={() => alert('Quiz edit successfully!')}
           className="bg-[#35408E] text-white w-48 px-6 py-2 rounded-md hover:opacity-80 transition text-center shadow"
         >
-          {editMode ? "Done" : "Edit"}
-        </button>
-        <button
-          onClick={() => alert('Questions saved successfully!')}
-          className="bg-[#35408E] text-white w-48 px-6 py-2 rounded-md hover:opacity-80 transition text-center shadow"
-        >
-          Save Questions in Repository
-        </button>
-        <button
-          onClick={handlePrint}
-          className="bg-[#35408E] text-white w-48 px-6 py-2 rounded-md hover:opacity-80 transition text-center shadow"
-        >
-          Print
-        </button>
-        <button
-          onClick={() => alert('Quiz posted successfully!')}
-          className="bg-[#35408E] text-white w-48 px-6 py-2 rounded-md hover:opacity-80 transition text-center shadow"
-        >
-          Post
+          Edit
         </button>
       </div>
     </div>
   );
 };
 
-export default QuestionResultPage;
+export default QuizDetails;

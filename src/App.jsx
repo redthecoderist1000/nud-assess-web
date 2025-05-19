@@ -25,11 +25,13 @@ import ClassManagementPage from "./components/section/ClassManagementPage.jsx";
 import ReportAndAnalyticsPage from "./components/section/ReportAndAnalyticsPage.jsx";
 import ProfileSettingsPage from "./components/section/ProfileSettingsPage.jsx";
 import CreateAutomaticallyPage from "./components/section/CreateAutomaticallyPage.jsx";
-import QuestionResultPage from "./components/section/QuestionResultPage.jsx";
+import QuizResultPage from "./components/section/QuizResultPage.jsx";
 import CreateClass from "./components/elements/CreateClass.jsx";
 import CreateQuestionManually from "./components/section/CreateQuestionManually.jsx";
 import CreateQuestionAutomatically from "./components/section/CreateQuestionAutomatically.jsx";
 import QuestionSummary from "./components/section/QuestionSummary.jsx";
+import QuestionDetails from "./components/section/QuestionDetails.jsx";
+import QuizDetails from "./components/section/QuizDetails.jsx";
 import Courses from "./Admin/Courses.jsx";
 import Program from "./Admin/Program.jsx";
 import Educator from "./Admin/Educator.jsx";
@@ -112,6 +114,8 @@ const AnimatedRoutes = () => {
                 <Route index element={<DashboardPage />} />
                 <Route path="QuizManagement" element={<QuizmanagementPage />} />
                 <Route path="QuestionSummary" element={<QuestionSummary />} />
+                <Route path="QuestionDetails" element={<QuestionDetails />} />
+                <Route path="QuizDetails" element={<QuizDetails />} />
                 <Route
                   path="QuestionManagement"
                   element={<QuestionManagementPage />}
@@ -143,7 +147,7 @@ const AnimatedRoutes = () => {
                   path="CreateQuestionAutomatically"
                   element={<CreateQuestionAutomatically />}
                 />
-                <Route path="QuestionResult" element={<QuestionResultPage />} />
+                <Route path="QuizResult" element={<QuizResultPage />} />
 
                 <Route element={<ProtectedAdmin />}>
                   {/* admin only */}

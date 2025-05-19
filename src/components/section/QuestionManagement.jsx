@@ -18,9 +18,11 @@ const QuestionManagementPage = () => {
     setSelectedYear(event.target.value);
   };
 
-  const handleRepoSelect = (choice) => {
-    setRepoModalOpen(false);
-    navigate("/dashboard/CreateQuestionAutomatically");
+  const handleLessonClick = (lesson) => {
+    // Navigate to QuestionDetails.jsx with the lesson details
+    navigate("/dashboard/QuestionDetails", {
+      state: { lesson },
+    });
   };
 
   const yearSubjects = {
@@ -41,6 +43,12 @@ const QuestionManagementPage = () => {
       { code: "CCTAPDVL - INF228", name: "Machine Learning" },
     ],
   };
+
+  const lessons = [
+    { id: 1, title: "Lesson 1 - Introduction" },
+    { id: 2, title: "Lesson 2 - Fundamentals" },
+    { id: 3, title: "Lesson 3 - Advanced Topics" },
+  ];
 
   return (
     <motion.div
@@ -105,9 +113,15 @@ const QuestionManagementPage = () => {
                   }`}
                 >
                   <div className="py-2 text-gray-700">
-                    <p>Lesson 1 - Introduction</p>
-                    <p>Lesson 2 - Fundamentals</p>
-                    <p>Lesson 3 - Advanced Topics</p>
+                    {lessons.map((lesson) => (
+                      <p
+                        key={lesson.id}
+                        className="cursor-pointer text-blue-600 hover:underline"
+                        onClick={() => handleLessonClick(lesson)}
+                      >
+                        {lesson.title}
+                      </p>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -123,7 +137,7 @@ const QuestionManagementPage = () => {
         <QuestionRepoModal
           isOpen={repoModalOpen}
           onClose={() => setRepoModalOpen(false)}
-          onSelect={handleRepoSelect}
+          onSelect={() => navigate("/dashboard/CreateQuestionAutomatically")}
         />
       </main>
     </motion.div>

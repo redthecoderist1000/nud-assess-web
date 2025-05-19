@@ -17,7 +17,6 @@ const lessonOptions = [
   { value: "", label: "-" },
   { value: "Lesson 1", label: "Lesson 1" },
   { value: "Lesson 2", label: "Lesson 2" },
-  // Add more lessons as needed
 ];
 
 const TOS = () => {

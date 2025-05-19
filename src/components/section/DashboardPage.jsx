@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import createIcon from "../../assets/images/create_icon.png";
@@ -7,20 +7,64 @@ import bookmarkIcon from "../../assets/images/bookmark.png";
 import LineChart from "../elements/LineChart";
 import HorizontalLineChart from "../elements/HorizontalLineChart";
 import DoughnutChart from "../elements/DoughnutChart";
-import FlaggedQuestion from "../elements/FlaggedQuestions";
 import { userContext } from "../../App";
+import QuizModal from "../elements/QuizModal";
+import QuestionRepoModal from "../elements/QuestionRepoModal";
+import CreateClass from "../elements/CreateClass";
+import TOS from "./TOS";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const userCon = useContext(userContext);
 
+  // State for modals
+  const [quizModalOpen, setQuizModalOpen] = useState(false);
+  const [repoModalOpen, setRepoModalOpen] = useState(false);
+  const [createClassOpen, setCreateClassOpen] = useState(false);
+  const [modalSource, setModalSource] = useState(null); // "quiz" or "question"
+  const [showTOS, setShowTOS] = useState(false); // State to show TOS
+
   const handleButtonClick = (buttonName) => {
-    if (buttonName === "Create Quiz" || buttonName === "Create Questions") {
-      navigate("CreateManually");
+    if (buttonName === "Create Quiz") {
+      setModalSource("quiz");
+      setQuizModalOpen(true);
+    } else if (buttonName === "Create Questions") {
+      setModalSource("question");
+      setRepoModalOpen(true);
     } else if (buttonName === "Create Class") {
-      navigate("ClassManagement");
+      setCreateClassOpen(true);
     }
   };
+
+  const handleQuizOption = (option) => {
+    setQuizModalOpen(false);
+    if (modalSource === "quiz") {
+      setRepoModalOpen(true);
+    }
+  };
+
+  const handleRepoSelect = (selectedOption) => {
+    setRepoModalOpen(false);
+    if (modalSource === "quiz") {
+      setShowTOS(true); // Show TOS first
+    } else if (modalSource === "question") {
+      setModalSource(null);
+      navigate("/dashboard/CreateQuestionAutomatically");
+    }
+  };
+
+  const handleTOSNext = () => {
+    setShowTOS(false); // Hide TOS
+    navigate("/dashboard/CreateAutomatically"); // Navigate to CreateAutomatically
+  };
+
+  const handleCreateClassSave = (newClassData) => {
+    setCreateClassOpen(false);
+  };
+
+  if (showTOS) {
+    return <TOS onNext={handleTOSNext} />;
+  }
 
   return (
     <motion.main
@@ -58,13 +102,12 @@ const DashboardPage = () => {
       </motion.div>
 
       {/* Action Buttons */}
-      {/* <motion.div
+      <motion.div
         className="flex gap-4 px-4 mb-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-
         {["Create Quiz", "Create Questions", "Create Class"].map((text, index) => (
           <motion.button
             key={index}
@@ -76,7 +119,7 @@ const DashboardPage = () => {
             <span>{text}</span>
           </motion.button>
         ))}
-      </motion.div> */}
+      </motion.div>
 
       {/* Stats Grid */}
       <motion.div
@@ -130,14 +173,31 @@ const DashboardPage = () => {
         <DoughnutChart />
       </motion.div>
 
-      {/* Flagged Questions */}
-      {/* <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 1.1 }}
-      >
-        <FlaggedQuestion />
-      </motion.div> */}
+      {/* Quiz Modal */}
+      <QuizModal
+        isOpen={quizModalOpen}
+        onClose={() => setQuizModalOpen(false)}
+        onSelectOption={handleQuizOption}
+      />
+
+      {/* Question Repo Modal */}
+      <QuestionRepoModal
+        isOpen={repoModalOpen}
+        onClose={() => setRepoModalOpen(false)}
+        onSelect={handleRepoSelect}
+      />
+
+      {/* Create Class Modal */}
+      {createClassOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 ">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
+            <CreateClass
+              onSave={handleCreateClassSave}
+              onCancel={() => setCreateClassOpen(false)}
+            />
+          </div>
+        </div>
+      )}
     </motion.main>
   );
 };

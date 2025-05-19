@@ -69,6 +69,18 @@ const LoginPage = () => {
     setIsLoading(false);
   };
 
+  const magicOtpTest = async () => {
+    console.log("daad test");
+
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email: "thehandsomered@gmail.com",
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: "http://localhost:5173/",
+      },
+    });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -183,7 +195,7 @@ const LoginPage = () => {
             {/* Login Button */}
             <motion.button
               type="submit"
-              // onClick={handleLogin}
+              // onClick={magicOtpTest}
               className={
                 isLoading
                   ? "w-full mt-4 p-3 bg-[#969697] text-white rounded-md"

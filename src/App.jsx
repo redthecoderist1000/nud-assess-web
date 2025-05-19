@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -42,6 +48,7 @@ import ProtectedAdmin from "./helper/ProtectedAdmin.jsx";
 import ProtectedLoggedin from "./helper/ProtectedLoggedin.jsx";
 import { supabase } from "./helper/Supabase.jsx";
 import AuthPage from "./components/section/AuthPage.jsx";
+import AdminPage from "./Admin/AdminPage.jsx";
 
 export const userContext = createContext();
 export const signupContext = createContext();
@@ -102,6 +109,7 @@ const AnimatedRoutes = () => {
               <Route path="/" element={<AuthPage />} />
               <Route path="/signup-otp" element={<SignupOtp />} />
 
+              {/* di pa ayos */}
               <Route path="/class/:id" element={<ClassPage />} />
               <Route path="/create-class" element={<CreateClass />} />
             </Route>
@@ -147,9 +155,13 @@ const AnimatedRoutes = () => {
 
                 <Route element={<ProtectedAdmin />}>
                   {/* admin only */}
-                  <Route
+                  {/* <Route
                     path="/dashboard/Administration"
                     element={<Program />}
+                  /> */}
+                  <Route
+                    path="/dashboard/Administration"
+                    element={<AdminPage />}
                   />
                   <Route
                     path="/dashboard/Administration/Courses"

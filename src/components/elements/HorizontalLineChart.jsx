@@ -12,7 +12,7 @@ const data = [
 const HorizontalLineChart = () => {
   return (
     <div className="p-4 w-1/2 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-semibold mb-4">Challenging Topics</h2>
+      <h2 className="text-2xl font-semibold mb-4">Challenging Subjects</h2>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart layout="vertical" data={data} margin={{ left: 0, right: 0 }} barCategoryGap={5}>
           {/* Gradient Fill */}

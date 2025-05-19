@@ -121,26 +121,6 @@ const NavBar = () => {
           ))}
         </ul>
       </nav>
-
-      {/* Create Quiz Button */}
-      <div className="flex justify-center mt-8">
-        <button
-          onClick={() => navigate("/dashboard/QuizManagement")}
-          className="w-2/3 bg-[#2D3B87] rounded-xl text-white flex flex-col justify-center items-center shadow-lg p-3 hover:bg-[#1E2A6E] transition-colors duration-300"
-        >
-          <div className="flex items-center space-x-2">
-            <img
-              src={createQuizIcon}
-              alt="Create Quiz Icon"
-              className="w-5 h-5"
-            />
-            <span className="text-md font-semibold">Create Quiz</span>
-          </div>
-          <p className="text-xs text-amber-300 mt-2 text-center">
-            Upload your materials <br /> and auto generate <br /> your quiz
-          </p>
-        </button>
-      </div>
     </aside>
   );
 };

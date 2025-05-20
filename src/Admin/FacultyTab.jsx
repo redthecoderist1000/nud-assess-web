@@ -1,6 +1,12 @@
 import {
   Box,
   Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Input,
   InputAdornment,
   Paper,
@@ -13,6 +19,7 @@ import {
   TablePagination,
   TableRow,
   TableSortLabel,
+  Typography,
 } from "@mui/material";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../helper/Supabase";
@@ -98,6 +105,9 @@ function FacultyTab() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const [assignDialog, setAssignDialog] = useState(false);
+  const [selected, setSelected] = useState({});
+
   async function fetchData() {
     let { data, error } = await supabase
       .from("vw_facultysubject")
@@ -112,7 +122,12 @@ function FacultyTab() {
     const result = Object.values(
       data.reduce((acc, item) => {
         acc[item.id] = acc[item.id] || { ...item, id: item.id, subjects: [] };
-        acc[item.id].subjects.push(item.subject_code);
+        if (item.subject_code == null)
+          acc[item.id].subjects.push(item.subject_code);
+        else
+          acc[item.id].subjects.push(
+            item.subject_code + " (" + item.name + ")"
+          );
         return acc;
       }, {})
     );
@@ -167,7 +182,7 @@ function FacultyTab() {
       <Stack direction="row" mt={5} mb={2} justifyContent="space-between">
         <Input
           id="search_input"
-          placeholder="Search"
+          placeholder="search faculty name..."
           value={search}
           sx={{ width: "25%" }}
           onChange={handleSearch}
@@ -208,10 +223,32 @@ function FacultyTab() {
                       {name}
                     </TableCell>
 
-                    <TableCell align="left">
-                      {row.subjects.map((data, index) => {
-                        return <p key={index}>{data}</p>;
-                      })}
+                    <TableCell align="left" width="fit-content">
+                      {/* {row.subject} */}
+                      <Stack
+                        rowGap={1}
+                        columnGap={4}
+                        direction="column"
+                        useFlexGap
+                        sx={{ flexWrap: "wrap" }}
+                        // width="100%"
+                        width="fit-content"
+                        maxHeight="100px"
+                      >
+                        {row.subjects.map((data, index) => {
+                          return <p key={index}>{data}</p>;
+                        })}
+                      </Stack>
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => {
+                          setSelected(row);
+                          setAssignDialog(true);
+                        }}
+                      >
+                        Assign Subject
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
@@ -229,6 +266,30 @@ function FacultyTab() {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
+
+      <Dialog open={assignDialog} onClose={() => setAssignDialog(false)}>
+        <DialogTitle>Assign subject</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Do you want to remove the faculty incharged for{" "}
+          </DialogContentText>
+        </DialogContent>
+        {loading ? (
+          <CircularProgress />
+        ) : (
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setAssignDialog(false);
+              }}
+              color="danger"
+            >
+              Cancel
+            </Button>
+            <Button>Continue</Button>
+          </DialogActions>
+        )}
+      </Dialog>
     </div>
   );
 }

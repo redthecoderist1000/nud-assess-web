@@ -324,7 +324,7 @@ function SubjectTab() {
       <Stack direction="row" mt={5} mb={2} justifyContent="space-between">
         <Input
           id="search_input"
-          placeholder="Search"
+          placeholder="search..."
           value={search}
           sx={{ width: "25%" }}
           onChange={handleSearch}
@@ -383,6 +383,7 @@ function SubjectTab() {
                     <TableCell align="right">
                       <Stack direction="row" gap={3} width="min-content">
                         <Button
+                          size="small"
                           variant="contained"
                           color={assigned ? "warning" : "success"}
                           onClick={() => {
@@ -397,6 +398,7 @@ function SubjectTab() {
                           <></>
                         ) : (
                           <Button
+                            size="small"
                             variant="contained"
                             color="error"
                             onClick={() => {

@@ -14,7 +14,7 @@ const AdminNav = (props) => {
       />
 
       <div className="bg-[#35408E] text-white flex  py-3 m-0">
-        <span
+        {/* <span
           onClick={() => {
             props.setValue(0);
           }}
@@ -23,7 +23,7 @@ const AdminNav = (props) => {
           }`}
         >
           Program
-        </span>
+        </span> */}
         <span
           onClick={() => {
             props.setValue(1);
@@ -32,7 +32,7 @@ const AdminNav = (props) => {
             props.value === 1 ? "text-amber-400 font-bold" : ""
           }`}
         >
-          Faculty Incharge
+          Subjects
         </span>
         <span
           onClick={() => {
@@ -42,7 +42,7 @@ const AdminNav = (props) => {
             props.value === 2 ? "text-amber-400 font-bold" : ""
           }`}
         >
-          Educator
+          Faculty
         </span>
         <span
           onClick={() => {

@@ -7,12 +7,16 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
   Input,
   InputAdornment,
+  InputLabel,
   List,
   ListItemButton,
   ListItemText,
+  MenuItem,
   Paper,
+  Select,
   Stack,
   Table,
   TableBody,
@@ -22,6 +26,7 @@ import {
   TablePagination,
   TableRow,
   TableSortLabel,
+  TextField,
 } from "@mui/material";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { visuallyHidden } from "@mui/utils";
@@ -145,6 +150,48 @@ function SubjectTab() {
   const [facultySearch, setFacultySearch] = useState("");
 
   const [loading, setLoading] = useState(false);
+
+  // add subjject
+  const [addSubDialog, setAddSubDialog] = useState(false);
+  const [addSubForm, setAddSubForm] = useState({});
+
+  const handleSubFormChange = (e) => {
+    setAddSubForm({ ...addSubForm, [e.target.id]: e.target.value });
+  };
+
+  const addSubConfirm = () => {
+    (async () => {
+      let { data, error } = await supabase
+        .from("tbl_subject")
+        .insert({
+          name: addSubForm.subject_name,
+          subject_code: addSubForm.subject_code,
+          department_id: user.department_id,
+        })
+        .select("*")
+        .single();
+
+      if (error) {
+        console.log("Error inserting data:", error);
+        return;
+      }
+
+      // program id
+
+      let program_id = await supabase
+        .from("tbl_program")
+        .select("id")
+        .eq("program_chair", user.user_id)
+        .single();
+
+      // console.log(data);
+
+      await supabase.from("tbl_program_subject").insert({
+        program_id: program_id.data.id,
+        subject_id: data.id,
+      });
+    })();
+  };
 
   const handleFacultySearch = (e) => setFacultySearch(e.target.value);
   const visibleOptions = useMemo(
@@ -341,7 +388,15 @@ function SubjectTab() {
             )
           }
         />
-        {/* <Button variant="contained">Create Subject</Button> */}
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => {
+            setAddSubDialog(true);
+          }}
+        >
+          Create Subject
+        </Button>
       </Stack>
       <Paper sx={{ width: "100%", mb: 5 }}>
         <TableContainer>
@@ -567,6 +622,8 @@ function SubjectTab() {
 
       {/* remove faculty dialog */}
       <Dialog
+        fullWidth={true}
+        maxWidth="sm"
         open={removeInchargeDialog}
         onClose={() => setRemoveInchargeDialog(false)}
       >
@@ -590,6 +647,50 @@ function SubjectTab() {
               Cancel
             </Button>
             <Button onClick={removeFaculty}>Continue</Button>
+          </DialogActions>
+        )}
+      </Dialog>
+
+      {/* add subject dialog */}
+      <Dialog
+        open={addSubDialog}
+        onClose={() => setAddSubDialog(false)}
+        fullWidth={true}
+        maxWidth="sm"
+      >
+        <DialogTitle>Add subject</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Add subject into your program?</DialogContentText>
+          <Box component="form" mt={2}>
+            <Stack direction="column" gap={1}>
+              <TextField
+                required
+                id="subject_name"
+                label="Subject Name"
+                onChange={handleSubFormChange}
+              />
+              <TextField
+                required
+                id="subject_code"
+                label="Subject Code"
+                onChange={handleSubFormChange}
+              />
+            </Stack>
+          </Box>
+        </DialogContent>
+        {loading ? (
+          <CircularProgress />
+        ) : (
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setAddSubDialog(false);
+              }}
+              color="danger"
+            >
+              Cancel
+            </Button>
+            <Button onClick={addSubConfirm}>Continue</Button>
           </DialogActions>
         )}
       </Dialog>

@@ -1,14 +1,18 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import QuizModal from "../elements/QuizModal";
 import QuestionRepoModal from "../elements/QuestionRepoModal";
 import VerticalBarChart from "../elements/VerticalBarChart";
+import TOS from "./TOS";
 
 const QuizmanagementPage = () => {
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [isRepoModalOpen, setIsRepoModalOpen] = useState(false);
+  const [showTOS, setShowTOS] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [selectedYear, setSelectedYear] = useState("1st Year");
+  const navigate = useNavigate();
 
   const toggleDropdown = (index) => {
     setOpenDropdown(openDropdown === index ? null : index);
@@ -18,30 +22,53 @@ const QuizmanagementPage = () => {
     setSelectedYear(event.target.value);
   };
 
-  const handleQuizOptionSelect = (option) => {
-    console.log(`${option} selected`);
-    setIsQuizModalOpen(false); // Close QuizModal
-    setIsRepoModalOpen(true); // Open QuestionRepoModal
+  const handleLessonClick = (lesson) => {
+    // Navigate to QuizDetails.jsx with the lesson details
+    navigate("/dashboard/QuizDetails", {
+      state: { lesson },
+    });
+  };
+
+  const handleQuizModalSelect = () => {
+    // Close QuizModal and open QuestionRepoModal
+    setIsQuizModalOpen(false);
+    setIsRepoModalOpen(true);
+  };
+
+  const handleRepoModalSelect = () => {
+    // Close QuestionRepoModal and show TOS
+    setIsRepoModalOpen(false);
+    setShowTOS(true);
   };
 
   const yearSubjects = {
     "1st Year": [
       { code: "CCTAPDVL - INF221", name: "Introduction to Programming" },
-      { code: "CCTAPDVL - INF222", name: "Basic Mathematics" }
+      { code: "CCTAPDVL - INF222", name: "Basic Mathematics" },
     ],
     "2nd Year": [
       { code: "CCTAPDVL - INF223", name: "Data Structures and Algorithms" },
-      { code: "CCTAPDVL - INF224", name: "Object-Oriented Programming" }
+      { code: "CCTAPDVL - INF224", name: "Object-Oriented Programming" },
     ],
     "3rd Year": [
       { code: "CCTAPDVL - INF225", name: "Software Engineering" },
-      { code: "CCTAPDVL - INF226", name: "Operating Systems" }
+      { code: "CCTAPDVL - INF226", name: "Operating Systems" },
     ],
     "4th Year": [
       { code: "CCTAPDVL - INF227", name: "Capstone Project" },
-      { code: "CCTAPDVL - INF228", name: "Machine Learning" }
-    ]
+      { code: "CCTAPDVL - INF228", name: "Machine Learning" },
+    ],
   };
+
+  const lessons = [
+    { id: 1, title: "Lesson 1 - Introduction" },
+    { id: 2, title: "Lesson 2 - Fundamentals" },
+    { id: 3, title: "Lesson 3 - Advanced Topics" },
+  ];
+
+  if (showTOS) {
+    return <TOS onNext={() => setShowTOS(false)} />;
+  }
 
   return (
     <motion.div
@@ -95,11 +122,21 @@ const QuizmanagementPage = () => {
                     {openDropdown === index ? "▲" : "▼"}
                   </button>
                 </div>
-                <div className={`transition-max-height duration-300 ease-in-out overflow-hidden ${openDropdown === index ? "max-h-40" : "max-h-0"}`}>
+                <div
+                  className={`transition-max-height duration-300 ease-in-out overflow-hidden ${
+                    openDropdown === index ? "max-h-40" : "max-h-0"
+                  }`}
+                >
                   <div className="py-2 text-gray-700">
-                    <p>Lesson 1 - Introduction</p>
-                    <p>Lesson 2 - Fundamentals</p>
-                    <p>Lesson 3 - Advanced Topics</p>
+                    {lessons.map((lesson) => (
+                      <p
+                        key={lesson.id}
+                        className="cursor-pointer text-blue-600 hover:underline"
+                        onClick={() => handleLessonClick(lesson)}
+                      >
+                        {lesson.title}
+                      </p>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -116,13 +153,14 @@ const QuizmanagementPage = () => {
       <QuizModal
         isOpen={isQuizModalOpen}
         onClose={() => setIsQuizModalOpen(false)}
-        onSelectOption={handleQuizOptionSelect}
+        onSelectOption={handleQuizModalSelect}
       />
 
       {/* Question Repository Modal */}
       <QuestionRepoModal
         isOpen={isRepoModalOpen}
         onClose={() => setIsRepoModalOpen(false)}
+        onSelect={handleRepoModalSelect}
       />
     </motion.div>
   );

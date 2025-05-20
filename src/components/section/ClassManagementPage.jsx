@@ -90,7 +90,10 @@ const ClassManagementPage = () => {
               >
                 <div
                   className="flex items-center flex-1 cursor-pointer"
-                  onClick={() => navigate(`/class/${cls.id}`, { state: cls })}
+                  onClick={() => {
+                    console.log("Navigating to class:", cls.id);
+                    navigate(`/dashboard/class/${cls.id}`, { state: cls });
+                  }}
                 >
                   <img
                     src={cls.image || temporaryImage || "https://via.placeholder.com/150"}

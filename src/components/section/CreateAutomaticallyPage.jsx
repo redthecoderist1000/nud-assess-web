@@ -143,7 +143,7 @@ const CreateAutomaticallyPage = () => {
     }
 
     console.log("✅ Form is valid! Navigating to QuestionResultPage...", finalFormData);
-    navigate("/dashboard/QuestionResult", { state: { formData: finalFormData } });
+    navigate("/dashboard/QuizResult", { state: { formData: finalFormData } });
   };
 
   return (

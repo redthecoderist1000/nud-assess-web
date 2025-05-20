@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -25,11 +31,13 @@ import ClassManagementPage from "./components/section/ClassManagementPage.jsx";
 import ReportAndAnalyticsPage from "./components/section/ReportAndAnalyticsPage.jsx";
 import ProfileSettingsPage from "./components/section/ProfileSettingsPage.jsx";
 import CreateAutomaticallyPage from "./components/section/CreateAutomaticallyPage.jsx";
-import CreateManuallyPage from "./components/section/CreateManuallyPage.jsx";
-import QuestionResultPage from "./components/section/QuestionResultPage.jsx";
+import QuizResultPage from "./components/section/QuizResultPage.jsx";
 import CreateClass from "./components/elements/CreateClass.jsx";
 import CreateQuestionManually from "./components/section/CreateQuestionManually.jsx";
 import CreateQuestionAutomatically from "./components/section/CreateQuestionAutomatically.jsx";
+import QuestionSummary from "./components/section/QuestionSummary.jsx";
+import QuestionDetails from "./components/section/QuestionDetails.jsx";
+import QuizDetails from "./components/section/QuizDetails.jsx";
 import Courses from "./Admin/Courses.jsx";
 import Program from "./Admin/Program.jsx";
 import Educator from "./Admin/Educator.jsx";
@@ -42,6 +50,7 @@ import ProtectedAdmin from "./helper/ProtectedAdmin.jsx";
 import ProtectedLoggedin from "./helper/ProtectedLoggedin.jsx";
 import { supabase } from "./helper/Supabase.jsx";
 import AuthPage from "./components/section/AuthPage.jsx";
+import AdminPage from "./Admin/AdminPage.jsx";
 
 export const userContext = createContext();
 export const signupContext = createContext();
@@ -84,6 +93,7 @@ const AnimatedRoutes = () => {
                 f_name: data2.data.f_name,
                 m_name: data2.data.m_name,
                 l_name: data2.data.l_name,
+                department_id: data2.data.department_id,
               });
             });
         }
@@ -102,8 +112,10 @@ const AnimatedRoutes = () => {
               <Route path="/" element={<AuthPage />} />
               <Route path="/signup-otp" element={<SignupOtp />} />
 
+              {/* di pa ayos */}
               <Route path="/class/:id" element={<ClassPage />} />
               <Route path="/create-class" element={<CreateClass />} />
+              <Route path="/question-summary" element={<QuestionSummary />} />
             </Route>
 
             {/* Dashboard Routes - Wrapped with Layout */}
@@ -111,6 +123,9 @@ const AnimatedRoutes = () => {
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="QuizManagement" element={<QuizmanagementPage />} />
+                <Route path="QuestionSummary" element={<QuestionSummary />} />
+                <Route path="QuestionDetails" element={<QuestionDetails />} />
+                <Route path="QuizDetails" element={<QuizDetails />} />
                 <Route
                   path="QuestionManagement"
                   element={<QuestionManagementPage />}
@@ -130,7 +145,6 @@ const AnimatedRoutes = () => {
 
                 {/* <Route path="/class/:id" element={<ClassPage />} />
                 <Route path="/create-class" element={<CreateClass />} /> */}
-                <Route path="CreateManually" element={<CreateManuallyPage />} />
                 <Route
                   path="CreateAutomatically"
                   element={<CreateAutomaticallyPage />}
@@ -143,13 +157,17 @@ const AnimatedRoutes = () => {
                   path="CreateQuestionAutomatically"
                   element={<CreateQuestionAutomatically />}
                 />
-                <Route path="QuestionResult" element={<QuestionResultPage />} />
+                <Route path="QuizResult" element={<QuizResultPage />} />
 
                 <Route element={<ProtectedAdmin />}>
                   {/* admin only */}
-                  <Route
+                  {/* <Route
                     path="/dashboard/Administration"
                     element={<Program />}
+                  /> */}
+                  <Route
+                    path="/dashboard/Administration"
+                    element={<AdminPage />}
                   />
                   <Route
                     path="/dashboard/Administration/Courses"

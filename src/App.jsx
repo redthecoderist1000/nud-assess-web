@@ -51,6 +51,7 @@ import ProtectedLoggedin from "./helper/ProtectedLoggedin.jsx";
 import { supabase } from "./helper/Supabase.jsx";
 import AuthPage from "./components/section/AuthPage.jsx";
 import AdminPage from "./Admin/AdminPage.jsx";
+import SetUpAccount from "./components/section/SetUpAccount.jsx";
 
 export const userContext = createContext();
 export const signupContext = createContext();
@@ -66,36 +67,48 @@ const AnimatedRoutes = () => {
   const signupVal = { signupData, setSignupData };
 
   useEffect(() => {
+    // supabase.auth.signOut();
     supabase.auth.onAuthStateChange((event, session) => {
       // console.log(event, session);
+      // console.log("is_verified: ", session.user.user_metadata.email_verified);
+      if (session == null) {
+        navigate("/");
+        return;
+      }
 
       if (event === "SIGNED_IN") {
-        // handle singed in event
-        // console.log("loged na sii bro", session);
-
         if (!user.email && !user.user_id) {
           // setUser({ email: session.user.email, user_id: session.user.id });
 
-          supabase
-            .from("tbl_users")
-            .select("*")
-            .eq("id", session.user.id)
-            .single()
-            .then((data2) => {
-              // console.log(data2.data);
+          (async () => {
+            let { data, error } = await supabase
+              .from("tbl_users")
+              .select("*")
+              .eq("id", session.user.id)
+              .single();
 
-              setUser({
-                ...user.user,
-                email: session.user.email,
-                user_id: session.user.id,
-                suffix: data2.data.suffix,
-                role: data2.data.role,
-                f_name: data2.data.f_name,
-                m_name: data2.data.m_name,
-                l_name: data2.data.l_name,
-                department_id: data2.data.department_id,
+            if (error) {
+              // console.log("error ewan", error);
+              // navigate to set up
+              navigate("setup", {
+                state: { email: session.user.email, user_id: session.user.id },
               });
+              return;
+            }
+
+            // console.log("setup done:", data);
+            setUser({
+              ...user.user,
+              email: session.user.email,
+              user_id: session.user.id,
+              suffix: data.suffix,
+              role: data.role,
+              f_name: data.f_name,
+              m_name: data.m_name,
+              l_name: data.l_name,
+              department_id: data.department_id,
             });
+          })();
         }
       }
     });
@@ -111,6 +124,7 @@ const AnimatedRoutes = () => {
             <Route element={<ProtectedLoggedin />}>
               <Route path="/" element={<AuthPage />} />
               <Route path="/signup-otp" element={<SignupOtp />} />
+              <Route path="/setup" element={<SetUpAccount />} />
 
               {/* di pa ayos */}
               <Route path="/class/:id" element={<ClassPage />} />

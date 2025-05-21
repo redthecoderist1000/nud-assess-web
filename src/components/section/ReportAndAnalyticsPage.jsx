@@ -3,10 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Class from "../../ReportnAnalytics/Class";
 import Quiz from "../../ReportnAnalytics/Quiz";
 import Question from "../../ReportnAnalytics/Question";
-import Student from "../../ReportnAnalytics/Student";
 
 const ReportAndAnalyticsPage = () => {
-  const [activeTab, setActiveTab] = useState("Overall");
+  const [activeTab, setActiveTab] = useState("Class");
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -16,8 +15,6 @@ const ReportAndAnalyticsPage = () => {
         return <Quiz />;
       case "Question":
         return <Question />;
-      case "Students":
-        return <Student />;
       default:
         return <Class />;
     }
@@ -35,7 +32,7 @@ const ReportAndAnalyticsPage = () => {
 
       {/* Navigation Tabs */}
       <nav className="flex space-x-4 mt-8">
-        {["Class", "Quiz", "Question", "Students"].map((tab) => (
+        {["Class", "Quiz", "Question"].map((tab) => (
           <button
             key={tab}
             className={`cursor-pointer ${

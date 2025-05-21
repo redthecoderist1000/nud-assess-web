@@ -12,11 +12,6 @@ import { supabase } from "../../helper/Supabase";
 import { authContext } from "./AuthPage";
 import { CircularProgress } from "@mui/material";
 
-const environment = import.meta.env.VITE_ENVIRONEMNT;
-const test_email = import.meta.env.VITE_TEST_EMAIL;
-const test_redirect = import.meta.env.VITE_TEST_REDIRECT;
-const redirect = import.meta.env.VITE_REDIRECT;
-
 const LoginPage = () => {
   const setIsRegister = useContext(authContext);
   const navigate = useNavigate();

@@ -1,6 +1,6 @@
 import { useContext, useMemo, useRef, useState } from "react";
 import JoditEditor from "jodit-react";
-import { Button, CircularProgress, TextField } from "@mui/material";
+import { Button, CircularProgress, Stack, TextField } from "@mui/material";
 import { userContext } from "../App";
 import { supabase } from "../helper/Supabase";
 
@@ -76,34 +76,38 @@ function AnnouncementTab() {
   return (
     <div>
       <h1 className="text-2xl font-bold">Announcements</h1>
-      <TextField
-        label="Title"
-        type="text"
-        variant="outlined"
-        size="small"
-        onChange={(e) => {
-          setFormData({ ...formData, title: e.target.value });
-        }}
-      ></TextField>
-      <JoditEditor
-        ref={editor}
-        value={formData.content}
-        config={config}
-        onBlur={handleJodit}
-      />
-      <p className="text-red-500">{error}</p>
-      {loading ? (
-        <CircularProgress size="20px" />
-      ) : (
-        <Button
-          variant="contained"
+      <Stack rowGap={2}>
+        <TextField
+          label="Title"
+          type="text"
+          variant="outlined"
           size="small"
-          onClick={handleSubmit}
-          disabled={loading}
-        >
-          Submit
-        </Button>
-      )}
+          onChange={(e) => {
+            setFormData({ ...formData, title: e.target.value });
+          }}
+        ></TextField>
+        <JoditEditor
+          ref={editor}
+          value={formData.content}
+          config={config}
+          onBlur={handleJodit}
+        />
+        <p className="text-red-500">{error}</p>
+        {loading ? (
+          <CircularProgress size="20px" />
+        ) : (
+          <div>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              Submit
+            </Button>
+          </div>
+        )}
+      </Stack>
     </div>
   );
 }

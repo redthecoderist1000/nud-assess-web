@@ -1,18 +1,20 @@
 import React, { useState, useRef, useEffect, use } from "react";
-import { useNavigate, useLocation} from "react-router-dom";
-import axios from "axios"; 
+import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 import { supabase } from "../../helper/Supabase";
 
+const env = import.meta.env;
+
 const CreateQuestionAutomatically = () => {
-  const location = useLocation(); 
-  const repository = location.state?.repository || ""; 
+  const location = useLocation();
+  const repository = location.state?.repository || "";
   const [tab, setTab] = useState("paste");
   const [lesson, setLesson] = useState("");
   const [course, setCourse] = useState("");
   const [lessonTitle, setLessonTitle] = useState("");
   const [text, setText] = useState("");
   const [file, setFile] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const [lessons, setLessons] = useState([]);
   const fileInputRef = useRef(null);
@@ -22,17 +24,19 @@ const CreateQuestionAutomatically = () => {
     console.log("Selected Repository:", repository);
   }, [repository]);
 
-
   useEffect(() => {
     const fetchSubjects = async () => {
-      const { data, error } = await supabase.from("tbl_subject").select("id, name");
+      // fix para assigned subject lang makita
+      const { data, error } = await supabase
+        .from("tbl_subject")
+        .select("id, name");
 
       if (error) {
         console.error("Error fetching subjects:", error);
         return;
       }
 
-      setSubjects(data); 
+      setSubjects(data);
     };
 
     fetchSubjects();
@@ -41,31 +45,31 @@ const CreateQuestionAutomatically = () => {
   useEffect(() => {
     const fetchLessons = async () => {
       if (!lesson) {
-        setLessons([]); 
+        setLessons([]);
         return;
       }
-  
+
       try {
-        console.log("Fetching lessons for subject_id:", lesson); 
+        console.log("Fetching lessons for subject_id:", lesson);
         const { data, error } = await supabase
           .from("tbl_lesson")
           .select("title")
-          .eq("subject_id", lesson); 
-  
+          .eq("subject_id", lesson);
+
         if (error) {
           console.error("Error fetching lessons:", error);
           return;
         }
-  
-        console.log("Fetched lessons:", data); 
-        setLessons(data.map((lesson) => lesson.title)); 
+
+        console.log("Fetched lessons:", data);
+        setLessons(data.map((lesson) => lesson.title));
       } catch (err) {
         console.error("Unexpected error fetching lessons:", err);
       }
     };
-  
+
     fetchLessons();
-  }, [lesson]); 
+  }, [lesson]);
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -92,19 +96,17 @@ const CreateQuestionAutomatically = () => {
   };
 
   const handleGenerate = async () => {
-    setIsLoading(true); 
+    setIsLoading(true);
     try {
+      const selectedSubject = subjects.find((subject) => subject.id === lesson);
 
-    const selectedSubject = subjects.find((subject) => subject.id === lesson);
+      if (!selectedSubject) {
+        alert("Please select a valid subject.");
+        setIsLoading(false);
+        return;
+      }
 
-    if (!selectedSubject) {
-      alert("Please select a valid subject.");
-      setIsLoading(false);
-      return;
-    }
-
-    console.log("Selected Subject:", selectedSubject);
-
+      console.log("Selected Subject:", selectedSubject);
 
       let inputData = "";
 
@@ -113,17 +115,18 @@ const CreateQuestionAutomatically = () => {
       } else if (tab === "upload" && file) {
         inputData = await readFileContent(file);
       }
-  
+
       if (!inputData) {
         alert("Please provide input data by pasting text or uploading a file.");
         setIsLoading(false);
         return;
       }
-  
+
       console.log("Input data being sent to Gemini API:", inputData);
-  
+
       const response = await axios.post(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBot7doaYn-Mlu-faQilR2B9AQNZGwrrOY", // Replace with your API key
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" +
+          env.VITE_GEMINI_API_SHAMIAH, // Replace with your API key
         {
           contents: [
             {
@@ -144,7 +147,7 @@ const CreateQuestionAutomatically = () => {
                   - "tosCategory": The TOS category of the question.
                   
                   Here is the content to base the questions on:\n\n${inputData}
-                  Return ONLY a valid JSON array. Do not include any explanation, markdown, or text outside the JSON.`               
+                  Return ONLY a valid JSON array. Do not include any explanation, markdown, or text outside the JSON.`,
                 },
               ],
             },
@@ -156,23 +159,28 @@ const CreateQuestionAutomatically = () => {
           },
         }
       );
-  
+
       console.log("Raw AI Response Data:", response.data);
-  
+
       if (!response.data.candidates || response.data.candidates.length === 0) {
-        alert("No questions were generated. Please try again with different input.");
+        alert(
+          "No questions were generated. Please try again with different input."
+        );
         setIsLoading(false);
         return;
       }
-  
+
       const rawText = response.data.candidates[0].content.parts[0].text;
-  
+
       console.log("Raw Text from Gemini API:", rawText);
-  
+
       let cleanedText = rawText.trim();
 
       if (cleanedText.startsWith("```")) {
-        cleanedText = cleanedText.replace(/```(?:json)?/, "").replace(/```$/, "").trim();
+        cleanedText = cleanedText
+          .replace(/```(?:json)?/, "")
+          .replace(/```$/, "")
+          .trim();
       }
 
       if (!cleanedText.startsWith("[")) {
@@ -187,7 +195,9 @@ const CreateQuestionAutomatically = () => {
       } catch (e) {
         console.error("Failed to parse Gemini JSON:", e);
         console.log("Cleaned Text:", cleanedText);
-        alert("Failed to parse the generated questions. Please check the format.");
+        alert(
+          "Failed to parse the generated questions. Please check the format."
+        );
         setIsLoading(false);
         return;
       }
@@ -201,10 +211,17 @@ const CreateQuestionAutomatically = () => {
         return acc;
       }, {});
 
-      const allCategories = ["Remembering", "Understanding", "Applying", "Analyzing", "Creating", "Evaluating"];
+      const allCategories = [
+        "Remembering",
+        "Understanding",
+        "Applying",
+        "Analyzing",
+        "Creating",
+        "Evaluating",
+      ];
       allCategories.forEach((category) => {
         if (!groupedQuestions[category]) {
-          groupedQuestions[category] = []; 
+          groupedQuestions[category] = [];
         }
       });
 
@@ -220,16 +237,16 @@ const CreateQuestionAutomatically = () => {
           });
         }
       });
-  
+
       const generatedQuestions = parsedQuestions.map((q, index) => ({
         id: index + 1,
         type: "Generated",
         question: q.question,
         choices: q.choices,
         answer: q.correctAnswer,
-        tosCategory: q.tosCategory, 
+        tosCategory: q.tosCategory,
       }));
-  
+
       console.log("Generated Questions:", generatedQuestions);
       console.log("Lesson ID being passed:", lesson);
 
@@ -247,10 +264,13 @@ const CreateQuestionAutomatically = () => {
         },
       });
     } catch (error) {
-      console.error("Error generating questions:", error.response?.data || error.message);
+      console.error(
+        "Error generating questions:",
+        error.response?.data || error.message
+      );
       alert("Failed to generate questions. Please try again.");
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
@@ -266,7 +286,7 @@ const CreateQuestionAutomatically = () => {
           <label className="block text-xs text-gray-700 mb-1">Subject</label>
           <select
             value={lesson}
-            onChange={(e) => setLesson(e.target.value)} 
+            onChange={(e) => setLesson(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
           >
             <option value="" disabled>
@@ -290,7 +310,7 @@ const CreateQuestionAutomatically = () => {
                 ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                 : "border-gray-300 focus:ring-blue-200"
             }`}
-            disabled={!lesson} 
+            disabled={!lesson}
           >
             <option value="" disabled>
               Select a lesson
@@ -385,7 +405,7 @@ const CreateQuestionAutomatically = () => {
         <button
           className="bg-blue-900 text-white px-8 py-2 rounded font-semibold hover:bg-blue-800 transition"
           onClick={handleGenerate}
-          disabled={isLoading} 
+          disabled={isLoading}
         >
           {isLoading ? "Generating..." : "Generate questions"}
         </button>

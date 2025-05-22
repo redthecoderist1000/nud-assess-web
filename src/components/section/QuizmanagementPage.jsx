@@ -109,7 +109,7 @@ const QuizmanagementPage = () => {
           </button>
         </div>
 
-        <div className="col-span-2 bg-white rounded-lg shadow-lg border mt-6 w-full overflow">
+        <div className="col-span-2 bg-white rounded-lg shadow-lg border border-gray-200 mt-6 w-full overflow">
           <div className="bg-blue-900 text-yellow-400 text-xl font-bold p-4 rounded-t-lg flex justify-between items-center">
             <span>{selectedYear}</span>
             <select
@@ -125,9 +125,12 @@ const QuizmanagementPage = () => {
               ))}
             </select>
           </div>
-          <div className="p-4">
+          <div className="p-4 border border-gray-200 rounded-b-lg">
             {yearSubjects[selectedYear].map((subject, index) => (
-              <div key={index} className="border-b py-2">
+              <div
+                key={index}
+                className="border-b border-gray-200 py-2"
+              >
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="font-bold">{subject.code}</h3>

@@ -1,17 +1,72 @@
-import React, { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useRef, useEffect, use } from "react";
+import { useNavigate, useLocation} from "react-router-dom";
+import axios from "axios"; 
+import { supabase } from "../../helper/Supabase";
 
 const CreateQuestionAutomatically = () => {
+  const location = useLocation(); 
+  const repository = location.state?.repository || ""; 
   const [tab, setTab] = useState("paste");
   const [lesson, setLesson] = useState("");
   const [course, setCourse] = useState("");
   const [lessonTitle, setLessonTitle] = useState("");
   const [text, setText] = useState("");
   const [file, setFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); 
+  const [subjects, setSubjects] = useState([]);
+  const [lessons, setLessons] = useState([]);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  // Drag and drop handlers
+  useEffect(() => {
+    console.log("Selected Repository:", repository);
+  }, [repository]);
+
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      const { data, error } = await supabase.from("tbl_subject").select("id, name");
+
+      if (error) {
+        console.error("Error fetching subjects:", error);
+        return;
+      }
+
+      setSubjects(data); 
+    };
+
+    fetchSubjects();
+  }, []);
+
+  useEffect(() => {
+    const fetchLessons = async () => {
+      if (!lesson) {
+        setLessons([]); 
+        return;
+      }
+  
+      try {
+        console.log("Fetching lessons for subject_id:", lesson); 
+        const { data, error } = await supabase
+          .from("tbl_lesson")
+          .select("title")
+          .eq("subject_id", lesson); 
+  
+        if (error) {
+          console.error("Error fetching lessons:", error);
+          return;
+        }
+  
+        console.log("Fetched lessons:", data); 
+        setLessons(data.map((lesson) => lesson.title)); 
+      } catch (err) {
+        console.error("Unexpected error fetching lessons:", err);
+      }
+    };
+  
+    fetchLessons();
+  }, [lesson]); 
+
   const handleDrop = (e) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
@@ -27,44 +82,176 @@ const CreateQuestionAutomatically = () => {
     fileInputRef.current.click();
   };
 
-  const handleGenerate = () => {
-    // Sample questions to pass to QuestionSummary
-    const sampleQuestions = [
-      {
-        id: 1,
-        type: "Multiple Choice",
-        question: "What is the area of a triangle with a base of 12 cm and a height of 5 cm?",
-        options: ["A) 30 cm²", "B) 60 cm²", "C) 25 cm²", "D) 20 cm²"],
-        answer: "A) 30 cm²",
-        tosPlacement: "Applying",
-      },
-      {
-        id: 2,
-        type: "True or False",
-        question: "The solution to the equation 2(x-3)=10 is x=8.",
-        answer: "False",
-        tosPlacement: "Understanding",
-      },
-      {
-        id: 3,
-        type: "Identification",
-        question: "Solve for x in the equation 3x+9=21.",
-        answer: "x=4",
-        tosPlacement: "Remembering",
-      },
-    ];
-
-    // Navigate to QuestionSummary with state
-    navigate("/dashboard/QuestionSummary", {
-      state: {
-        formData: {
-          lesson,
-          course,
-          lessonTitle,
-          questions: sampleQuestions,
-        },
-      },
+  const readFileContent = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
     });
+  };
+
+  const handleGenerate = async () => {
+    setIsLoading(true); 
+    try {
+
+    const selectedSubject = subjects.find((subject) => subject.id === lesson);
+
+    if (!selectedSubject) {
+      alert("Please select a valid subject.");
+      setIsLoading(false);
+      return;
+    }
+
+    console.log("Selected Subject:", selectedSubject);
+
+
+      let inputData = "";
+
+      if (tab === "paste") {
+        inputData = text;
+      } else if (tab === "upload" && file) {
+        inputData = await readFileContent(file);
+      }
+  
+      if (!inputData) {
+        alert("Please provide input data by pasting text or uploading a file.");
+        setIsLoading(false);
+        return;
+      }
+  
+      console.log("Input data being sent to Gemini API:", inputData);
+  
+      const response = await axios.post(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBot7doaYn-Mlu-faQilR2B9AQNZGwrrOY", // Replace with your API key
+        {
+          contents: [
+            {
+              parts: [
+                {
+                  text: `You are a teacher creating a quiz for the subject "${lesson}" and the lesson "${lessonTitle}". Based on the following content, generate exactly 5 multiple-choice questions. Each question must have 4 choices (A, B, C, D) and specify the correct answer. Ensure that the questions are evenly distributed across the following Table of Specification (TOS) categories:
+                  - "Remembering"
+                  - "Understanding"
+                  - "Applying"
+                  - "Analyzing"
+                  - "Creating"
+                  - "Evaluating"
+                  
+                  The output MUST be a valid JSON array of objects, where each object has the following keys:
+                  - "question": The text of the question.
+                  - "choices": An array of 4 strings representing the choices.
+                  - "correctAnswer": The correct answer (e.g., "A", "B", "C", or "D").
+                  - "tosCategory": The TOS category of the question.
+                  
+                  Here is the content to base the questions on:\n\n${inputData}
+                  Return ONLY a valid JSON array. Do not include any explanation, markdown, or text outside the JSON.`               
+                },
+              ],
+            },
+          ],
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      console.log("Raw AI Response Data:", response.data);
+  
+      if (!response.data.candidates || response.data.candidates.length === 0) {
+        alert("No questions were generated. Please try again with different input.");
+        setIsLoading(false);
+        return;
+      }
+  
+      const rawText = response.data.candidates[0].content.parts[0].text;
+  
+      console.log("Raw Text from Gemini API:", rawText);
+  
+      let cleanedText = rawText.trim();
+
+      if (cleanedText.startsWith("```")) {
+        cleanedText = cleanedText.replace(/```(?:json)?/, "").replace(/```$/, "").trim();
+      }
+
+      if (!cleanedText.startsWith("[")) {
+        cleanedText = `[${cleanedText}`;
+      }
+
+      cleanedText = cleanedText.replace(/,\s*\]$/, "]");
+
+      let parsedQuestions = [];
+      try {
+        parsedQuestions = JSON.parse(cleanedText);
+      } catch (e) {
+        console.error("Failed to parse Gemini JSON:", e);
+        console.log("Cleaned Text:", cleanedText);
+        alert("Failed to parse the generated questions. Please check the format.");
+        setIsLoading(false);
+        return;
+      }
+
+      const groupedQuestions = parsedQuestions.reduce((acc, question) => {
+        const category = question.tosCategory || "Uncategorized";
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push(question);
+        return acc;
+      }, {});
+
+      const allCategories = ["Remembering", "Understanding", "Applying", "Analyzing", "Creating", "Evaluating"];
+      allCategories.forEach((category) => {
+        if (!groupedQuestions[category]) {
+          groupedQuestions[category] = []; 
+        }
+      });
+
+      allCategories.forEach((category) => {
+        if (groupedQuestions[category].length === 0) {
+          groupedQuestions[category].push({
+            id: `placeholder-${category}`,
+            type: "Generated",
+            question: `Placeholder question for ${category}`,
+            choices: ["A", "B", "C", "D"],
+            answer: "A",
+            tosCategory: category,
+          });
+        }
+      });
+  
+      const generatedQuestions = parsedQuestions.map((q, index) => ({
+        id: index + 1,
+        type: "Generated",
+        question: q.question,
+        choices: q.choices,
+        answer: q.correctAnswer,
+        tosCategory: q.tosCategory, 
+      }));
+  
+      console.log("Generated Questions:", generatedQuestions);
+      console.log("Lesson ID being passed:", lesson);
+
+      navigate("/dashboard/QuestionSummary", {
+        state: {
+          formData: {
+            lesson: selectedSubject.name,
+            lessonId: selectedSubject.id,
+            course,
+            lessonTitle,
+            lessonId: lesson,
+            questions: generatedQuestions,
+          },
+          repository: repository,
+        },
+      });
+    } catch (error) {
+      console.error("Error generating questions:", error.response?.data || error.message);
+      alert("Failed to generate questions. Please try again.");
+    } finally {
+      setIsLoading(false); 
+    }
   };
 
   return (
@@ -73,38 +260,50 @@ const CreateQuestionAutomatically = () => {
       <p className="text-xs text-gray-500 mb-6">
         Input basic details and upload your file to generate questions
       </p>
+
       <div className="grid grid-cols-2 gap-4 mb-2">
         <div>
-          <label className="block text-xs text-gray-700 mb-1">Lesson</label>
-          <input
-            type="text"
-            placeholder="Enter lesson number"
+          <label className="block text-xs text-gray-700 mb-1">Subject</label>
+          <select
             value={lesson}
-            onChange={(e) => setLesson(e.target.value)}
+            onChange={(e) => setLesson(e.target.value)} 
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
+          >
+            <option value="" disabled>
+              Select a subject
+            </option>
+            {subjects.map((subject) => (
+              <option key={subject.id} value={subject.id}>
+                {subject.name}
+              </option>
+            ))}
+          </select>
         </div>
+
         <div>
-          <label className="block text-xs text-gray-700 mb-1">Course</label>
-          <input
-            type="text"
-            placeholder="Enter course"
+          <label className="block text-xs text-gray-700 mb-1">Lesson</label>
+          <select
             value={course}
             onChange={(e) => setCourse(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
+            className={`w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+              !lesson
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "border-gray-300 focus:ring-blue-200"
+            }`}
+            disabled={!lesson} 
+          >
+            <option value="" disabled>
+              Select a lesson
+            </option>
+            {lessons.map((lesson, index) => (
+              <option key={index} value={lesson}>
+                {lesson}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
-      <div className="mb-4">
-        <label className="block text-xs text-gray-700 mb-1">Lesson title</label>
-        <input
-          type="text"
-          placeholder="Enter lesson title"
-          value={lessonTitle}
-          onChange={(e) => setLessonTitle(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-        />
-      </div>
+
       <div className="border-b border-gray-300 mb-2 flex">
         <button
           className={`px-4 py-2 text-sm font-medium ${
@@ -186,8 +385,9 @@ const CreateQuestionAutomatically = () => {
         <button
           className="bg-blue-900 text-white px-8 py-2 rounded font-semibold hover:bg-blue-800 transition"
           onClick={handleGenerate}
+          disabled={isLoading} 
         >
-          Generate questions
+          {isLoading ? "Generating..." : "Generate questions"}
         </button>
       </div>
     </div>

@@ -1,9 +1,17 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const ClassAnalyticsChart = ({ classes }) => {
   // Prepare data for the chart
   const data = classes.map((cls) => ({
-    name: cls.title.split(" - ")[1], // Extract the class code (e.g., INF221)
+    name: cls.class_name, // Extract the class code (e.g., INF221)
     value: Math.floor(Math.random() * 50) + 10, // Generate random performance data
     color: "#FDE047",
   }));

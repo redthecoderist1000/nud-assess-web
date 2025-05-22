@@ -11,7 +11,7 @@ function AnnouncementTab() {
   const [formData, setFormData] = useState({
     content: "",
     title: "",
-    creator_id: user.user_id,
+    created_by: user.user_id,
   });
   const editor = useRef(null);
   const config = useMemo(
@@ -69,6 +69,7 @@ function AnnouncementTab() {
       setLoading(false);
       return;
     }
+    setFormData({ ...formData, content: "", title: "" });
 
     setLoading(false);
   };
@@ -82,6 +83,7 @@ function AnnouncementTab() {
           type="text"
           variant="outlined"
           size="small"
+          value={formData.title}
           onChange={(e) => {
             setFormData({ ...formData, title: e.target.value });
           }}

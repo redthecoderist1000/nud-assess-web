@@ -33,9 +33,9 @@ const QuestionRepoModal = ({ isOpen, onClose, onSelect }) => {
           <li>
             <button
               className="w-full bg-white text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-200"
-              onClick={() => onSelect("Personal")}
+              onClick={() => onSelect("Private")}
             >
-              Personal
+              Private
             </button>
           </li>
         </ul>

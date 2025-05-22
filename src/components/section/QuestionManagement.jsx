@@ -19,7 +19,6 @@ const QuestionManagementPage = () => {
   };
 
   const handleLessonClick = (lesson) => {
-    // Navigate to QuestionDetails.jsx with the lesson details
     navigate("/dashboard/QuestionDetails", {
       state: { lesson },
     });
@@ -133,11 +132,15 @@ const QuestionManagementPage = () => {
           <VerticalBarChart />
         </div>
 
-        {/* Question Repo Modal */}
         <QuestionRepoModal
           isOpen={repoModalOpen}
           onClose={() => setRepoModalOpen(false)}
-          onSelect={() => navigate("/dashboard/CreateQuestionAutomatically")}
+          onSelect={(selectedRepo) => {
+            setRepoModalOpen(false); // Close the modal
+            navigate("/dashboard/CreateQuestionAutomatically", {
+              state: { repository: selectedRepo }, // Pass the selected repository
+            });
+          }}
         />
       </main>
     </motion.div>

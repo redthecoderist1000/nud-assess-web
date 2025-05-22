@@ -125,8 +125,8 @@ const ClassManagementPage = () => {
                 <div
                   className="flex items-center flex-1 cursor-pointer"
                   onClick={() => {
-                    console.log("Navigating to class:", cls.id);
-                    navigate(`/dashboard/class`, { state: cls });
+                    // console.log("Navigating to class:", cls.id);
+                    navigate("/class", { state: cls });
                   }}
                 >
                   <img

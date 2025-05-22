@@ -5,6 +5,7 @@ import QuizModal from "../elements/QuizModal";
 import QuestionRepoModal from "../elements/QuestionRepoModal";
 import VerticalBarChart from "../elements/VerticalBarChart";
 import TOS from "./TOS";
+import Tosifier from "../elements/Tosifier";
 
 const QuizmanagementPage = () => {
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
@@ -12,6 +13,12 @@ const QuizmanagementPage = () => {
   const [showTOS, setShowTOS] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [selectedYear, setSelectedYear] = useState("1st Year");
+
+  const [quizDetail, setQuizDetail] = useState({
+    repository: "",
+    mode: "",
+  });
+
   const navigate = useNavigate();
 
   const toggleDropdown = (index) => {
@@ -29,13 +36,16 @@ const QuizmanagementPage = () => {
     });
   };
 
-  const handleQuizModalSelect = () => {
+  const handleQuizModalSelect = (mode) => {
+    setQuizDetail({ ...quizDetail, mode: mode });
+
     // Close QuizModal and open QuestionRepoModal
     setIsQuizModalOpen(false);
     setIsRepoModalOpen(true);
   };
 
-  const handleRepoModalSelect = () => {
+  const handleRepoModalSelect = (repo) => {
+    setQuizDetail({ ...quizDetail, repository: repo });
     // Close QuestionRepoModal and show TOS
     setIsRepoModalOpen(false);
     setShowTOS(true);
@@ -67,7 +77,11 @@ const QuizmanagementPage = () => {
   ];
 
   if (showTOS) {
-    return <TOS onNext={() => setShowTOS(false)} />;
+    return (
+      <Tosifier quizDetail={quizDetail} onCancel={() => setShowTOS(false)} />
+    );
+    // return <TOS onNext={() => setShowTOS(false)} />;
+    // console.log("Quiz Details:", quizDetail);
   }
 
   return (
@@ -81,7 +95,8 @@ const QuizmanagementPage = () => {
         <div>
           <h1 className="text-5xl font-bold mb-4">Quiz Management</h1>
           <p className="text-gray-600 mb-6">
-            Design and customize quizzes with questions, options, and scoring rules.
+            Design and customize quizzes with questions, options, and scoring
+            rules.
           </p>
         </div>
 
@@ -118,7 +133,10 @@ const QuizmanagementPage = () => {
                     <h3 className="font-bold">{subject.code}</h3>
                     <p className="text-gray-500 text-sm">{subject.name}</p>
                   </div>
-                  <button onClick={() => toggleDropdown(index)} className="text-gray-600">
+                  <button
+                    onClick={() => toggleDropdown(index)}
+                    className="text-gray-600"
+                  >
                     {openDropdown === index ? "▲" : "▼"}
                   </button>
                 </div>

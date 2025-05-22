@@ -1,25 +1,29 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import temporaryImage from "../../assets/images/temporaryimage.png";
 import ClassAnalyticsChart from "../elements/ClassAnalyticsChart";
 import CreateClass from "../elements/CreateClass";
+import { useEffect } from "react";
+import { supabase } from "../../helper/Supabase";
+import { userContext } from "../../App";
 
 const ClassManagementPage = () => {
+  const { user } = useContext(userContext);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("active");
-  const [classes, setClasses] = useState([
-    { id: 1, title: "CCTAPDVL - INF221", desc: "Introduction to Programming", status: "active", image: "" },
-    { id: 2, title: "CCTAPDVL - INF222", desc: "Data Structures", status: "active", image: "" },
-    { id: 3, title: "CCTAPDVL - INF223", desc: "Web Development", status: "active", image: "" },
-  ]);
+  const [classes, setClasses] = useState([]);
   const [menuVisible, setMenuVisible] = useState(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [classToDelete, setClassToDelete] = useState(null);
 
   const handleArchive = (id) => {
-    setClasses(classes.map((cls) => (cls.id === id ? { ...cls, status: "archived" } : cls)));
+    setClasses(
+      classes.map((cls) =>
+        cls.id === id ? { ...cls, status: "archived" } : cls
+      )
+    );
     setMenuVisible(null);
     setActiveTab("archived");
   };
@@ -42,7 +46,35 @@ const ClassManagementPage = () => {
     setCreateModalVisible(false);
   };
 
-  const filteredClasses = classes.filter((cls) => cls.status === activeTab);
+  const filteredClasses = classes.filter((cls) => cls.is_active === true);
+
+  useEffect(() => {
+    fetchData();
+
+    const listenTblClass = supabase
+      .channel("custom-filter-channel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tbl_class" },
+        (payload) => {
+          fetchData();
+        }
+      )
+      .subscribe();
+  }, []);
+
+  const fetchData = async () => {
+    const { data, error } = await supabase
+      .from("tbl_class")
+      .select("*")
+      .eq("created_by", user.user_id);
+
+    if (error) {
+      console.log("Failed to fetch data:", error);
+      return;
+    }
+    setClasses(data);
+  };
 
   return (
     <AnimatePresence>
@@ -56,7 +88,9 @@ const ClassManagementPage = () => {
         <div className="w-7/10 p-5 rounded-lg">
           <div className="mb-6">
             <h1 className="text-5xl font-semibold mb-2">Class Management</h1>
-            <p className="text-gray-600">Organize class schedules, assignments, and analytics in one place.</p>
+            <p className="text-gray-600">
+              Organize class schedules, assignments, and analytics in one place.
+            </p>
           </div>
 
           <div className="flex items-center justify-between mb-4">
@@ -92,17 +126,21 @@ const ClassManagementPage = () => {
                   className="flex items-center flex-1 cursor-pointer"
                   onClick={() => {
                     console.log("Navigating to class:", cls.id);
-                    navigate(`/dashboard/class/${cls.id}`, { state: cls });
+                    navigate(`/dashboard/class`, { state: cls });
                   }}
                 >
                   <img
-                    src={cls.image || temporaryImage || "https://via.placeholder.com/150"}
+                    src={
+                      cls.image ||
+                      temporaryImage ||
+                      "https://via.placeholder.com/150"
+                    }
                     alt="Class"
                     className="w-25 h-15 bg-gray-300 rounded-md object-cover"
                   />
                   <div className="ml-4">
-                    <strong>{cls.title}</strong>
-                    <p className="text-sm text-gray-600">{cls.desc}</p>
+                    <strong>{cls.class_name}</strong>
+                    {/* <p className="text-sm text-gray-600">{cls.desc}</p> */}
                   </div>
                 </div>
                 <div className="relative">

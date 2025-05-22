@@ -153,7 +153,9 @@ function FacultyTab() {
             .toLowerCase()
             .includes(search.toLowerCase());
 
-          return matchFname || matchLname;
+          const matchSubject = value?.subjects.includes(search);
+
+          return matchFname || matchLname || matchSubject;
         }),
     [order, orderBy, page, rowsPerPage, search, rows]
   );
@@ -238,6 +240,7 @@ function FacultyTab() {
                         {row.subjects.map((data, index) => {
                           return <p key={index}>{data}</p>;
                         })}
+                        {/* {row.name} */}
                       </Stack>
                       <Button
                         variant="text"
@@ -270,9 +273,7 @@ function FacultyTab() {
       <Dialog open={assignDialog} onClose={() => setAssignDialog(false)}>
         <DialogTitle>Assign subject</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Do you want to remove the faculty incharged for{" "}
-          </DialogContentText>
+          <DialogContentText>Do you want to assign subject</DialogContentText>
         </DialogContent>
         {loading ? (
           <CircularProgress />

@@ -33,7 +33,7 @@ const NavBar = () => {
           },
           {
             to: "/dashboard/ClassManagement",
-            label: "Class Management",
+            label: "My Classes",
             icon: classManagementIcon,
           },
           {
@@ -66,7 +66,7 @@ const NavBar = () => {
           },
           {
             to: "/dashboard/ClassManagement",
-            label: "Class Management",
+            label: "My Classes",
             icon: classManagementIcon,
           },
           {

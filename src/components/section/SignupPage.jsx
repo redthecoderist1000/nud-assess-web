@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import logo from "../../assets/images/logo.png";
 import signupImage from "../../assets/images/signup_image.png";
 import microsoftLogo from "../../assets/images/microsoftlogo.png";
-import { signupContext } from "../../App";
+import { signupContext, userContext } from "../../App";
 import SignUpForm from "../elements/SignUpForm";
 
 import Container from "@mui/material/Container";
@@ -25,80 +25,6 @@ const SignupPage = (props) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
   const [modalContent, setModalContent] = useState(""); // State for modal content
-
-  const navigate = useNavigate(); // Initialize useNavigate
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Basic field validations
-    if (!formData.firstName.trim()) {
-      setErrorMessage("First Name is required.");
-
-      return;
-    }
-    if (!formData.lastName.trim()) {
-      setErrorMessage("Last Name is required.");
-      return;
-    }
-    if (!formData.email.trim()) {
-      setErrorMessage("Email is required.");
-      return;
-    }
-    if (!formData.password.trim()) {
-      setErrorMessage("Password is required.");
-      return;
-    }
-    if (!formData.confirmPassword.trim()) {
-      alsetErrorMessageert("Please confirm your password.");
-      return;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("Passwords do not match.");
-      return;
-    }
-    if (!formData.agreeTerms) {
-      setErrorMessage(
-        "You must agree to Terms and Privacy Policies to continue."
-      );
-      return;
-    }
-
-    // List of allowed domains
-    const allowedDomains = ["@nu-dasma.edu.ph"];
-
-    // Extract the domain from the email
-    const emailDomain = formData.email.substring(
-      formData.email.lastIndexOf("@")
-    );
-
-    // Check if the email domain is in the allowed list
-    if (!allowedDomains.includes(emailDomain)) {
-      setErrorMessage(
-        "Please enter a valid Email address (e.g., example@nu-dasma.edu.ph)."
-      );
-      return;
-    }
-
-    console.log("Account creation successful", formData);
-    signupData.setSignupData(formData);
-    navigate("/");
-    // navigate("/signup-otp");
-  };
-
-  // Function to open modal with specific content
-  const openModal = (content) => {
-    setModalContent(content);
-    setIsModalOpen(true);
-  };
 
   // Function to close modal
   const closeModal = () => {

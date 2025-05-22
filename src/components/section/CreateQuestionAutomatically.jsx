@@ -73,38 +73,74 @@ const CreateQuestionAutomatically = () => {
       <p className="text-xs text-gray-500 mb-6">
         Input basic details and upload your file to generate questions
       </p>
+
       <div className="grid grid-cols-2 gap-4 mb-2">
+        {/* Subject Dropdown */}
         <div>
-          <label className="block text-xs text-gray-700 mb-1">Lesson</label>
-          <input
-            type="text"
-            placeholder="Enter lesson number"
+          <label className="block text-xs text-gray-700 mb-1">Subject</label>
+          <select
             value={lesson}
             onChange={(e) => setLesson(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
+          >
+            <option value="" disabled>
+              Select a subject
+            </option>
+            <option value="Math">Math</option>
+            <option value="Science">Science</option>
+            <option value="History">History</option>
+            <option value="English">English</option>
+          </select>
         </div>
+      
+        {/* Lesson Dropdown */}
         <div>
-          <label className="block text-xs text-gray-700 mb-1">Course</label>
-          <input
-            type="text"
-            placeholder="Enter course"
+          <label className="block text-xs text-gray-700 mb-1">Lesson</label>
+          <select
             value={course}
             onChange={(e) => setCourse(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
+            className={`w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+              !lesson
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "border-gray-300 focus:ring-blue-200"
+            }`}
+            disabled={!lesson} // Disable if no subject is selected
+          >
+            <option value="" disabled>
+              Select a lesson
+            </option>
+            {lesson === "Math" && (
+              <>
+                <option value="Algebra">Algebra</option>
+                <option value="Geometry">Geometry</option>
+                <option value="Calculus">Calculus</option>
+              </>
+            )}
+            {lesson === "Science" && (
+              <>
+                <option value="Physics">Physics</option>
+                <option value="Chemistry">Chemistry</option>
+                <option value="Biology">Biology</option>
+              </>
+            )}
+            {lesson === "History" && (
+              <>
+                <option value="World History">World History</option>
+                <option value="American History">American History</option>
+                <option value="European History">European History</option>
+              </>
+            )}
+            {lesson === "English" && (
+              <>
+                <option value="Grammar">Grammar</option>
+                <option value="Literature">Literature</option>
+                <option value="Writing">Writing</option>
+              </>
+            )}
+          </select>
         </div>
       </div>
-      <div className="mb-4">
-        <label className="block text-xs text-gray-700 mb-1">Lesson title</label>
-        <input
-          type="text"
-          placeholder="Enter lesson title"
-          value={lessonTitle}
-          onChange={(e) => setLessonTitle(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-        />
-      </div>
+
       <div className="border-b border-gray-300 mb-2 flex">
         <button
           className={`px-4 py-2 text-sm font-medium ${

@@ -8,31 +8,117 @@ import { useEffect } from "react";
 import { supabase } from "../../helper/Supabase";
 import { userContext } from "../../App";
 
-const ClassManagementPage = () => {
-  const { user } = useContext(userContext);
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("active");
-  const [classes, setClasses] = useState([]);
-  const [menuVisible, setMenuVisible] = useState(null);
-  const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [classToDelete, setClassToDelete] = useState(null);
+  const ClassManagementPage = () => {
+    const { user } = useContext(userContext);
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState("active");
+    const [classes, setClasses] = useState([]);
+    const [menuVisible, setMenuVisible] = useState(null);
+    const [classToDelete, setClassToDelete] = useState(null);
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+    const [archiveModalVisible, setArchiveModalVisible] = useState(false); 
+    const [createModalVisible, setCreateModalVisible] = useState(false);
+    const [unarchiveModalVisible, setUnarchiveModalVisible] = useState(false);
 
-  const handleArchive = (id) => {
+    const handleDeleteConfirm = async () => {
+      try {
+        console.log("Attempting to delete class with ID:", classToDelete);
+    
+        // Check if the class exists
+        const { data: existingClass, error: fetchError } = await supabase
+          .from("tbl_class")
+          .select("*")
+          .eq("id", classToDelete);
+    
+        if (fetchError || existingClass.length === 0) {
+          console.error("Class not found or fetch error:", fetchError);
+          alert("Class not found. Please try again.");
+          return;
+        }
+    
+        // Attempt to delete the class
+        const { data, error } = await supabase
+          .from("tbl_class")
+          .delete()
+          .eq("id", classToDelete);
+    
+        if (error) {
+          console.error("Error deleting class:", error);
+          alert("Failed to delete the class. Please try again.");
+          return;
+        }
+    
+        console.log("Delete response data:", data);
+    
+        // Refresh the data from the database
+        await fetchData();
+    
+        alert("Class deleted successfully.");
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        alert("An unexpected error occurred. Please try again.");
+      } finally {
+        setDeleteModalVisible(false);
+      }
+    };
+
+  const handleArchiveConfirm = async (id) => {
+    try {
+      const { error } = await supabase
+        .from("tbl_class")
+        .update({ is_active: false }) 
+        .eq("id", id);
+
+      console.log("Archiving class with ID:", id);
+
+      if (error) {
+        console.error("Error archiving class:", error);
+        alert("Failed to archive the class. Please try again.");
+        return;
+      }
+
+      setClasses(
+        classes.map((cls) =>
+          cls.id === id ? { ...cls, is_active: false } : cls
+        )
+      );
+      
+      setActiveTab("archived"); // <-- This line automatically switches to Archive tab
+      alert("Class archived successfully.");
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      alert("An unexpected error occurred. Please try again.");
+    } finally {
+      setMenuVisible(null);
+    }
+  };
+
+const handleUnarchiveConfirm = async (id) => {
+  try {
+    const { error } = await supabase
+      .from("tbl_class")
+      .update({ is_active: true })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error unarchiving class:", error);
+      alert("Failed to unarchive the class. Please try again.");
+      return;
+    }
+
     setClasses(
       classes.map((cls) =>
-        cls.id === id ? { ...cls, status: "archived" } : cls
+        cls.id === id ? { ...cls, is_active: true } : cls
       )
     );
-    setMenuVisible(null);
-    setActiveTab("archived");
-  };
+    setActiveTab("active");
+    alert("Class unarchived successfully.");
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    alert("An unexpected error occurred. Please try again.");
+  }
+};
 
-  const handleDelete = () => {
-    setClasses(classes.filter((cls) => cls.id !== classToDelete));
-    setDeleteModalVisible(false);
-    setMenuVisible(null);
-  };
 
   const saveNewClass = (newClassData) => {
     const newClass = {
@@ -46,7 +132,10 @@ const ClassManagementPage = () => {
     setCreateModalVisible(false);
   };
 
-  const filteredClasses = classes.filter((cls) => cls.is_active === true);
+  const filteredClasses = classes.filter(
+    (cls) => (activeTab === "active" ? cls.is_active : !cls.is_active)
+  );
+
 
   useEffect(() => {
     fetchData();
@@ -96,13 +185,17 @@ const ClassManagementPage = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex gap-4">
               <span
-                className={`cursor-pointer font-bold ${activeTab === "active" ? "text-yellow-500" : "text-gray-500"}`}
+                className={`cursor-pointer font-bold ${
+                  activeTab === "active" ? "text-yellow-500" : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("active")}
               >
                 Active
               </span>
               <span
-                className={`cursor-pointer font-bold ${activeTab === "archived" ? "text-yellow-500" : "text-gray-500"}`}
+                className={`cursor-pointer font-bold ${
+                  activeTab === "archived" ? "text-yellow-500" : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("archived")}
               >
                 Archive
@@ -142,33 +235,58 @@ const ClassManagementPage = () => {
                     <strong>{cls.class_name}</strong>
                     {/* <p className="text-sm text-gray-600">{cls.desc}</p> */}
                   </div>
+                  {filteredClasses.length === 0 && (
+                    <div className="text-center col-span-2 text-gray-500">
+                      {activeTab === "active" ? "No active classes." : "No archived classes."}
+                    </div>
+                  )}
                 </div>
                 <div className="relative">
-                  <button
-                    className="text-gray-600 hover:text-black ml-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuVisible(menuVisible === cls.id ? null : cls.id);
-                    }}
-                  >
-                    ⋮
-                  </button>
+                  <div className="flex items-center">
+                    <button
+                      className="text-gray-600 hover:text-black ml-2"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent unintended actions
+                        setMenuVisible(menuVisible === cls.id ? null : cls.id); // Toggle menu visibility
+                      }}
+                    >
+                      ⋮
+                    </button>
+                  </div>
                   {menuVisible === cls.id && (
                     <div className="absolute right-0 mt-2 bg-white text-black rounded-md shadow-lg z-10">
-                      <button
-                        className="block px-4 py-2 text-sm hover:bg-gray-200 w-full text-left"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleArchive(cls.id);
-                        }}
-                      >
-                        Archive
-                      </button>
+                      {cls.is_active ? (
+                        <button
+                          className="block px-4 py-2 text-sm hover:bg-gray-200 w-full text-left"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setClassToDelete(cls.id);
+                            setMenuVisible(null);
+                            setArchiveModalVisible(true);
+                          }}
+                        >
+                          Archive
+                        </button>
+                      ) : (
+                        <button
+                          className="block px-4 py-2 text-sm hover:bg-gray-200 w-full text-left"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setClassToDelete(cls.id);
+                            setMenuVisible(null);
+                            setUnarchiveModalVisible(true); // <-- show unarchive modal
+                          }}
+                        >
+                          Unarchive
+                        </button>
+                      )}
+
                       <button
                         className="block px-4 py-2 text-sm hover:bg-gray-200 w-full text-left"
                         onClick={(e) => {
                           e.stopPropagation();
                           setClassToDelete(cls.id);
+                          setMenuVisible(null);
                           setDeleteModalVisible(true);
                         }}
                       >
@@ -176,6 +294,7 @@ const ClassManagementPage = () => {
                       </button>
                     </div>
                   )}
+
                 </div>
               </div>
             ))}
@@ -211,7 +330,7 @@ const ClassManagementPage = () => {
                 </button>
                 <button
                   className="bg-red-500 text-white px-4 py-2 rounded-md"
-                  onClick={handleDelete}
+                  onClick={handleDeleteConfirm}
                 >
                   Delete
                 </button>
@@ -219,6 +338,62 @@ const ClassManagementPage = () => {
             </div>
           </div>
         )}
+
+        {archiveModalVisible && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
+              <h2 className="text-xl font-bold mb-4">Confirm Archive</h2>
+              <p>Are you sure you want to archive this class?</p>
+              <div className="flex justify-end mt-4">
+                <button
+                  className="bg-gray-300 text-black px-4 py-2 rounded-md mr-2"
+                  onClick={() => setArchiveModalVisible(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-yellow-500 text-white px-4 py-2 rounded-md"
+                  onClick={() => {
+                    handleArchiveConfirm(classToDelete);
+                    setArchiveModalVisible(false);
+                  }}
+                >
+                  Archive
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {unarchiveModalVisible && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
+            <h2 className="text-xl font-bold mb-4">Confirm Unarchive</h2>
+            <p>Are you sure you want to unarchive this class?</p>
+            <div className="flex justify-end mt-4">
+              <button
+                className="bg-gray-300 text-black px-4 py-2 rounded-md mr-2"
+                onClick={() => setUnarchiveModalVisible(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-green-600 text-white px-4 py-2 rounded-md"
+                onClick={() => {
+                  handleUnarchiveConfirm(classToDelete);
+                  setUnarchiveModalVisible(false);
+                }}
+              >
+                Unarchive
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
+
       </motion.div>
     </AnimatePresence>
   );

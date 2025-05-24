@@ -9,8 +9,11 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   Stack,
+  Tooltip,
 } from "@mui/material";
+import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import AddMemberDialog from "../elements/AddMemberDialog";
 import AssignQuizDialog from "../elements/AssignQuizDialog";
 
@@ -29,6 +32,7 @@ const ClassPage = () => {
 
   const [addMembDia, setAddMemDia] = useState(false);
   const [assignQuiz, setAssignQuiz] = useState(false);
+  const [copyToolTip, setCopyToolTip] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(null);
   const [people, setPeople] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
@@ -96,6 +100,21 @@ const ClassPage = () => {
       )
       .subscribe();
   }, []);
+
+  const copy = (text) => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        // alert("Copied to clipboard");
+        setCopyToolTip(true);
+        setTimeout(() => {
+          setCopyToolTip(false);
+        }, 2000);
+      },
+      (err) => {
+        console.error("Could not copy text: ", err);
+      }
+    );
+  };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -178,7 +197,26 @@ const ClassPage = () => {
             </div>
             <div className="mb-4">
               <p className="text-sm text-gray-300">Class join code</p>
-              <p className="text-base font-semibold">{classData.join_code}</p>
+              <Stack direction="row" alignItems="center" spacing={2}>
+                <p className="text-base font-semibold">{classData.join_code}</p>
+                <Tooltip
+                  open={copyToolTip}
+                  arrow
+                  placement="top-start"
+                  disableFocusListener
+                  title="Copied to clipboard"
+                >
+                  <IconButton
+                    size="small"
+                    onClick={() => copy(classData.join_code)}
+                  >
+                    <ContentCopyRoundedIcon
+                      sx={{ color: "whitesmoke" }}
+                      fontSize="small"
+                    />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
             </div>
             <Stack
               direction="row"

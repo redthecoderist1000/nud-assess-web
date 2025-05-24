@@ -27,6 +27,7 @@ import { userContext } from "../App";
 import { visuallyHidden } from "@mui/utils";
 import SearchIcon from "@mui/icons-material/SearchRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
+import AssignSubjectDialog from "./AssignSubjectDialog";
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -107,6 +108,7 @@ function FacultyTab() {
 
   const [assignDialog, setAssignDialog] = useState(false);
   const [selected, setSelected] = useState({});
+  const [selectedFaculty, setSelectedFaculty] = useState("");
 
   async function fetchData() {
     let { data, error } = await supabase
@@ -137,6 +139,17 @@ function FacultyTab() {
 
   useEffect(() => {
     fetchData();
+
+    supabase
+      .channel("custom-filter-channel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tbl_faculty_subject" },
+        (payload) => {
+          fetchData();
+        }
+      )
+      .subscribe();
   }, []);
 
   const visibleFaculty = useMemo(
@@ -246,11 +259,19 @@ function FacultyTab() {
                         variant="text"
                         size="small"
                         onClick={() => {
-                          setSelected(row);
+                          setSelectedFaculty(row.id);
                           setAssignDialog(true);
                         }}
                       >
-                        Assign Subject
+                        Assign
+                      </Button>
+                      <Button
+                        variant="text"
+                        color="error"
+                        size="small"
+                        onClick={() => {}}
+                      >
+                        Remove
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -270,27 +291,11 @@ function FacultyTab() {
         />
       </Paper>
 
-      <Dialog open={assignDialog} onClose={() => setAssignDialog(false)}>
-        <DialogTitle>Assign subject</DialogTitle>
-        <DialogContent>
-          <DialogContentText>Do you want to assign subject</DialogContentText>
-        </DialogContent>
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          <DialogActions>
-            <Button
-              onClick={() => {
-                setAssignDialog(false);
-              }}
-              color="danger"
-            >
-              Cancel
-            </Button>
-            <Button>Continue</Button>
-          </DialogActions>
-        )}
-      </Dialog>
+      <AssignSubjectDialog
+        open={assignDialog}
+        setOpen={setAssignDialog}
+        selectedFaculty={selectedFaculty}
+      />
     </div>
   );
 }

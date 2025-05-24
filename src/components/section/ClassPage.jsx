@@ -14,6 +14,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import AddMemberDialog from "../elements/AddMemberDialog";
 import AssignQuizDialog from "../elements/AssignQuizDialog";
 
@@ -130,8 +131,7 @@ const ClassPage = () => {
             sx={{ color: "white", textTransform: "lowercase" }}
             onClick={() => navigate(-1)}
           >
-            {" "}
-            return{" "}
+            <ArrowBackIosNewRoundedIcon fontSize="small" /> return{" "}
           </Button>
           <h1 className="text-7xl font-bold mt-30 text-white">
             {classData.class_name}

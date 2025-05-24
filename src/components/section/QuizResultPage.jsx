@@ -236,6 +236,7 @@ const QuizResultPage = () => {
           await supabase
             .from("tbl_question")
             .insert({
+              lesson_id: data.lesson_id,
               question: data.question,
               type: "Multiple Choice",
               blooms_category: data.specification,
@@ -527,12 +528,14 @@ const QuizResultPage = () => {
                 })}
               </Grid>
             </div>
-            <div
-              className="min-w-[120px] text-right text-[#35408E] text-sm font-semibold ml-4"
-              style={{ marginTop: 2 }}
-            >
-              "{data.specification}"
-            </div>
+            <Stack maxWidth={250} rowGap={2}>
+              <div className="text-right text-[#35408E] text-sm font-semibold">
+                "{data.topic}"
+              </div>
+              <div className="min-w-[120px] text-right text-[#35408E] text-sm">
+                "{data.specification}"
+              </div>
+            </Stack>
           </div>
         ))}
 

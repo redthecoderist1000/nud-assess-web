@@ -39,6 +39,7 @@ function Tosifier(props) {
   const [rows, setRows] = useState([
     {
       topic: "",
+      lesson_id: "",
       hours: 0,
       percentage: 0,
       remembering: 0,
@@ -68,6 +69,7 @@ function Tosifier(props) {
     totalItems: 0,
   });
   const [loading, setLoading] = useState(false);
+  const [lessonOption, setLessonOption] = useState([]);
 
   // calculate total hours when rows change
   useEffect(() => {
@@ -205,6 +207,7 @@ function Tosifier(props) {
     //
 
     setRows(updatedRows);
+    console.log("Updated Rows:", updatedRows);
   };
 
   const removeRow = () => {
@@ -217,14 +220,19 @@ function Tosifier(props) {
     setLoading(true);
     setResponse("Generating...");
     setQuiz([]);
-    console.log("Generating...");
+    // console.log("Generating...");
 
     var reqs =
-      "The total number of questions are " + total.items + ". The Topics are: ";
+      "The total number of questions are " +
+      total.items +
+      ". The Lessons are: ";
+
     rows.forEach((row, index) => {
       reqs +=
-        "Topic no. " +
+        "Lesson no. " +
         (index + 1) +
+        ". Lesson_id: " +
+        row.lesson_id +
         ". " +
         row.topic +
         " with " +
@@ -296,6 +304,45 @@ function Tosifier(props) {
 
   const handleSubmit = () => {};
 
+  useEffect(() => {
+    if (quizDetail.subject_id == "") {
+      setLessonOption([]);
+      return;
+    }
+
+    fetchLesson();
+  }, [quizDetail.subject_id]);
+
+  const fetchLesson = async () => {
+    setRows([
+      {
+        topic: "",
+        lesson_id: "",
+        hours: 0,
+        percentage: 0,
+        remembering: 0,
+        understanding: 0,
+        applying: 0,
+        analyzing: 0,
+        creating: 0,
+        evaluating: 0,
+        totalItems: 0,
+      },
+    ]);
+
+    const { data, error } = await supabase
+      .from("tbl_lesson")
+      .select("*")
+      .eq("subject_id", quizDetail.subject_id);
+
+    if (error) {
+      console.error("Failed to fetch lessons:", error);
+      setLessonOption([]);
+      return;
+    }
+    setLessonOption(data);
+  };
+
   return (
     <Container maxWidth="xl">
       <form onSubmit={generateQuestion}>
@@ -360,7 +407,6 @@ function Tosifier(props) {
               size="small"
               label="Description"
               fullWidth
-              required
               multiline
               rows={4}
               name="desc"
@@ -370,7 +416,6 @@ function Tosifier(props) {
               label="Objective"
               size="small"
               fullWidth
-              required
               multiline
               rows={4}
               name="objective"
@@ -447,7 +492,7 @@ function Tosifier(props) {
                   <TableRow>
                     {/* <th rowSpan={2}>Source Material</th> */}
                     <TableCell align="center" rowSpan={2}>
-                      <b>Topic Title</b>
+                      <b>Topic</b>
                     </TableCell>
                     <TableCell align="center" rowSpan={2}>
                       <b>Hours</b>
@@ -504,7 +549,7 @@ function Tosifier(props) {
                     />
                   </td> */}
                       <TableCell align="center">
-                        <OutlinedInput
+                        {/* <OutlinedInput
                           size="small"
                           required
                           name="topicInput"
@@ -514,15 +559,59 @@ function Tosifier(props) {
                           onChange={(e) =>
                             handleInputChange(index, "topic", e.target.value)
                           }
-                        />
+                        /> */}
+                        <FormControl size="small" sx={{ width: "250px" }}>
+                          <InputLabel id="lessonLabel" required>
+                            Lesson
+                          </InputLabel>
+                          <Select
+                            fullWidth
+                            labelId="lessonLabel"
+                            label="Lesson"
+                            value={row.lesson_id || ""}
+                            size="small"
+                            required
+                            name="lessonId"
+                            // defaultValue=""
+                            disabled={lessonOption.length === 0}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                "lesson_id",
+                                e.target.value
+                              )
+                            }
+                          >
+                            {lessonOption.map((data, i) => {
+                              return (
+                                <MenuItem
+                                  key={i}
+                                  value={data.id}
+                                  onClick={() =>
+                                    handleInputChange(
+                                      index,
+                                      "topic",
+                                      data.title
+                                    )
+                                  }
+                                >
+                                  {data.title}
+                                </MenuItem>
+                              );
+                            })}
+                          </Select>
+                        </FormControl>
                       </TableCell>
                       <TableCell align="center">
-                        <OutlinedInput
+                        <TextField
+                          sx={{ width: "100px" }}
+                          label="Hours"
                           size="small"
                           required
                           index={index}
                           type="number"
                           name="hoursInput"
+                          value={row.hours || ""}
                           min={0}
                           placeholder="enter hours"
                           onChange={(e) =>

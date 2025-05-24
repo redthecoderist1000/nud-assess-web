@@ -34,6 +34,7 @@ function Tosifier(props) {
   const [quizDetail, setQuizDetail] = useState({
     ...props.quizDetail,
     subject_id: "",
+    subject_name: "",
     is_random: false,
   });
   const [rows, setRows] = useState([
@@ -167,7 +168,24 @@ function Tosifier(props) {
   }, []);
 
   const handleQuizDetail = (e) => {
-    setQuizDetail({ ...quizDetail, [e.target.name]: e.target.value });
+    let value = e.target.value;
+    let name = e.target.name;
+
+    // If subject_id is changed, also update subject_name
+    if (name === "subject_id") {
+      const selected = subjectOptions.find(
+        (option) => option.subject_id === value
+      );
+      setQuizDetail({
+        ...quizDetail,
+        subject_id: value,
+        subject_name: selected ? selected.subject_name : "",
+      });
+    } else {
+      setQuizDetail({ ...quizDetail, [name]: value });
+    }
+
+    console.log("Quiz Detail:", quizDetail);
   };
 
   const handleFileChange = (e) => {
@@ -301,8 +319,6 @@ function Tosifier(props) {
 
     reader.readAsDataURL(file);
   };
-
-  const handleSubmit = () => {};
 
   useEffect(() => {
     if (quizDetail.subject_id == "") {

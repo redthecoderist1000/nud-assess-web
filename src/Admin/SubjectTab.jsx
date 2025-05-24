@@ -311,7 +311,6 @@ function SubjectTab() {
     () =>
       [...rows]
         .sort(getComparator(order, orderBy))
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .filter((value) => {
           const matchSubName = value.tbl_subject.name
             .toLowerCase()
@@ -330,7 +329,8 @@ function SubjectTab() {
             .includes(search.toLowerCase());
 
           return matchSubName || matchSubCode || matchFname || matchLname;
-        }),
+        })
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [order, orderBy, page, rowsPerPage, rows, search]
   );
 

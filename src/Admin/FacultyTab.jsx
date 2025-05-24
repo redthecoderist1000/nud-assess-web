@@ -143,7 +143,6 @@ function FacultyTab() {
     () =>
       [...rows]
         .sort(getComparator(order, orderBy))
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .filter((value) => {
           const matchFname = value?.f_name
             .toLowerCase()
@@ -156,7 +155,8 @@ function FacultyTab() {
           const matchSubject = value?.subjects.includes(search);
 
           return matchFname || matchLname || matchSubject;
-        }),
+        })
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [order, orderBy, page, rowsPerPage, search, rows]
   );
 

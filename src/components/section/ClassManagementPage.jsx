@@ -16,37 +16,14 @@ const ClassManagementPage = () => {
   const [menuVisible, setMenuVisible] = useState(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [classToDelete, setClassToDelete] = useState(null);
 
-  const handleArchive = (id) => {
-    setClasses(
-      classes.map((cls) =>
-        cls.id === id ? { ...cls, status: "archived" } : cls
-      )
-    );
-    setMenuVisible(null);
-    setActiveTab("archived");
-  };
-
-  const handleDelete = () => {
-    setClasses(classes.filter((cls) => cls.id !== classToDelete));
-    setDeleteModalVisible(false);
-    setMenuVisible(null);
-  };
-
-  const saveNewClass = (newClassData) => {
-    const newClass = {
-      id: classes.length + 1,
-      title: newClassData.title || "Untitled Class",
-      desc: newClassData.desc || "No description available",
-      status: "active",
-      image: newClassData.image || "",
-    };
-    setClasses([...classes, newClass]);
-    setCreateModalVisible(false);
-  };
-
-  const filteredClasses = classes.filter((cls) => cls.is_active === true);
+  const filteredClasses = classes.filter((cls) => {
+    if (activeTab == "active") {
+      return cls.is_active;
+    } else {
+      return !cls.is_active;
+    }
+  });
 
   useEffect(() => {
     fetchData();
@@ -144,7 +121,7 @@ const ClassManagementPage = () => {
                   </div>
                 </div>
                 <div className="relative">
-                  <button
+                  {/* <button
                     className="text-gray-600 hover:text-black ml-2"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -152,14 +129,13 @@ const ClassManagementPage = () => {
                     }}
                   >
                     ⋮
-                  </button>
+                  </button> */}
                   {menuVisible === cls.id && (
                     <div className="absolute right-0 mt-2 bg-white text-black rounded-md shadow-lg z-10">
                       <button
                         className="block px-4 py-2 text-sm hover:bg-gray-200 w-full text-left"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleArchive(cls.id);
                         }}
                       >
                         Archive
@@ -189,10 +165,7 @@ const ClassManagementPage = () => {
         {createModalVisible && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
-              <CreateClass
-                onSave={saveNewClass}
-                onCancel={() => setCreateModalVisible(false)}
-              />
+              <CreateClass onCancel={() => setCreateModalVisible(false)} />
             </div>
           </div>
         )}

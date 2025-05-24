@@ -257,7 +257,7 @@ const CreateQuestionAutomatically = () => {
             lessonId: selectedSubject.id,
             course,
             lessonTitle,
-            lessonId: lesson,
+            // lessonId: lesson,
             questions: generatedQuestions,
           },
           repository: repository,

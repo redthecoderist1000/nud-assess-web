@@ -3,7 +3,7 @@ import { CircularProgress } from "@mui/material";
 import { supabase } from "../../helper/Supabase";
 import { userContext } from "../../App";
 
-const CreateClass = ({ onSave, onCancel }) => {
+const CreateClass = ({ onCancel }) => {
   // const { user } = useContext(userContext);
   const { user } = useContext(userContext);
 

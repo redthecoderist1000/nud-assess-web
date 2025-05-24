@@ -119,7 +119,7 @@ function AddMemberDialog({ open, setOpen, classId }) {
   return (
     <Dialog
       sx={{ p: 2 }}
-      maxWidth="lg"
+      maxWidth="md"
       fullWidth
       open={open}
       onClose={() => {}}
@@ -188,13 +188,12 @@ function AddMemberDialog({ open, setOpen, classId }) {
       <Divider />
       <DialogActions>
         <Stack direction="row" justifyContent="space-between" width="100%">
-          <Button onClick={() => setOpen(false)} size="small" color="error">
+          <Button onClick={() => setOpen(false)} color="error">
             Cancel
           </Button>
           <Button
             onClick={addConfirm}
             variant="contained"
-            size="small"
             disabled={studentToAdd.length == 0}
           >
             Add

@@ -12,6 +12,7 @@ import {
   Stack,
 } from "@mui/material";
 import AddMemberDialog from "../elements/AddMemberDialog";
+import AssignQuizDialog from "../elements/AssignQuizDialog";
 
 const ClassPage = () => {
   const location = useLocation();
@@ -27,6 +28,7 @@ const ClassPage = () => {
   // join_code: "gsavxjr";
 
   const [addMembDia, setAddMemDia] = useState(false);
+  const [assignQuiz, setAssignQuiz] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(null);
   const [people, setPeople] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
@@ -82,6 +84,17 @@ const ClassPage = () => {
         }
       )
       .subscribe();
+
+    supabase
+      .channel("custom-filter-channel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tbl_class_exam" },
+        (payload) => {
+          fetchQuizzes();
+        }
+      )
+      .subscribe();
   }, []);
 
   return (
@@ -120,7 +133,10 @@ const ClassPage = () => {
           <div className="sticky top-0 bg-white z-10 p-4 shadow-md">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">Quizzes</h2>
-              <button className="bg-indigo-700 text-white px-4 py-2 rounded-md hover:bg-indigo-800">
+              <button
+                className="bg-indigo-700 text-white px-4 py-2 rounded-md hover:bg-indigo-800"
+                onClick={() => setAssignQuiz(true)}
+              >
                 Assign Quiz
               </button>
             </div>
@@ -237,6 +253,11 @@ const ClassPage = () => {
       <AddMemberDialog
         open={addMembDia}
         setOpen={setAddMemDia}
+        classId={classData.id}
+      />
+      <AssignQuizDialog
+        open={assignQuiz}
+        setOpen={setAssignQuiz}
         classId={classData.id}
       />
     </div>

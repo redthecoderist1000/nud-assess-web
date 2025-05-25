@@ -76,7 +76,6 @@ const ClassPage = () => {
   };
 
   useEffect(() => {
-    console.log("ClassPage mounted with classData:", classData);
     fetchQuizzes();
     fetchMember();
 
@@ -170,6 +169,13 @@ const ClassPage = () => {
               <div
                 key={index}
                 className="p-4 bg-gray-100 rounded-md shadow-md flex justify-between items-center mb-4"
+                onClick={() => {
+                  navigate("/quiz", {
+                    state: {
+                      exam_id: quiz.exam_id,
+                    },
+                  });
+                }}
               >
                 <div>
                   <h3 className="font-bold">{quiz.name}</h3>

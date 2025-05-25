@@ -52,6 +52,7 @@ import { supabase } from "./helper/Supabase.jsx";
 import AuthPage from "./components/section/AuthPage.jsx";
 import AdminPage from "./Admin/AdminPage.jsx";
 import SetUpAccount from "./components/section/SetUpAccount.jsx";
+import QuizInfoPage from "./components/section/QuizInfoPage.jsx";
 
 export const userContext = createContext();
 export const signupContext = createContext();
@@ -135,6 +136,7 @@ const AnimatedRoutes = () => {
             {/* Dashboard Routes - Wrapped with Layout */}
             <Route element={<ProtectedRoutes />}>
               <Route path="/class" element={<ClassPage />} />
+              <Route path="/quiz" element={<QuizInfoPage />} />
 
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<DashboardPage />} />

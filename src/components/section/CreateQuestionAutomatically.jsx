@@ -256,7 +256,7 @@ const CreateQuestionAutomatically = () => {
         state: {
           formData: {
             lesson: selectedSubject.subject_name,
-            lessonId: selectedSubject.subject_id,
+            // lessonId: selectedSubject.subject_id,
             course,
             lessonTitle,
             lessonId: course,

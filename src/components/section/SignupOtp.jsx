@@ -14,6 +14,7 @@ function SignupOtp() {
   const email = location.state.email;
 
   const [otp, setOtp] = useState("");
+  const [error, setError] = useState("");
 
   //   agreeTerms: true;
   //   confirmPassword: "pass";
@@ -38,6 +39,17 @@ function SignupOtp() {
 
     if (error) {
       console.log("failed opt: ", error);
+    }
+  };
+
+  const resend = async () => {
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email: email,
+    });
+
+    if (error) {
+      console.error("Error resending OTP:", error);
+      setError(error.message);
     }
   };
 
@@ -114,18 +126,22 @@ function SignupOtp() {
             fontSize: "20px",
           }}
         />
-        {/* <motion.p
-          className="text-gray-600 mb-10"
+        <motion.p
+          className="text-gray-600 mb-10 test-red-500"
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           Don't have any OTP?
-          <span className="text-blue-900 cursor-pointer hover:underline">
+          <span
+            className="text-blue-900 cursor-pointer hover:underline"
+            onClick={resend}
+          >
             {"  "}
-            Resend (25s)
+            Resend
           </span>
-        </motion.p> */}
+        </motion.p>
+        <p>{error}</p>
         <motion.button
           className="w-full p-3 bg-[#35408E] text-white rounded-md hover:bg-[#2c357e] transform transition duration-300 hover:scale-105"
           initial={{ opacity: 0 }}

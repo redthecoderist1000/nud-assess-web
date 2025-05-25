@@ -95,21 +95,21 @@ function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
   const confirmAssign = async () => {
     setLoading(true);
     // generate payload
-    // const payload = selectedSubject.map((data) => ({
-    //   faculty_id: selectedFaculty,
-    //   program_subject_id: data.prog_sub_id,
-    // }));
+    const payload = selectedSubject.map((data) => ({
+      faculty_id: selectedFaculty,
+      program_subject_id: data.prog_sub_id,
+    }));
 
-    // // insert payload to tbl_subject_faculty
-    // const { data, error } = await supabase
-    //   .from("tbl_faculty_subject")
-    //   .insert(payload);
+    // insert payload to tbl_subject_faculty
+    const { data, error } = await supabase
+      .from("tbl_faculty_subject")
+      .insert(payload);
 
-    // if (error) {
-    //   console.log("Failed to assign subjects:", error);
-    //   setLoading(false);
-    //   return;
-    // }
+    if (error) {
+      console.log("Failed to assign subjects:", error);
+      setLoading(false);
+      return;
+    }
 
     setLoading(false);
     setOpen(false);
@@ -130,7 +130,7 @@ function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
           <List dense disablePadding sx={{ width: "100%" }}>
             {selectedSubject.map((data, index) => {
               return (
-                <ListItem key={index} onClick>
+                <ListItem key={index} onClick={() => removeSelected(index)}>
                   <Stack direction="row" spacing={1}>
                     <ListItemText>
                       {data.name} ({data.subject_code})

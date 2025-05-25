@@ -256,7 +256,7 @@ const QuizResultPage = () => {
   };
 
   const handleEditQuestion = (index, field, value) => {
-    console.log("edit question", index, field, value);
+    // console.log("edit question", index, field, value);
     setQuizResult((prev) =>
       prev.map((q, i) => (i === index ? { ...q, [field]: value } : q))
     );
@@ -540,11 +540,12 @@ const QuizResultPage = () => {
                       ) : (
                         <Stack direction="row">
                           {ans.is_correct ? (
-                            <CheckRoundedIcon className="text-green-600" />
+                            <u>
+                              <p>{ans.answer}</p>
+                            </u>
                           ) : (
-                            <CloseRoundedIcon className="text-red-600" />
+                            <p>{ans.answer}</p>
                           )}
-                          <p>{ans.answer}</p>
                         </Stack>
                       )}
                     </Grid>

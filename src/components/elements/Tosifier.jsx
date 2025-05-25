@@ -185,7 +185,7 @@ function Tosifier(props) {
       setQuizDetail({ ...quizDetail, [name]: value });
     }
 
-    console.log("Quiz Detail:", quizDetail);
+    // console.log("Quiz Detail:", quizDetail);
   };
 
   const handleFileChange = (e) => {
@@ -225,7 +225,7 @@ function Tosifier(props) {
     //
 
     setRows(updatedRows);
-    console.log("Updated Rows:", updatedRows);
+    // console.log("Updated Rows:", updatedRows);
   };
 
   const removeRow = () => {

@@ -76,6 +76,7 @@ const ClassPage = () => {
   };
 
   useEffect(() => {
+    console.log("ClassPage mounted with classData:", classData);
     fetchQuizzes();
     fetchMember();
 
@@ -152,12 +153,14 @@ const ClassPage = () => {
           <div className="sticky top-0 bg-white z-10 p-4 shadow-md">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">Quizzes</h2>
-              <button
-                className="bg-indigo-700 text-white px-4 py-2 rounded-md hover:bg-indigo-800"
+              <Button
+                variant="contained"
+                disabled={classData.is_active === false}
+                // className="bg-indigo-700 text-white px-4 py-2 rounded-md hover:bg-indigo-800"
                 onClick={() => setAssignQuiz(true)}
               >
                 Assign Quiz
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -230,6 +233,7 @@ const ClassPage = () => {
                 size="small"
                 sx={{ color: "white" }}
                 variant="contained"
+                disabled={classData.is_active === false}
                 onClick={() => {
                   setAddMemDia(true);
                 }}

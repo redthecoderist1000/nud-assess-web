@@ -228,7 +228,7 @@ function SubjectTab() {
           const { data, error } = await supabase
             .from("tbl_users")
             .select("*")
-            .eq("role", "Faculty");
+            .not("role", "eq", "Student");
 
           if (error) {
             console.error("Failed to load faculty", error);

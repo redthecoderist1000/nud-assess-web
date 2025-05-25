@@ -1,5 +1,10 @@
 import {
+  FormControl,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -15,6 +20,7 @@ import { supabase } from "../../../helper/Supabase";
 function MyQuestionTab() {
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
+  const [searchBloom, setSearchBloom] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -55,6 +61,11 @@ function MyQuestionTab() {
     () =>
       rows
         .filter((data) => {
+          const isBloomAll = !searchBloom || searchBloom === "All";
+          const isSearchEmpty = !search || search.trim() === "";
+
+          if (isSearchEmpty && isBloomAll) return true;
+
           const matchQuestion = data.question
             .toLowerCase()
             .includes(search.toLowerCase());
@@ -75,28 +86,66 @@ function MyQuestionTab() {
             ?.toLowerCase()
             .includes(search.toLowerCase());
 
-          return (
-            matchQuestion ||
-            matchType ||
-            matchBlooms ||
-            matchLesson ||
-            matchSubject
-          );
+          const matchBloomFilter =
+            searchBloom === "All" ||
+            data.blooms_category.toLowerCase() == searchBloom.toLowerCase();
+
+          if (!isSearchEmpty && !isBloomAll) {
+            return (
+              (matchQuestion ||
+                matchType ||
+                matchBlooms ||
+                matchLesson ||
+                matchSubject) &&
+              matchBloomFilter
+            );
+          } else if (!isSearchEmpty) {
+            return (
+              matchQuestion ||
+              matchType ||
+              matchBlooms ||
+              matchLesson ||
+              matchSubject
+            );
+          } else if (!isBloomAll) {
+            return matchBloomFilter;
+          }
+          return true;
         })
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
 
-    [rows, search, page, rowsPerPage]
+    [rows, search, page, rowsPerPage, searchBloom]
   );
 
   return (
     <>
-      <TextField
-        size="small"
-        label="search"
-        fullWidth
-        onChange={(e) => setSearch(e.target.value)}
-        sx={{ maxWidth: "25%" }}
-      />
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <TextField
+          size="small"
+          label="search"
+          fullWidth
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ maxWidth: "25%" }}
+        />
+        <FormControl fullWidth size="small" sx={{ maxWidth: "20%" }}>
+          <InputLabel id="bloom_filter_label">Bloom's Category</InputLabel>
+          <Select
+            labelId="bloom_filter_label"
+            id="bloom_filter_select"
+            label="Bloom's Category"
+            onChange={(e) => setSearchBloom(e.target.value)}
+          >
+            <MenuItem value="All">All</MenuItem>
+            <MenuItem value="Remembering">Remembering</MenuItem>
+            <MenuItem value="Understanding">Understanding</MenuItem>
+            <MenuItem value="Applying">Applying</MenuItem>
+            <MenuItem value="Analyzing">Analyzing</MenuItem>
+            <MenuItem value="Evaluating">Evaluating</MenuItem>
+            <MenuItem value="Creating">Creating</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
+
       <TableContainer
         component={Paper}
         sx={{ marginTop: 2, overflow: "auto", maxHeight: "60vh" }}

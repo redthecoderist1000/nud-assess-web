@@ -137,13 +137,13 @@ const AnimatedRoutes = () => {
             <Route element={<ProtectedRoutes />}>
               <Route path="/class" element={<ClassPage />} />
               <Route path="/quiz" element={<QuizInfoPage />} />
+              {/* <Route path="/quiz" element={<QuizDetails />} /> */}
 
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="QuizManagement" element={<QuizmanagementPage />} />
                 <Route path="QuestionSummary" element={<QuestionSummary />} />
                 <Route path="QuestionDetails" element={<QuestionDetails />} />
-                <Route path="QuizDetails" element={<QuizDetails />} />
                 <Route
                   path="QuestionManagement"
                   element={<QuestionManagementPage />}

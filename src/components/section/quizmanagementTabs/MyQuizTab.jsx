@@ -50,7 +50,7 @@ function MyQuizTab() {
         })
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
 
-    [rows, search]
+    [rows, search, page, rowsPerPage]
   );
 
   const handleChangePage = (event, newPage) => {

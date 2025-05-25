@@ -12,6 +12,7 @@ import {
   InputLabel,
   MenuItem,
   OutlinedInput,
+  Paper,
   Select,
   Stack,
   Table,
@@ -489,7 +490,7 @@ function Tosifier(props) {
             </div>
           </Stack>
           <Card>
-            <TableContainer component="paper">
+            <TableContainer component={Paper}>
               {/* <div>
             {materialList.map((data, index) => {
               return (

@@ -58,6 +58,6 @@ const generationConfig = {
 export const model = genAI.getGenerativeModel({
   model: "gemini-2.0-flash-lite",
   systemInstruction:
-    "Create a quiz where the questions falls under the Bloom's Taxonomy Cognitive Domain. The structure of the quiz will be based on the specifications per lessons given in the prompt. Ensure that all of the contents in the quiz are present in the document provided. For each questions, provide 4 multiple choices with only one correct answer. Include the specification according to the Bloom's Taxonomy Cognitive Domain, and the lesson as well as the lesson id which the question came from.",
+    "You are a college proffesor and you have to create a quiz where the questions falls under the Bloom's Taxonomy Cognitive Domain. The structure of the quiz will be based on the specifications per lessons given in the prompt. Ensure that all of the contents in the quiz are present in the document provided. For each questions, provide 4 multiple choices with only one correct answer. Include the specification according to the Bloom's Taxonomy Cognitive Domain, and the lesson as well as the lesson id which the question came from.",
   generationConfig: generationConfig,
 });

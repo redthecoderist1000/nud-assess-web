@@ -21,15 +21,15 @@ const CreateQuestionAutomatically = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("Selected Repository:", repository);
+    // console.log("Selected Repository:", repository);
   }, [repository]);
 
   useEffect(() => {
     const fetchSubjects = async () => {
       // fix para assigned subject lang makita
       const { data, error } = await supabase
-        .from("tbl_subject")
-        .select("id, name");
+        .from("vw_assignedsubject")
+        .select("*");
 
       if (error) {
         console.error("Error fetching subjects:", error);
@@ -50,10 +50,10 @@ const CreateQuestionAutomatically = () => {
       }
 
       try {
-        console.log("Fetching lessons for subject_id:", lesson);
+        // console.log("Fetching lessons for subject_id:", lesson);
         const { data, error } = await supabase
           .from("tbl_lesson")
-          .select("title")
+          .select("title, id")
           .eq("subject_id", lesson);
 
         if (error) {
@@ -61,8 +61,8 @@ const CreateQuestionAutomatically = () => {
           return;
         }
 
-        console.log("Fetched lessons:", data);
-        setLessons(data.map((lesson) => lesson.title));
+        // console.log("Fetched lessons:", data);
+        setLessons(data);
       } catch (err) {
         console.error("Unexpected error fetching lessons:", err);
       }
@@ -98,7 +98,9 @@ const CreateQuestionAutomatically = () => {
   const handleGenerate = async () => {
     setIsLoading(true);
     try {
-      const selectedSubject = subjects.find((subject) => subject.id === lesson);
+      const selectedSubject = subjects.find(
+        (subject) => subject.subject_id === lesson
+      );
 
       if (!selectedSubject) {
         alert("Please select a valid subject.");
@@ -106,7 +108,7 @@ const CreateQuestionAutomatically = () => {
         return;
       }
 
-      console.log("Selected Subject:", selectedSubject);
+      // console.log("Selected Subject:", selectedSubject);
 
       let inputData = "";
 
@@ -122,7 +124,7 @@ const CreateQuestionAutomatically = () => {
         return;
       }
 
-      console.log("Input data being sent to Gemini API:", inputData);
+      // console.log("Input data being sent to Gemini API:", inputData);
 
       const response = await axios.post(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" +
@@ -160,7 +162,7 @@ const CreateQuestionAutomatically = () => {
         }
       );
 
-      console.log("Raw AI Response Data:", response.data);
+      // console.log("Raw AI Response Data:", response.data);
 
       if (!response.data.candidates || response.data.candidates.length === 0) {
         alert(
@@ -172,7 +174,7 @@ const CreateQuestionAutomatically = () => {
 
       const rawText = response.data.candidates[0].content.parts[0].text;
 
-      console.log("Raw Text from Gemini API:", rawText);
+      // console.log("Raw Text from Gemini API:", rawText);
 
       let cleanedText = rawText.trim();
 
@@ -194,7 +196,7 @@ const CreateQuestionAutomatically = () => {
         parsedQuestions = JSON.parse(cleanedText);
       } catch (e) {
         console.error("Failed to parse Gemini JSON:", e);
-        console.log("Cleaned Text:", cleanedText);
+        // console.log("Cleaned Text:", cleanedText);
         alert(
           "Failed to parse the generated questions. Please check the format."
         );
@@ -247,17 +249,17 @@ const CreateQuestionAutomatically = () => {
         tosCategory: q.tosCategory,
       }));
 
-      console.log("Generated Questions:", generatedQuestions);
-      console.log("Lesson ID being passed:", lesson);
+      // console.log("Generated Questions:", generatedQuestions);
+      // console.log("Lesson ID being passed:", lesson);
 
       navigate("/dashboard/QuestionSummary", {
         state: {
           formData: {
-            lesson: selectedSubject.name,
-            lessonId: selectedSubject.id,
+            lesson: selectedSubject.subject_name,
+            lessonId: selectedSubject.subject_id,
             course,
             lessonTitle,
-            // lessonId: lesson,
+            lessonId: course,
             questions: generatedQuestions,
           },
           repository: repository,
@@ -292,9 +294,9 @@ const CreateQuestionAutomatically = () => {
             <option value="" disabled>
               Select a subject
             </option>
-            {subjects.map((subject) => (
-              <option key={subject.id} value={subject.id}>
-                {subject.name}
+            {subjects.map((subject, index) => (
+              <option key={subject.index} value={subject.subject_id}>
+                {subject.subject_name}
               </option>
             ))}
           </select>
@@ -316,8 +318,8 @@ const CreateQuestionAutomatically = () => {
               Select a lesson
             </option>
             {lessons.map((lesson, index) => (
-              <option key={index} value={lesson}>
-                {lesson}
+              <option key={index} value={lesson.id}>
+                {lesson.title}
               </option>
             ))}
           </select>
@@ -335,7 +337,7 @@ const CreateQuestionAutomatically = () => {
         >
           Paste text
         </button>
-        <button
+        {/* <button
           className={`px-4 py-2 text-sm font-medium ${
             tab === "upload"
               ? "border-b-2 border-blue-900 text-blue-900"
@@ -344,7 +346,7 @@ const CreateQuestionAutomatically = () => {
           onClick={() => setTab("upload")}
         >
           Upload file
-        </button>
+        </button> */}
       </div>
       {tab === "paste" ? (
         <textarea

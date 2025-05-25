@@ -7,15 +7,37 @@ import CreateClass from "../elements/CreateClass";
 import { useEffect } from "react";
 import { supabase } from "../../helper/Supabase";
 import { userContext } from "../../App";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Divider,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  Popover,
+  Stack,
+  Typography,
+} from "@mui/material";
+import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
+import ArchiveRoundedIcon from "@mui/icons-material/ArchiveRounded";
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 
 const ClassManagementPage = () => {
   const { user } = useContext(userContext);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("active");
   const [classes, setClasses] = useState([]);
-  const [menuVisible, setMenuVisible] = useState(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedClass, setSelectedClass] = useState({});
+  const [deleteDialog, setDeleteDialog] = useState(false);
+  const [archiveDialog, setArchiveDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const filteredClasses = classes.filter((cls) => {
     if (activeTab == "active") {
@@ -51,6 +73,53 @@ const ClassManagementPage = () => {
       return;
     }
     setClasses(data);
+  };
+
+  const open = Boolean(anchorEl);
+
+  const handleOpenPopover = (e, classData) => {
+    setAnchorEl(e.currentTarget);
+    setSelectedClass(classData);
+  };
+
+  const handleArchive = async () => {
+    setLoading(true);
+
+    const { error } = await supabase
+      .from("tbl_class")
+      .update({ is_active: false })
+      .eq("id", selectedClass.id);
+
+    if (error) {
+      console.error("Error archiving class:", error);
+      return;
+    }
+
+    setLoading(false);
+    setArchiveDialog(false);
+    setAnchorEl(null);
+    setSelectedClass({});
+  };
+
+  const handleDelete = async () => {
+    setLoading(true);
+    const { error } = await supabase
+      .from("tbl_class")
+      .delete()
+      .eq("id", selectedClass.id);
+
+    if (error) {
+      console.error("Error deleting class:", error);
+      return;
+    }
+    setLoading(false);
+    setDeleteDialog(false);
+    setAnchorEl(null);
+    setSelectedClass({});
+  };
+
+  const handleClosePopover = () => {
+    setAnchorEl(null);
   };
 
   return (
@@ -102,7 +171,6 @@ const ClassManagementPage = () => {
                 <div
                   className="flex items-center flex-1 cursor-pointer"
                   onClick={() => {
-                    // console.log("Navigating to class:", cls.id);
                     navigate("/class", { state: cls });
                   }}
                 >
@@ -115,44 +183,47 @@ const ClassManagementPage = () => {
                     alt="Class"
                     className="w-25 h-15 bg-gray-300 rounded-md object-cover"
                   />
-                  <div className="ml-4">
-                    <strong>{cls.class_name}</strong>
-                    {/* <p className="text-sm text-gray-600">{cls.desc}</p> */}
-                  </div>
-                </div>
-                <div className="relative">
-                  {/* <button
-                    className="text-gray-600 hover:text-black ml-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuVisible(menuVisible === cls.id ? null : cls.id);
-                    }}
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    ml={2}
+                    sx={{ width: "100%" }}
                   >
-                    ⋮
-                  </button> */}
-                  {menuVisible === cls.id && (
-                    <div className="absolute right-0 mt-2 bg-white text-black rounded-md shadow-lg z-10">
-                      <button
-                        className="block px-4 py-2 text-sm hover:bg-gray-200 w-full text-left"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                      >
-                        Archive
-                      </button>
-                      <button
-                        className="block px-4 py-2 text-sm hover:bg-gray-200 w-full text-left"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setClassToDelete(cls.id);
-                          setDeleteModalVisible(true);
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
+                    <strong>{cls.class_name}</strong>
+                  </Stack>
                 </div>
+                <div className="relative"></div>
+                <IconButton onClick={(e) => handleOpenPopover(e, cls)}>
+                  <MoreVertRoundedIcon />
+                </IconButton>
+                <Popover
+                  open={open}
+                  anchorEl={anchorEl}
+                  onClose={handleClosePopover}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                >
+                  <List>
+                    {cls.is_active ? (
+                      <>
+                        <ListItemButton onClick={() => setArchiveDialog(true)}>
+                          <ArchiveRoundedIcon className="text-gray-600" />
+                          <Typography className="ml-2">Archive</Typography>
+                        </ListItemButton>
+                        <Divider />
+                      </>
+                    ) : (
+                      <></>
+                    )}
+                    <ListItemButton onClick={() => setDeleteDialog(true)}>
+                      <DeleteRoundedIcon className="text-red-600" />
+                      <Typography className="ml-2">Delete</Typography>
+                    </ListItemButton>
+                  </List>
+                </Popover>
               </div>
             ))}
           </div>
@@ -169,29 +240,59 @@ const ClassManagementPage = () => {
             </div>
           </div>
         )}
+        {/* archive dialog */}
+        <Dialog open={archiveDialog} onClose={() => setArchiveDialog(false)}>
+          <DialogTitle>Archive Class: {selectedClass.class_name}</DialogTitle>
+          <Divider />
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to archive this class? This action cannot be
+              undone.
+            </DialogContentText>
+          </DialogContent>
+          <Divider />
+          <DialogActions>
+            <Stack direction="row" justifyContent="space-between" width="100%">
+              <Button onClick={() => setArchiveDialog(false)} color="error">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleArchive}
+                variant="contained"
+                loading={loading}
+              >
+                Archive
+              </Button>
+            </Stack>
+          </DialogActions>
+        </Dialog>
 
-        {deleteModalVisible && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
-              <h2 className="text-xl font-bold mb-4">Confirm Delete</h2>
-              <p>Are you sure you want to delete this class?</p>
-              <div className="flex justify-end mt-4">
-                <button
-                  className="bg-gray-300 text-black px-4 py-2 rounded-md mr-2"
-                  onClick={() => setDeleteModalVisible(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="bg-red-500 text-white px-4 py-2 rounded-md"
-                  onClick={handleDelete}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* delete dialog */}
+        <Dialog open={deleteDialog} onClose={() => setDeleteDialog(false)}>
+          <DialogTitle>Delete Class: {selectedClass.class_name}</DialogTitle>
+          <Divider />
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete this class? This action cannot be
+              undone.
+            </DialogContentText>
+          </DialogContent>
+          <Divider />
+          <DialogActions>
+            <Stack direction="row" justifyContent="space-between" width="100%">
+              <Button onClick={() => setDeleteDialog(false)} color="error">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDelete}
+                variant="contained"
+                loading={loading}
+              >
+                Delete
+              </Button>
+            </Stack>
+          </DialogActions>
+        </Dialog>
       </motion.div>
     </AnimatePresence>
   );

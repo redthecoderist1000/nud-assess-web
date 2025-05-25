@@ -1,0 +1,156 @@
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+  TextField,
+} from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../../../helper/Supabase";
+
+function MyQuestionTab() {
+  const [rows, setRows] = useState([]);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  //   blooms_category: "Understanding";
+  //   lesson: "OWASP Top Vulnerabilities";
+  //   question: "What is the main purpose of the OWASP Top 10?";
+  //   question_id: "1be5bbd8-c09b-4eac-8289-fddf4682ddc1";
+  //   repository: "Quiz";
+  //   subject: "Information Assurance And Security\n";
+  //   type: "Multiple Choice";
+  //   usage_count: 1;
+
+  const fetchData = async () => {
+    const { data, error } = await supabase.from("vw_ownquestion").select("*");
+
+    if (error) {
+      console.error("Error fetching data:", error);
+      return;
+    }
+
+    setRows(data);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const visibleRows = useMemo(
+    () =>
+      rows
+        .filter((data) => {
+          const matchQuestion = data.question
+            .toLowerCase()
+            .includes(search.toLowerCase());
+
+          const matchType = data.type
+            .toLowerCase()
+            .includes(search.toLowerCase());
+
+          const matchBlooms = data.blooms_category
+            .toLowerCase()
+            .includes(search.toLowerCase());
+
+          const matchLesson = data.lesson
+            ?.toLowerCase()
+            .includes(search.toLowerCase());
+
+          const matchSubject = data.subject
+            ?.toLowerCase()
+            .includes(search.toLowerCase());
+
+          return (
+            matchQuestion ||
+            matchType ||
+            matchBlooms ||
+            matchLesson ||
+            matchSubject
+          );
+        })
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+
+    [rows, search, page, rowsPerPage]
+  );
+
+  return (
+    <>
+      <TextField
+        size="small"
+        label="search"
+        fullWidth
+        onChange={(e) => setSearch(e.target.value)}
+        sx={{ maxWidth: "25%" }}
+      />
+      <TableContainer component={Paper} sx={{ marginTop: 2 }}>
+        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableHead>
+            <TableRow>
+              <TableCell>
+                <b>Question</b>
+              </TableCell>
+              <TableCell align="right">
+                <b>Type</b>
+              </TableCell>
+              <TableCell align="right">
+                <b>Bloom's Spec</b>
+              </TableCell>
+              <TableCell align="right">
+                <b>Lesson</b>
+              </TableCell>
+              <TableCell align="right">
+                <b>Subject</b>
+              </TableCell>
+              <TableCell align="right">
+                <b>Usage count</b>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {visibleRows.map((row, index) => (
+              <TableRow
+                key={index}
+                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+              >
+                <TableCell component="th" scope="row">
+                  {row.question}
+                </TableCell>
+                <TableCell align="right">{row.type}</TableCell>
+                <TableCell align="right">{row.blooms_category}</TableCell>
+                <TableCell align="right">{row.lesson ?? ""}</TableCell>
+                <TableCell align="right">{row.subject ?? ""}</TableCell>
+                <TableCell align="right">{row.usage_count}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={rows.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+    </>
+  );
+}
+
+export default MyQuestionTab;

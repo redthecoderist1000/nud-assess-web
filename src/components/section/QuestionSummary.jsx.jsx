@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "../../helper/Supabase"; 
+import { supabase } from "../../helper/Supabase";
 
 const QuestionSummary = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const formData = location.state?.formData || {};
-  const repository = location.state?.repository || ""; 
+  const repository = location.state?.repository || "";
   const questions = formData.questions || [];
 
   const handleSave = async () => {
@@ -23,43 +23,45 @@ const QuestionSummary = () => {
 
       const questionsToInsert = questions.map((q) => ({
         question: q.question || "No question text available",
-        // correct_answer: q.answer || "N/A",
-        // id: formData.lessonId || null, 
-        type: "Multiple Choice", 
-        blooms_category: q.tosCategory, 
+        lesson_id: formData.course || null,
+        type: "Multiple Choice",
+        blooms_category: q.tosCategory,
         repository: repository,
-        created_by: user.id,
-        created_at: new Date().toISOString(), 
       }));
-  
-      console.log("Inserting questions into tbl_question:", questionsToInsert);
-  
-      const { data, error } = await supabase
-        .from("tbl_question")
-        .insert(questionsToInsert) 
-        .select(); 
 
-      if (error) {
-        console.error("Error inserting questions:", error);
-        alert("Failed to save questions. Please try again.");
-        return;
-      }
-  
-      console.log("Questions inserted successfully:", data);
-      alert("Questions have been saved to the bank!");
+      console.log(questions);
+
+      // console.log("Inserting questions into tbl_question:", questionsToInsert);
+
+      // const { data, error } = await supabase
+      //   .from("tbl_question")
+      //   .insert(questionsToInsert)
+      //   .select();
+
+      // if (error) {
+      //   console.error("Error inserting questions:", error);
+      //   alert("Failed to save questions. Please try again.");
+      //   return;
+      // }
+
+      // console.log("Questions inserted successfully:", data);
+      // alert("Questions have been saved to the bank!");
     } catch (err) {
       console.error("Unexpected error saving questions:", err);
       alert("An unexpected error occurred. Please try again.");
     }
   };
 
-  console.log("Location State in QuestionSummary:", location.state);
-  console.log("Form Data in QuestionSummary:", formData);
-  console.log("Questions in QuestionSummary:", questions);
+  // console.log("Location State in QuestionSummary:", location.state);
+  // console.log("Form Data in QuestionSummary:", formData);
+  // console.log("Questions in QuestionSummary:", questions);
 
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const categories = ["All", ...new Set(questions.map((q) => q.tosCategory || "Uncategorized"))];
+  const categories = [
+    "All",
+    ...new Set(questions.map((q) => q.tosCategory || "Uncategorized")),
+  ];
 
   const filteredQuestions =
     selectedCategory === "All"
@@ -70,27 +72,33 @@ const QuestionSummary = () => {
     return (
       <div className="w-full p-6 shadow-lg">
         <h1 className="text-5xl font-bold mb-2">Question Summary</h1>
-        <p className="text-gray-600">No questions were generated. Please try again.</p>
+        <p className="text-gray-600">
+          No questions were generated. Please try again.
+        </p>
       </div>
     );
   }
 
   const handleCancel = () => {
-    navigate("/dashboard/QuestionManagement"); 
+    navigate("/dashboard/QuestionManagement");
   };
 
   return (
     <div className="w-full p-6 shadow-lg">
       <div className="mb-6">
         <h1 className="text-5xl font-bold mb-2">Question Summary</h1>
-        <p className="text-gray-600">Here are the details and generated questions.</p>
+        <p className="text-gray-600">
+          Here are the details and generated questions.
+        </p>
       </div>
 
       <div className="w-full p-6 bg-white shadow-md rounded-lg">
         <h2 className="text-2xl font-bold mb-4">Question Details</h2>
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Subject</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Subject
+            </label>
             <input
               type="text"
               value={formData.lesson || "N/A"}
@@ -99,7 +107,9 @@ const QuestionSummary = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Lesson</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Lesson
+            </label>
             <input
               type="text"
               value={formData.course || "N/A"}

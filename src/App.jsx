@@ -128,8 +128,8 @@ const AnimatedRoutes = () => {
 
               {/* di pa ayos */}
               {/* <Route path="/class/:id" element={<ClassPage />} /> */}
-              <Route path="/create-class" element={<CreateClass />} />
-              <Route path="/question-summary" element={<QuestionSummary />} />
+              {/* <Route path="/create-class" element={<CreateClass />} /> */}
+              {/* <Route path="/question-summary" element={<QuestionSummary />} /> */}
             </Route>
 
             {/* Dashboard Routes - Wrapped with Layout */}

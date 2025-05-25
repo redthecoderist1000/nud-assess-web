@@ -3,52 +3,33 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import VerticalBarChart from "../elements/VerticalBarChart";
 import QuestionRepoModal from "../elements/QuestionRepoModal";
+import { Box, Card, Tab, Tabs } from "@mui/material";
+import MyQuestionTab from "./questionmanagementTabs/MyQuestionTab";
+
+function CustomTabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 const QuestionManagementPage = () => {
-  const [openDropdown, setOpenDropdown] = useState(null);
-  const [selectedYear, setSelectedYear] = useState("1st Year");
   const [repoModalOpen, setRepoModalOpen] = useState(false);
   const navigate = useNavigate();
+  const [value, setValue] = useState(0);
 
-  const toggleDropdown = (index) => {
-    setOpenDropdown(openDropdown === index ? null : index);
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
   };
-
-  const selectYear = (event) => {
-    setSelectedYear(event.target.value);
-  };
-
-  const handleLessonClick = (lesson) => {
-    // Navigate to QuestionDetails.jsx with the lesson details
-    navigate("/dashboard/QuestionDetails", {
-      state: { lesson },
-    });
-  };
-
-  const yearSubjects = {
-    "1st Year": [
-      { code: "CCTAPDVL - INF221", name: "Introduction to Programming" },
-      { code: "CCTAPDVL - INF222", name: "Basic Mathematics" },
-    ],
-    "2nd Year": [
-      { code: "CCTAPDVL - INF223", name: "Data Structures and Algorithms" },
-      { code: "CCTAPDVL - INF224", name: "Object-Oriented Programming" },
-    ],
-    "3rd Year": [
-      { code: "CCTAPDVL - INF225", name: "Software Engineering" },
-      { code: "CCTAPDVL - INF226", name: "Operating Systems" },
-    ],
-    "4th Year": [
-      { code: "CCTAPDVL - INF227", name: "Capstone Project" },
-      { code: "CCTAPDVL - INF228", name: "Machine Learning" },
-    ],
-  };
-
-  const lessons = [
-    { id: 1, title: "Lesson 1 - Introduction" },
-    { id: 2, title: "Lesson 2 - Fundamentals" },
-    { id: 3, title: "Lesson 3 - Advanced Topics" },
-  ];
 
   return (
     <motion.div
@@ -61,22 +42,44 @@ const QuestionManagementPage = () => {
         <div>
           <h1 className="text-5xl font-bold mb-4">Question Management</h1>
           <p className="text-gray-600 mb-6">
-            Design and customize quizzes with questions, options, and scoring rules.
+            Design and customize quizzes with questions, options, and scoring
+            rules.
           </p>
         </div>
 
         <div className="flex items-center justify-end py-3 px-4 rounded-lg">
           <div className="flex space-x-4">
-            <button
+            {/* <button
               className="bg-blue-900 text-white py-2 px-4 rounded-lg hover:bg-blue-800"
               onClick={() => setRepoModalOpen(true)}
             >
               <span>Create Questions</span>
-            </button>
+            </button> */}
           </div>
         </div>
 
-        <div className="col-span-2 bg-white rounded-lg shadow-lg border mt-6 w-full overflow">
+        <Card>
+          <Box sx={{ width: "100%" }}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+              <Tabs
+                value={value}
+                onChange={handleChange}
+                aria-label="basic tabs"
+              >
+                <Tab label="My Questions" />
+                {/* <Tab label="Shared Quizzes" /> */}
+              </Tabs>
+            </Box>
+            <CustomTabPanel value={value} index={0}>
+              <MyQuestionTab />
+            </CustomTabPanel>
+            {/* <CustomTabPanel value={value} index={1}>
+                      Item Two
+                    </CustomTabPanel> */}
+          </Box>
+        </Card>
+
+        {/* <div className="col-span-2 bg-white rounded-lg shadow-lg border border-gray-200 mt-6 w-full overflow">
           <div className="bg-blue-900 text-yellow-400 text-xl font-bold p-4 rounded-t-lg flex justify-between items-center">
             <span>{selectedYear}</span>
             <select
@@ -94,7 +97,7 @@ const QuestionManagementPage = () => {
           </div>
           <div className="p-4">
             {yearSubjects[selectedYear].map((subject, index) => (
-              <div key={index} className="border-b py-2">
+              <div key={index} className="border-b border-gray-200 py-2">
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="font-bold">{subject.code}</h3>
@@ -127,17 +130,21 @@ const QuestionManagementPage = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <VerticalBarChart />
-        </div>
+        </div> */}
 
-        {/* Question Repo Modal */}
         <QuestionRepoModal
           isOpen={repoModalOpen}
           onClose={() => setRepoModalOpen(false)}
-          onSelect={() => navigate("/dashboard/CreateQuestionAutomatically")}
+          onSelect={(selectedRepo) => {
+            setRepoModalOpen(false); // Close the modal
+            navigate("/dashboard/CreateQuestionAutomatically", {
+              state: { repository: selectedRepo }, // Pass the selected repository
+            });
+          }}
         />
       </main>
     </motion.div>

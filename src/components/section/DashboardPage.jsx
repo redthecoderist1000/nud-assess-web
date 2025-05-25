@@ -1,17 +1,18 @@
-import React, { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useContext, useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import createIcon from "../../assets/images/create_icon.png";
 import profilePic from "../../assets/images/sample_profile.png";
 import bookmarkIcon from "../../assets/images/bookmark.png";
 import LineChart from "../elements/LineChart";
 import HorizontalLineChart from "../elements/HorizontalLineChart";
 import DoughnutChart from "../elements/DoughnutChart";
-import { userContext } from "../../App";
 import QuizModal from "../elements/QuizModal";
 import QuestionRepoModal from "../elements/QuestionRepoModal";
 import CreateClass from "../elements/CreateClass";
 import TOS from "./TOS";
+import { userContext } from "../../App";
+import { supabase } from "../../helper/Supabase";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -24,10 +25,88 @@ const DashboardPage = () => {
   const [modalSource, setModalSource] = useState(null); // "quiz" or "question"
   const [showTOS, setShowTOS] = useState(false); // State to show TOS
 
+  // State for stats
+  const [stats, setStats] = useState({
+    totalQuizzes: 0,
+    totalQuestions: 0,
+    totalStudents: 0,
+    totalClasses: 0,
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [statsError, setStatsError] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!userCon?.user?.user_id) {
+        console.error("User ID is undefined");
+        setStatsError("User is not logged in.");
+        setLoadingStats(false);
+        return;
+      }
+
+      try {
+        setLoadingStats(true);
+
+        // Fetch total quizzes
+        const { data: quizzes, error: quizzesError } = await supabase
+          .from("tbl_exam")
+          .select("id")
+          .eq("created_by", userCon.user.user_id);
+
+        if (quizzesError) throw new Error(quizzesError.message);
+
+        // Fetch total questions
+        const { data: questions, error: questionsError } = await supabase
+          .from("tbl_question")
+          .select("id")
+          .eq("created_by", userCon.user.user_id);
+
+        if (questionsError) throw new Error(questionsError.message);
+
+        // Fetch total classes
+        const { data: classes, error: classesError } = await supabase
+          .from("tbl_class")
+          .select("id")
+          .eq("created_by", userCon.user.user_id);
+
+        if (classesError) throw new Error(classesError.message);
+
+        // Extract class IDs
+        const classIds = classes.map((cls) => cls.id);
+
+        // Fetch total students in the user's classes
+        const { data: students, error: studentsError } = await supabase
+          .from("tbl_class_members")
+          .select("id")
+          .in("class_id", classIds);
+
+        if (studentsError) throw new Error(studentsError.message);
+
+        // Calculate stats
+        const totalQuizzes = quizzes.length || 0;
+        const totalQuestions = questions.length || 0;
+        const totalClasses = classes.length || 0;
+        const totalStudents = students.length || 0;
+
+        setStats({
+          totalQuizzes,
+          totalQuestions,
+          totalClasses,
+          totalStudents,
+        });
+      } catch (err) {
+        setStatsError(err.message);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchStats();
+  }, [userCon?.user?.user_id]);
+
   const handleButtonClick = (buttonName) => {
     if (buttonName === "Create Quiz") {
-      setModalSource("quiz");
-      setQuizModalOpen(true);
+      navigate("/dashboard/QuizManagement");
     } else if (buttonName === "Create Questions") {
       setModalSource("question");
       setRepoModalOpen(true);
@@ -37,10 +116,7 @@ const DashboardPage = () => {
   };
 
   const handleQuizOption = (option) => {
-    setQuizModalOpen(false);
-    if (modalSource === "quiz") {
-      setRepoModalOpen(true);
-    }
+    navigate("/dashboard/QuestionManagement");
   };
 
   const handleRepoSelect = (selectedOption) => {
@@ -62,8 +138,8 @@ const DashboardPage = () => {
     setCreateClassOpen(false);
   };
 
-  if (showTOS) {
-    return <TOS onNext={handleTOSNext} />;
+  if (!userCon?.user?.user_id) {
+    return <p className="text-red-500">User is not logged in. Please log in to access the dashboard.</p>;
   }
 
   return (
@@ -128,28 +204,32 @@ const DashboardPage = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        {[
-          "Total Quizzes",
-          "Active Quizzes",
-          "Total Questions",
-          "Total Students",
-        ].map((label, index) => (
-          <motion.div
-            key={index}
-            className="flex flex-col items-start justify-center p-8 rounded-lg border border-gray-300 shadow-xl w-full"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.5 + index * 0.2 }}
-          >
-            <span className="text-gray-500 flex items-center gap-2 mb-2">
-              <img src={bookmarkIcon} alt="Icon" className="w-5 h-5" />
-              {label}
-            </span>
-            <span className="text-2xl font-bold">
-              {[25, 30, 2940, 100][index]}
-            </span>
-          </motion.div>
-        ))}
+        {loadingStats ? (
+          <p>Loading stats...</p>
+        ) : statsError ? (
+          <p className="text-red-500">Error: {statsError}</p>
+        ) : (
+          [
+            { label: "Total Quizzes", value: stats.totalQuizzes },
+            { label: "Total Questions", value: stats.totalQuestions },
+            { label: "Total Classes", value: stats.totalClasses },
+            { label: "Total Students", value: stats.totalStudents },
+          ].map((stat, index) => (
+            <motion.div
+              key={index}
+              className="flex flex-col items-start justify-center p-8 rounded-lg border border-gray-300 shadow-xl w-full"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.5 + index * 0.2 }}
+            >
+              <span className="text-gray-500 flex items-center gap-2 mb-2">
+                <img src={bookmarkIcon} alt="Icon" className="w-5 h-5" />
+                {stat.label}
+              </span>
+              <span className="text-2xl font-bold">{stat.value}</span>
+            </motion.div>
+          ))
+        )}
       </motion.div>
 
       {/* Charts */}
@@ -159,7 +239,7 @@ const DashboardPage = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.7 }}
       >
-        <h2 className="text-2xl font-semibold mb-4">Performance Overview</h2>
+        <h2 className="text-2xl font-semibold mb-4">Performance Overview Per Class</h2>
         <LineChart />
       </motion.div>
 

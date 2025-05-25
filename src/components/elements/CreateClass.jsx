@@ -1,10 +1,12 @@
 import React, { useContext, useState } from "react";
-import { userContext } from "../../App";
 import { CircularProgress } from "@mui/material";
 import { supabase } from "../../helper/Supabase";
+import { userContext } from "../../App";
 
-const CreateClass = ({ onSave, onCancel }) => {
+const CreateClass = ({ onCancel }) => {
+  // const { user } = useContext(userContext);
   const { user } = useContext(userContext);
+
   const [classData, setClassData] = useState({
     class_name: "",
     desc: "",

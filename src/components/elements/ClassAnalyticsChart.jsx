@@ -17,18 +17,18 @@ const ClassAnalyticsChart = ({ classes }) => {
   }));
 
   return (
-    <div className="border rounded-lg bg-indigo-100">
-      <div className="items-center justify-between mb-4 bg-blue-900 p-5">
+    <div className="border border-gray-200 rounded-lg bg-indigo-100">
+      <div className="items-center justify-between rounded-t-lg mb-4 bg-blue-900 p-5">
         <h3 className="font-bold text-lg text-yellow-500">Class Analytics</h3>
         <p className="text-sm text-white">See here your class data.</p>
       </div>
-
+  
       {/* Total Classes */}
       <div className="bg-white m-5 py-2 px-4 rounded-md shadow">
         <p className="text-gray-500 text-sm">Total class:</p>
         <p className="text-xl font-bold text-gray-800">{classes.length}</p>
       </div>
-
+  
       {/* Chart */}
       <div className="m-5">
         <ResponsiveContainer width="100%" height={350}>

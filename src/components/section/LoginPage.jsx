@@ -53,32 +53,20 @@ const LoginPage = () => {
     }
 
     (async () => {
-      const signUpRes = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: formSignUp.email,
         password: formSignUp.password,
       });
 
-      if (signUpRes.error) {
-        console.log("Error in sign up:", signUpRes.error);
-        // setError(signUpRes.error);
+      if (error) {
+        // console.log("Error in sign up:", signUpRes.error);
+        setError(error.message);
         setIsLoading(false);
         return;
       }
 
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email: formSignUp.email,
-        options: {
-          shouldCreateUser: true,
-        },
-      });
-
-      if (error) {
-        console.log("Failed to otp", error);
-        setIsLoading(false);
-        // return;
-      }
       if (data) {
-        setError("Login link was successfully sent to:", formSignUp.email);
+        setError("otp was successfully sent to:", formSignUp.email);
         navigate("/signup-otp", { state: { email: formSignUp.email } });
       }
       setIsLoading(false);
@@ -97,9 +85,9 @@ const LoginPage = () => {
       email: email,
       password: password,
     });
-    if (data.session == null) {
+    if (error) {
       // console.log("Error: " + error);
-      alert("Error: " + error);
+      setError(error.message);
       setIsLoading(false);
 
       return;

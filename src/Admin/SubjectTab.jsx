@@ -228,7 +228,7 @@ function SubjectTab() {
           const { data, error } = await supabase
             .from("tbl_users")
             .select("*")
-            .eq("role", "Faculty");
+            .not("role", "eq", "Student");
 
           if (error) {
             console.error("Failed to load faculty", error);
@@ -261,6 +261,39 @@ function SubjectTab() {
       console.log("Failed to assign faculty:", error);
       return;
     }
+
+    // check if faculty and subject already exists in tbl_faculty_subject
+    const { data, error: checkError } = await supabase
+      .from("tbl_faculty_subject")
+      .select("*")
+      .eq("faculty_id", targetFaculty.id)
+      .eq("program_subject_id", targetSubject.id);
+
+    if (checkError) {
+      console.log("Failed to check faculty-subject assignment:", checkError);
+      return;
+    }
+
+    if (data.length === 0) {
+      const { error: insertError } = await supabase
+        .from("tbl_faculty_subject")
+        .insert({
+          faculty_id: targetFaculty.id,
+          program_subject_id: targetSubject.id,
+        });
+
+      if (insertError) {
+        console.log(
+          "Failed to insert faculty-subject assignment:",
+          insertError
+        );
+        setLoading(false);
+        setConfirmAssignDialog(false);
+
+        return;
+      }
+    }
+
     setLoading(false);
     setConfirmAssignDialog(false);
   };
@@ -311,7 +344,6 @@ function SubjectTab() {
     () =>
       [...rows]
         .sort(getComparator(order, orderBy))
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .filter((value) => {
           const matchSubName = value.tbl_subject.name
             .toLowerCase()
@@ -330,7 +362,8 @@ function SubjectTab() {
             .includes(search.toLowerCase());
 
           return matchSubName || matchSubCode || matchFname || matchLname;
-        }),
+        })
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [order, orderBy, page, rowsPerPage, rows, search]
   );
 
@@ -511,6 +544,7 @@ function SubjectTab() {
         </DialogActions>
       </Dialog>
 
+      {/* assign faculty inchargge */}
       <Dialog
         open={assign}
         onClose={closeDialog}
@@ -582,10 +616,11 @@ function SubjectTab() {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeDialog} color="warning">
-            Cancel
-          </Button>
-          <Button onClick={closeDialog}>Done</Button>
+          <Stack direction="row" justifyContent="space-between" width="100%">
+            <Button onClick={closeDialog} color="error">
+              Cancel
+            </Button>
+          </Stack>
         </DialogActions>
       </Dialog>
 

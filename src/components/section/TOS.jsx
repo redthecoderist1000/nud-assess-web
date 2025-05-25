@@ -53,6 +53,9 @@ const TOS = () => {
                   Lesson<span className="text-red-500">*</span>
                 </th>
                 <th className="px-4 py-2 text-left font-semibold text-sm text-[#35408E]">
+                  Hours
+                </th>
+                <th className="px-4 py-2 text-left font-semibold text-sm text-[#35408E]">
                   Percentage
                 </th>
                 <th className="px-4 py-2 text-left font-semibold text-sm text-[#35408E]">
@@ -198,17 +201,15 @@ const TOS = () => {
           </div>
         </div>
         <div className="flex justify-between mt-6">
-        <button
-            className="bg-[#35408E] text-white px-8 py-2 rounded hover:bg-[#2c357e] transition text-lg font-semibold shadow"
-        >
+          <button className="bg-[#35408E] text-white px-8 py-2 rounded hover:bg-[#2c357e] transition text-lg font-semibold shadow">
             Generate
-        </button>
-        <button
+          </button>
+          <button
             className="bg-[#35408E] text-white px-8 py-2 rounded hover:bg-[#2c357e] transition text-lg font-semibold shadow"
             onClick={handleNext}
-        >
+          >
             Next
-        </button>
+          </button>
         </div>
       </div>
     </div>

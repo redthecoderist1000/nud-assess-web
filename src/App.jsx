@@ -52,6 +52,7 @@ import { supabase } from "./helper/Supabase.jsx";
 import AuthPage from "./components/section/AuthPage.jsx";
 import AdminPage from "./Admin/AdminPage.jsx";
 import SetUpAccount from "./components/section/SetUpAccount.jsx";
+import QuizInfoPage from "./components/section/QuizInfoPage.jsx";
 
 export const userContext = createContext();
 export const signupContext = createContext();
@@ -127,19 +128,22 @@ const AnimatedRoutes = () => {
               <Route path="/setup" element={<SetUpAccount />} />
 
               {/* di pa ayos */}
-              <Route path="/class/:id" element={<ClassPage />} />
-              <Route path="/create-class" element={<CreateClass />} />
-              <Route path="/question-summary" element={<QuestionSummary />} />
+              {/* <Route path="/class/:id" element={<ClassPage />} /> */}
+              {/* <Route path="/create-class" element={<CreateClass />} /> */}
+              {/* <Route path="/question-summary" element={<QuestionSummary />} /> */}
             </Route>
 
             {/* Dashboard Routes - Wrapped with Layout */}
             <Route element={<ProtectedRoutes />}>
+              <Route path="/class" element={<ClassPage />} />
+              <Route path="/quiz" element={<QuizInfoPage />} />
+              {/* <Route path="/quiz" element={<QuizDetails />} /> */}
+
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="QuizManagement" element={<QuizmanagementPage />} />
                 <Route path="QuestionSummary" element={<QuestionSummary />} />
                 <Route path="QuestionDetails" element={<QuestionDetails />} />
-                <Route path="QuizDetails" element={<QuizDetails />} />
                 <Route
                   path="QuestionManagement"
                   element={<QuestionManagementPage />}

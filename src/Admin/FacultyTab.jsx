@@ -27,6 +27,8 @@ import { userContext } from "../App";
 import { visuallyHidden } from "@mui/utils";
 import SearchIcon from "@mui/icons-material/SearchRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
+import AssignSubjectDialog from "./AssignSubjectDialog";
+import RemoveSubjectDialog from "./RemoveSubjectDialog";
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -106,7 +108,8 @@ function FacultyTab() {
   const [loading, setLoading] = useState(false);
 
   const [assignDialog, setAssignDialog] = useState(false);
-  const [selected, setSelected] = useState({});
+  const [removeDialog, setRemoveDialog] = useState(false);
+  const [selectedFaculty, setSelectedFaculty] = useState("");
 
   async function fetchData() {
     let { data, error } = await supabase
@@ -137,13 +140,23 @@ function FacultyTab() {
 
   useEffect(() => {
     fetchData();
+
+    supabase
+      .channel("custom-filter-channel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tbl_faculty_subject" },
+        (payload) => {
+          fetchData();
+        }
+      )
+      .subscribe();
   }, []);
 
   const visibleFaculty = useMemo(
     () =>
       [...rows]
         .sort(getComparator(order, orderBy))
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .filter((value) => {
           const matchFname = value?.f_name
             .toLowerCase()
@@ -156,7 +169,8 @@ function FacultyTab() {
           const matchSubject = value?.subjects.includes(search);
 
           return matchFname || matchLname || matchSubject;
-        }),
+        })
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [order, orderBy, page, rowsPerPage, search, rows]
   );
 
@@ -246,12 +260,27 @@ function FacultyTab() {
                         variant="text"
                         size="small"
                         onClick={() => {
-                          setSelected(row);
+                          setSelectedFaculty(row.id);
                           setAssignDialog(true);
                         }}
                       >
-                        Assign Subject
+                        Assign
                       </Button>
+                      {row.subjects[0] != null ? (
+                        <Button
+                          variant="text"
+                          color="error"
+                          size="small"
+                          onClick={() => {
+                            setSelectedFaculty(row.id);
+                            setRemoveDialog(true);
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      ) : (
+                        <></>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
@@ -270,27 +299,17 @@ function FacultyTab() {
         />
       </Paper>
 
-      <Dialog open={assignDialog} onClose={() => setAssignDialog(false)}>
-        <DialogTitle>Assign subject</DialogTitle>
-        <DialogContent>
-          <DialogContentText>Do you want to assign subject</DialogContentText>
-        </DialogContent>
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          <DialogActions>
-            <Button
-              onClick={() => {
-                setAssignDialog(false);
-              }}
-              color="danger"
-            >
-              Cancel
-            </Button>
-            <Button>Continue</Button>
-          </DialogActions>
-        )}
-      </Dialog>
+      <AssignSubjectDialog
+        open={assignDialog}
+        setOpen={setAssignDialog}
+        selectedFaculty={selectedFaculty}
+      />
+
+      <RemoveSubjectDialog
+        open={removeDialog}
+        setOpen={setRemoveDialog}
+        selectedFaculty={selectedFaculty}
+      />
     </div>
   );
 }

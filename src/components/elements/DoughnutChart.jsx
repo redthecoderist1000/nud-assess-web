@@ -1,17 +1,38 @@
-import React from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Label } from "recharts";
+import React, { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
-const data = [
-  { name: "Pass", value: 80 },
-  { name: "Fail", value: 20 }
-];
+const DoughnutChart = ({ classId }) => {
+  const [completed, setCompleted] = useState(0);
+  const [total, setTotal] = useState(0);
 
-const COLORS = ["#35408E", "#880808"]; // Theme color for Pass, Red for Fail
+  const calculateCompletionRate = async (classId) => {
 
-const DoughnutChart = () => {
+    const mockCompleted = 42;
+    const mockTotal = 60;
+
+    setCompleted(mockCompleted);
+    setTotal(mockTotal);
+  };
+
+  useEffect(() => {
+    if (classId) {
+      calculateCompletionRate(classId);
+    }
+  }, [classId]);
+
+  const completedRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const incompleteRate = 100 - completedRate;
+
+  const data = [
+    { name: "Completed", value: completedRate },
+    { name: "Incomplete", value: incompleteRate },
+  ];
+
+  const COLORS = ["#35408E", "#A9A9A9"];
+
   return (
     <div className="p-4 w-1/2 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-semibold mb-4">Pass vs Fail Rate</h2>
+      <h2 className="text-2xl font-semibold mb-4">Quiz Completion Rate</h2>
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie
@@ -21,7 +42,6 @@ const DoughnutChart = () => {
             dataKey="value"
             paddingAngle={5}
             label={({ name, value }) => `${name} ${value}%`}
-            labelStyle={{ fill: "#fff", fontSize: 14, fontWeight: "bold" }}
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index]} />

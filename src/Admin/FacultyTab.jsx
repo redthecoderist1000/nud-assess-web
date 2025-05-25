@@ -28,6 +28,7 @@ import { visuallyHidden } from "@mui/utils";
 import SearchIcon from "@mui/icons-material/SearchRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import AssignSubjectDialog from "./AssignSubjectDialog";
+import RemoveSubjectDialog from "./RemoveSubjectDialog";
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -107,7 +108,7 @@ function FacultyTab() {
   const [loading, setLoading] = useState(false);
 
   const [assignDialog, setAssignDialog] = useState(false);
-  const [selected, setSelected] = useState({});
+  const [removeDialog, setRemoveDialog] = useState(false);
   const [selectedFaculty, setSelectedFaculty] = useState("");
 
   async function fetchData() {
@@ -265,14 +266,21 @@ function FacultyTab() {
                       >
                         Assign
                       </Button>
-                      <Button
-                        variant="text"
-                        color="error"
-                        size="small"
-                        onClick={() => {}}
-                      >
-                        Remove
-                      </Button>
+                      {row.subjects[0] != null ? (
+                        <Button
+                          variant="text"
+                          color="error"
+                          size="small"
+                          onClick={() => {
+                            setSelectedFaculty(row.id);
+                            setRemoveDialog(true);
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      ) : (
+                        <></>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
@@ -294,6 +302,12 @@ function FacultyTab() {
       <AssignSubjectDialog
         open={assignDialog}
         setOpen={setAssignDialog}
+        selectedFaculty={selectedFaculty}
+      />
+
+      <RemoveSubjectDialog
+        open={removeDialog}
+        setOpen={setRemoveDialog}
         selectedFaculty={selectedFaculty}
       />
     </div>

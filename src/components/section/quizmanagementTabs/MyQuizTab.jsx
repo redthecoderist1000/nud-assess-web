@@ -71,8 +71,11 @@ function MyQuizTab() {
         label="search"
         onChange={(e) => setSearch(e.target.value)}
       />
-      <TableContainer component={Paper} sx={{ marginTop: 2 }}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+      <TableContainer
+        component={Paper}
+        sx={{ marginTop: 2, maxHeight: "60vh", overflow: "auto" }}
+      >
+        <Table sx={{ minWidth: 650 }} aria-label="simple table" stickyHeader>
           <TableHead>
             <TableRow>
               <TableCell>

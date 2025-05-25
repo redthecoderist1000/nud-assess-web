@@ -97,8 +97,11 @@ function MyQuestionTab() {
         onChange={(e) => setSearch(e.target.value)}
         sx={{ maxWidth: "25%" }}
       />
-      <TableContainer component={Paper} sx={{ marginTop: 2 }}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+      <TableContainer
+        component={Paper}
+        sx={{ marginTop: 2, overflow: "auto", maxHeight: "60vh" }}
+      >
+        <Table sx={{ minWidth: 650 }} aria-label="simple table" stickyHeader>
           <TableHead>
             <TableRow>
               <TableCell>

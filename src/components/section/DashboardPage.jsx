@@ -26,8 +26,10 @@ const DashboardPage = () => {
 
   const handleButtonClick = (buttonName) => {
     if (buttonName === "Create Quiz") {
-      setModalSource("quiz");
-      setQuizModalOpen(true);
+      navigate("/dashboard/QuizManagement");
+
+      // setModalSource("quiz");
+      // setQuizModalOpen(true);
     } else if (buttonName === "Create Questions") {
       setModalSource("question");
       setRepoModalOpen(true);
@@ -37,10 +39,11 @@ const DashboardPage = () => {
   };
 
   const handleQuizOption = (option) => {
-    setQuizModalOpen(false);
-    if (modalSource === "quiz") {
-      setRepoModalOpen(true);
-    }
+    // setQuizModalOpen(false);
+    // if (modalSource === "quiz") {
+    //   setRepoModalOpen(true);
+    // }
+    navigate("/dashboard/QuestionManagement");
   };
 
   const handleRepoSelect = (selectedOption) => {
@@ -108,17 +111,23 @@ const DashboardPage = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-        {["Create Quiz", "Create Questions", "Create Class"].map((text, index) => (
-          <motion.button
-            key={index}
-            onClick={() => handleButtonClick(text)}
-            className="flex items-center justify-center w-52 h-15 bg-[#35408E] text-white px-4 py-2 rounded hover:bg-[#2c357e] transition duration-300 ease-in-out"
-            whileHover={{ scale: 1.05 }}
-          >
-            <img src={createIcon} alt="Create Icon" className="w-5 h-5 mr-2" />
-            <span>{text}</span>
-          </motion.button>
-        ))}
+        {["Create Quiz", "Create Questions", "Create Class"].map(
+          (text, index) => (
+            <motion.button
+              key={index}
+              onClick={() => handleButtonClick(text)}
+              className="flex items-center justify-center w-52 h-15 bg-[#35408E] text-white px-4 py-2 rounded hover:bg-[#2c357e] transition duration-300 ease-in-out"
+              whileHover={{ scale: 1.05 }}
+            >
+              <img
+                src={createIcon}
+                alt="Create Icon"
+                className="w-5 h-5 mr-2"
+              />
+              <span>{text}</span>
+            </motion.button>
+          )
+        )}
       </motion.div>
 
       {/* Stats Grid */}

@@ -198,29 +198,36 @@ const ClassPage = () => {
               <p className="text-sm text-gray-300">Description</p>
               <p className="text-base font-semibold">{classData.desc}</p>
             </div>
-            <div className="mb-4">
-              <p className="text-sm text-gray-300">Class join code</p>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <p className="text-base font-semibold">{classData.join_code}</p>
-                <Tooltip
-                  open={copyToolTip}
-                  arrow
-                  placement="top-start"
-                  disableFocusListener
-                  title="Copied to clipboard"
-                >
-                  <IconButton
-                    size="small"
-                    onClick={() => copy(classData.join_code)}
+            {/* Join Code Section */}
+            {classData.is_active ? (
+              <div className="mb-4">
+                <p className="text-sm text-gray-300">Class join code</p>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  <p className="text-base font-semibold">
+                    {classData.join_code}
+                  </p>
+                  <Tooltip
+                    open={copyToolTip}
+                    arrow
+                    placement="top-start"
+                    disableFocusListener
+                    title="Copied to clipboard"
                   >
-                    <ContentCopyRoundedIcon
-                      sx={{ color: "whitesmoke" }}
-                      fontSize="small"
-                    />
-                  </IconButton>
-                </Tooltip>
-              </Stack>
-            </div>
+                    <IconButton
+                      size="small"
+                      onClick={() => copy(classData.join_code)}
+                    >
+                      <ContentCopyRoundedIcon
+                        sx={{ color: "whitesmoke" }}
+                        fontSize="small"
+                      />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              </div>
+            ) : (
+              <></>
+            )}
             <Stack
               direction="row"
               justifyContent="space-between"

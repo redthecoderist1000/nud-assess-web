@@ -50,7 +50,7 @@ const ClassManagementPage = () => {
   useEffect(() => {
     fetchData();
 
-    const listenTblClass = supabase
+    supabase
       .channel("custom-filter-channel")
       .on(
         "postgres_changes",

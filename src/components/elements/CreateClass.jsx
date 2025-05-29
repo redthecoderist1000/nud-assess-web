@@ -16,7 +16,7 @@ const CreateClass = ({ onCancel }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setClassData({ ...classData, [name]: value });
+    setClassData({ ...classData, [name]: value.trim() });
   };
 
   // const handleImageUpload = (e) => {
@@ -28,11 +28,34 @@ const CreateClass = ({ onCancel }) => {
     e.preventDefault();
     setLoading(true);
 
+    // check if existing anme
+
+    const { data: nameCheck, error: checkError } = await supabase
+      .from("tbl_class")
+      .select("class_name")
+      .eq("created_by", user.user_id);
+    if (checkError) {
+      console.log("Failed to check name");
+      setLoading(false);
+      return;
+    }
+
+    const sameNameList = nameCheck.filter(
+      (data) =>
+        data.class_name.trim().substr(0, classData.class_name.trim().length) ==
+        classData.class_name.trim()
+    );
+
+    let finalName = classData.class_name.trim();
+    if (sameNameList.length >= 1) {
+      finalName = finalName + " (" + (sameNameList.length + 1) + ")";
+    }
+
     let r = (Math.random() + 1).toString(36).substring(2, 9);
 
     const { data, error } = await supabase
       .from("tbl_class")
-      .insert({ ...classData, join_code: r })
+      .insert({ ...classData, join_code: r, class_name: finalName })
       .select("*")
       .single();
 

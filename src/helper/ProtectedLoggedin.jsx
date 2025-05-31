@@ -1,11 +1,8 @@
-import React, { useContext } from "react";
-import { useEffect } from "react";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
-import { supabase } from "./Supabase";
+import { useContext } from "react";
+import { Navigate, Outlet } from "react-router-dom";
 import { userContext } from "../App";
 
 function ProtectedLoggedin() {
-  const navigate = useNavigate();
   const userCon = useContext(userContext);
   let isLoggedIn = false;
 

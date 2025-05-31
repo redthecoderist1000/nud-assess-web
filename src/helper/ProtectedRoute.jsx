@@ -4,7 +4,6 @@ import { userContext } from "../App";
 import { supabase } from "./Supabase";
 
 const ProtectedRoutes = () => {
-  // const userTest = supabase.auth.getUser();
   const userCon = useContext(userContext);
   let isAuthenticated = false;
 

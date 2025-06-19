@@ -1,6 +1,31 @@
 import React, { useState } from "react";
-import { Box, Typography, Paper, Select, MenuItem, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid } from "@mui/material";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import {
+  Box,
+  Typography,
+  Paper,
+  Select,
+  MenuItem,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Grid,
+  Stack,
+} from "@mui/material";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from "recharts";
 
 const classes = ["BSIT 3A", "BSIT 3B", "BSCS 4A"];
 
@@ -57,9 +82,27 @@ const topicPerformance = [
 ];
 
 const students = [
-  { name: "John Doe", quizzesTaken: 10, avgScore: 85, tosMastery: "High", completionRate: "100%" },
-  { name: "Jane Smith", quizzesTaken: 9, avgScore: 80, tosMastery: "Medium", completionRate: "90%" },
-  { name: "Alice Johnson", quizzesTaken: 8, avgScore: 78, tosMastery: "Low", completionRate: "80%" },
+  {
+    name: "John Doe",
+    quizzesTaken: 10,
+    avgScore: 85,
+    tosMastery: "High",
+    completionRate: "100%",
+  },
+  {
+    name: "Jane Smith",
+    quizzesTaken: 9,
+    avgScore: 80,
+    tosMastery: "Medium",
+    completionRate: "90%",
+  },
+  {
+    name: "Alice Johnson",
+    quizzesTaken: 8,
+    avgScore: 78,
+    tosMastery: "Low",
+    completionRate: "80%",
+  },
 ];
 
 const tosPlacementPerformance = [
@@ -78,19 +121,20 @@ const ClassReports = () => {
   };
 
   return (
-    <Box p={4}>
+    <Stack rowGap={4}>
       {/* Class Selector */}
-      <Box mb={4}>
+      <Box>
         <Typography variant="h5" gutterBottom>
           Class-Level Reports
         </Typography>
         <Select
+          size="small"
           value={selectedClass}
           onChange={(e) => setSelectedClass(e.target.value)}
           sx={{ minWidth: 200 }}
         >
-          {classes.map((cls) => (
-            <MenuItem key={cls} value={cls}>
+          {classes.map((cls, index) => (
+            <MenuItem key={index} value={cls}>
               {cls}
             </MenuItem>
           ))}
@@ -98,43 +142,46 @@ const ClassReports = () => {
       </Box>
 
       {/* Class Summary */}
-      <Box sx={{ width: "100%" }}>
-        <Grid container spacing={3}>
-          {[...Array(4)].map((_, index) => (
-            <Grid item key={index} xs={12} sm={6} md={2.4} sx={{ display: "flex" }}>
-              <Paper
-                elevation={2}
-                sx={{
-                  p: 3,
-                  textAlign: "center",
-                  border: "1px solid #e0e0e0",
-                  borderRadius: "8px",
-                  height: "100%",
-                  width: "100%",
-                }}
-              >
-                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                  {["Number of Students", "Number of Quizzes", "Average Class Score", "Pass Rate"][index]}
-                </Typography>
-                <Typography variant="h5" fontWeight="bold">
-                  {index === 0
-                    ? classSummary[selectedClass].students
-                    : index === 1
-                    ? classSummary[selectedClass].quizzes
-                    : index === 2
+      <Stack direction="row" spacing={3}>
+        {[...Array(4)].map((_, index) => (
+          <Paper
+            elevation={2}
+            sx={{
+              p: 3,
+              textAlign: "center",
+              border: "1px solid #e0e0e0",
+              borderRadius: "8px",
+              height: "100%",
+              width: "100%",
+            }}
+          >
+            <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+              {
+                [
+                  "Number of Students",
+                  "Number of Quizzes",
+                  "Average Class Score",
+                  "Pass Rate",
+                ][index]
+              }
+            </Typography>
+            <Typography variant="h5" fontWeight="bold">
+              {index === 0
+                ? classSummary[selectedClass].students
+                : index === 1
+                  ? classSummary[selectedClass].quizzes
+                  : index === 2
                     ? classSummary[selectedClass].avgScore
                     : index === 3
-                    ? classSummary[selectedClass].passRate + "%"
-                    : ""}
-                </Typography>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
+                      ? classSummary[selectedClass].passRate + "%"
+                      : ""}
+            </Typography>
+          </Paper>
+        ))}
+      </Stack>
 
       {/* Performance by Quiz */}
-      <Paper elevation={3} sx={{ p: 3, mb: 4, mt: 4 }}>
+      <Paper elevation={3} sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           Performance by Quiz
         </Typography>
@@ -165,31 +212,62 @@ const ClassReports = () => {
       </Paper>
 
       {/* Performance Per Lesson */}
-      <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+      <Paper elevation={3} sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           Performance Per Lesson
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={lessonPerformance}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="lesson" label={{ value: "Lesson Number", position: "insideBottom", offset: -5 }} />
-            <YAxis label={{ value: "Performance (%)", angle: -90, position: "insideLeft" }} />
+            <XAxis
+              dataKey="lesson"
+              label={{
+                value: "Lesson Number",
+                position: "insideBottom",
+                offset: -5,
+              }}
+            />
+            <YAxis
+              label={{
+                value: "Performance (%)",
+                angle: -90,
+                position: "insideLeft",
+              }}
+            />
             <Tooltip />
-            <Line type="monotone" dataKey="performance" stroke="#8884d8" name="Performance" />
+            <Line
+              type="monotone"
+              dataKey="performance"
+              stroke="#8884d8"
+              name="Performance"
+            />
           </LineChart>
         </ResponsiveContainer>
       </Paper>
 
       {/* Performance Per Placement in TOS */}
-      <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+      <Paper elevation={3} sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           Performance Per Placement in TOS
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={tosPlacementPerformance}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="placement" label={{ value: "Placement", position: "insideBottom", offset: -5 }} />
-            <YAxis label={{ value: "Performance (%)", angle: -90, position: "insideLeft" }} />
+            <XAxis
+              dataKey="placement"
+              label={{
+                value: "Placement",
+                position: "insideBottom",
+                offset: -5,
+              }}
+            />
+            <YAxis
+              label={{
+                value: "Performance (%)",
+                angle: -90,
+                position: "insideLeft",
+              }}
+            />
             <Tooltip />
             <Bar dataKey="performance" fill="#82ca9d" name="Performance" />
           </BarChart>
@@ -197,7 +275,7 @@ const ClassReports = () => {
       </Paper>
 
       {/* Bloom's Taxonomy Analysis */}
-      <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+      <Paper elevation={3} sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           Bloom's Taxonomy Analysis
         </Typography>
@@ -205,15 +283,27 @@ const ClassReports = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell><strong>Bloom Level</strong></TableCell>
-                <TableCell><strong>Number of Questions</strong></TableCell>
-                <TableCell><strong>Percentage</strong></TableCell>
+                <TableCell>
+                  <strong>Bloom Level</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Number of Questions</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Percentage</strong>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {bloomTaxonomy.map((entry) => {
-                const totalQuestions = bloomTaxonomy.reduce((sum, item) => sum + item.questions, 0);
-                const percentage = ((entry.questions / totalQuestions) * 100).toFixed(2);
+                const totalQuestions = bloomTaxonomy.reduce(
+                  (sum, item) => sum + item.questions,
+                  0
+                );
+                const percentage = (
+                  (entry.questions / totalQuestions) *
+                  100
+                ).toFixed(2);
                 return (
                   <TableRow key={entry.level}>
                     <TableCell>{entry.level}</TableCell>
@@ -224,13 +314,20 @@ const ClassReports = () => {
               })}
               {/* Total Row */}
               <TableRow>
-                <TableCell><strong>Total</strong></TableCell>
+                <TableCell>
+                  <strong>Total</strong>
+                </TableCell>
                 <TableCell>
                   <strong>
-                    {bloomTaxonomy.reduce((sum, item) => sum + item.questions, 0)}
+                    {bloomTaxonomy.reduce(
+                      (sum, item) => sum + item.questions,
+                      0
+                    )}
                   </strong>
                 </TableCell>
-                <TableCell><strong>100%</strong></TableCell>
+                <TableCell>
+                  <strong>100%</strong>
+                </TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -238,7 +335,7 @@ const ClassReports = () => {
       </Paper>
 
       {/* Topic/Subject Performance */}
-      <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+      <Paper elevation={3} sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           Topic/Subject Performance
         </Typography>
@@ -254,7 +351,7 @@ const ClassReports = () => {
       </Paper>
 
       {/* Student Summary */}
-      <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+      <Paper elevation={3} sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           Student Summary
         </Typography>
@@ -285,10 +382,10 @@ const ClassReports = () => {
       </Paper>
 
       {/* Export Button */}
-      <Button variant="contained" color="primary" onClick={handleExport}>
+      {/* <Button variant="contained" color="primary" onClick={handleExport}>
         Export Class Report
-      </Button>
-    </Box>
+      </Button> */}
+    </Stack>
   );
 };
 

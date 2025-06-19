@@ -185,11 +185,11 @@ function SubjectTab() {
         .single();
 
       // console.log(data);
-
       await supabase.from("tbl_program_subject").insert({
         program_id: program_id.data.id,
         subject_id: data.id,
       });
+      setAddSubDialog(false);
     })();
   };
 

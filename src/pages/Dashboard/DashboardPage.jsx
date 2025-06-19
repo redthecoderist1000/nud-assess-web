@@ -165,19 +165,6 @@ const DashboardPage = () => {
             Monitor quiz performance and student engagement.
           </p>
         </div>
-        <div className="inline-flex items-center px-6 p-2 border border-gray-300 rounded-full shadow-sm">
-          <img
-            src={profilePic}
-            alt="Profile"
-            className="w-8 h-8 rounded-full mr-2"
-          />
-          <div className="flex flex-col">
-            <span className="text-black font-semibold text-sm">
-              {userCon.user.f_name + " " + userCon.user.l_name}
-            </span>
-            <span className="text-gray-400 text-xs">{userCon.user.role}</span>
-          </div>
-        </div>
       </motion.div>
 
       {/* Action Buttons */}

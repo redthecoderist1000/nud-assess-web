@@ -1,19 +1,8 @@
-import React, { useContext, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom"; // Import useNavigate for redirection
-import { motion, AnimatePresence } from "framer-motion";
-import signupImage from "../../assets/images/signup_image.png";
-import { authContext } from "./AuthPage";
-import { OtpInput } from "reactjs-otp-input";
+import { useContext, useState } from "react";
+import { useLocation } from "react-router-dom"; // Import useNavigate for redirection
+import { motion } from "framer-motion";
 
-import {
-  Button,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-} from "@mui/material";
+import { CircularProgress, MenuItem, Select } from "@mui/material";
 import { userContext } from "../../App";
 import { supabase } from "../../helper/Supabase";
 

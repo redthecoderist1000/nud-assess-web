@@ -67,15 +67,17 @@ const QuestionManagementPage = () => {
                 aria-label="basic tabs"
               >
                 <Tab label="My Questions" />
-                {/* <Tab label="Shared Quizzes" /> */}
+                <Tab label="Shared Quizzes" />
               </Tabs>
             </Box>
+            {/* my question tab */}
             <CustomTabPanel value={value} index={0}>
               <MyQuestionTab />
             </CustomTabPanel>
-            {/* <CustomTabPanel value={value} index={1}>
-                      Item Two
-                    </CustomTabPanel> */}
+            {/* shared tab */}
+            <CustomTabPanel value={value} index={1}>
+              Item Two
+            </CustomTabPanel>
           </Box>
         </Card>
 

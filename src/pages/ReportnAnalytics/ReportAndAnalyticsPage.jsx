@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Class from "./tabs/Class";
 import Quiz from "./tabs/Quiz";
 import Question from "./tabs/Question";
+import { Container } from "@mui/material";
 
 const ReportAndAnalyticsPage = () => {
   const [activeTab, setActiveTab] = useState("Class");
@@ -21,7 +22,7 @@ const ReportAndAnalyticsPage = () => {
   };
 
   return (
-    <div className="p-6">
+    <Container maxWidth="xl" className="my-5">
       {/* Header */}
       <div>
         <h1 className="text-5xl font-bold mb-2">Reports And Analytics</h1>
@@ -59,7 +60,7 @@ const ReportAndAnalyticsPage = () => {
           </motion.div>
         </AnimatePresence>
       </div>
-    </div>
+    </Container>
   );
 };
 

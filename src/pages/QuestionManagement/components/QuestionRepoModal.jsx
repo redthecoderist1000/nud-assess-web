@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { Button, Stack } from "@mui/material";
 
 const QuestionRepoModal = ({ isOpen, onClose, onSelect }) => {
   if (!isOpen) return null;
@@ -19,14 +20,18 @@ const QuestionRepoModal = ({ isOpen, onClose, onSelect }) => {
           Choose where the questions will come from.
         </p>
         <ul className="space-y-4 w-full">
-          {/* <li>
+          <li>
             <button
-              className="w-full bg-white text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-200"
+              className="w-full bg-blue-200 text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-900 hover:text-white"
               onClick={() => onSelect("Final Exam")}
             >
-              Final Exam
+              <b>Final Exam</b>
+              <p className="text-sm ">
+                Contains questions available for final exams. Available for
+                faculty incharge only.
+              </p>
             </button>
-          </li> */}
+          </li>
           <li>
             <button
               className="w-full bg-blue-200 text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-900 hover:text-white"

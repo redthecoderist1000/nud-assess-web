@@ -1,25 +1,9 @@
-import {
-  Box,
-  Button,
-  Card,
-  CircularProgress,
-  Divider,
-  FormControl,
-  Grid,
-  IconButton,
-  InputLabel,
-  LinearProgress,
-  MenuItem,
-  Select,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import React, { useState } from "react";
+import { Box, Button, LinearProgress, Stack } from "@mui/material";
+import { createContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CloseIcon from "@mui/icons-material/Close";
-import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import AnswerCard from "./components/AnswerCard";
+
+export const questionContext = createContext();
 
 function CustomTab() {
   const navigate = useNavigate();
@@ -29,7 +13,12 @@ function CustomTab() {
       question: "",
       type: "Multiple Choice",
       blooms_category: "",
-      answers: [],
+      answers: [
+        {
+          answer: "",
+          is_correct: false,
+        },
+      ],
     },
   ]);
 
@@ -41,12 +30,6 @@ function CustomTab() {
     );
   };
 
-  const deleteItem = (index) => {
-    const newItems = items.filter((_, i) => i != index);
-
-    setItems(newItems);
-  };
-
   const addItem = () => {
     setItems([
       ...items,
@@ -54,23 +37,32 @@ function CustomTab() {
         question: "",
         type: "Multiple Choice",
         blooms_category: "",
-        answers: [],
+        answers: [
+          {
+            answer: "",
+            is_correct: false,
+          },
+        ],
       },
     ]);
   };
 
+  const uploadQuestion = (e) => {
+    e.preventDefault();
+  };
+
   return (
-    <>
+    <Box component="form" onSubmit={uploadQuestion}>
       <Stack rowGap={3} pb={4}>
         {items.map((data, index) => {
           return (
-            <AnswerCard
-              data={data}
-              index={index}
-              key={index}
-              handleChangeItem={handleChangeItem}
-              deleteItem={deleteItem}
-            />
+            <questionContext.Provider value={{ items, setItems }} key={index}>
+              <AnswerCard
+                data={data}
+                index={index}
+                handleChangeItem={handleChangeItem}
+              />
+            </questionContext.Provider>
           );
         })}
         <div>
@@ -94,14 +86,14 @@ function CustomTab() {
             </button>
             <button
               className="bg-blue-900 text-white px-8 py-2 rounded font-semibold hover:bg-blue-800 transition"
-              onClick={() => {}}
+              type="submit"
             >
               Upload questions
             </button>
           </div>
         )}
       </div>
-    </>
+    </Box>
   );
 }
 

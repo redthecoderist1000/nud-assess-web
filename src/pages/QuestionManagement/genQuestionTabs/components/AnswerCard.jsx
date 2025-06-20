@@ -50,7 +50,7 @@ function AnswerCard(props) {
             <DeleteOutlineRoundedIcon />
           </IconButton>
         </Stack>
-        <Grid container spacing={4}>
+        <Grid container spacing={4} mb={2}>
           <Grid flex={5}>
             <TextField
               fullWidth

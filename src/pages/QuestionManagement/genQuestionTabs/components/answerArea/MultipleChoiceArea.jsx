@@ -16,7 +16,7 @@ import { useContext } from "react";
 import { questionContext } from "../../CustomTab";
 
 function MultipleChoiceArea(props) {
-  const { index } = props;
+  const { index } = props; // question index
   const { items, setItems } = useContext(questionContext);
 
   const addOption = () => {
@@ -38,7 +38,33 @@ function MultipleChoiceArea(props) {
     );
   };
 
-  const changeSelected = (q_index, a_index) => {};
+  const changeSelected = (a_index) => {
+    const newItem = items.map((items, i_index) => {
+      if (i_index == index) {
+        const newAnswers = items.answers.map((ans, ai) =>
+          ai == a_index
+            ? { ...ans, is_correct: !ans.is_correct }
+            : { ...ans, is_correct: false }
+        );
+        return { ...items, answers: newAnswers };
+      }
+      return items;
+    });
+    setItems(newItem);
+  };
+
+  const changeOption = (value, a_index) => {
+    const newItem = items.map((items, i_index) => {
+      if (i_index == index) {
+        const newAnswers = items.answers.map((ans, ai) =>
+          ai == a_index ? { ...ans, answer: value } : ans
+        );
+        return { ...items, answers: newAnswers };
+      }
+      return items;
+    });
+    setItems(newItem);
+  };
 
   const removeOption = (q_index, a_index) => {
     const newItem = items.map((items, i_index) => {
@@ -63,7 +89,7 @@ function MultipleChoiceArea(props) {
               <Stack direction="row" key={a_index}>
                 <Radio
                   checked={data.is_correct}
-                  onClick={changeSelected}
+                  onClick={() => changeSelected(a_index)}
                   size="small"
                   color="success"
                   checkedIcon={<CheckCircleRoundedIcon />}
@@ -73,6 +99,9 @@ function MultipleChoiceArea(props) {
                   label={"option " + (a_index + 1)}
                   size="small"
                   value={data.answer}
+                  onChange={(e) => {
+                    changeOption(e.target.value, a_index);
+                  }}
                 />
                 <IconButton
                   size="small"
@@ -88,7 +117,7 @@ function MultipleChoiceArea(props) {
 
       <div>
         <Button variant="text" size="small" onClick={addOption}>
-          add option, {index}
+          add option
         </Button>
       </div>
     </Stack>

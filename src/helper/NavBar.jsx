@@ -197,7 +197,11 @@ const NavBar = () => {
         )}
         <List>
           {navItems.map((data, index) => (
-            <ListItem key={index} disablePadding sx={{ display: "block" }}>
+            <ListItem
+              key={index}
+              disablePadding
+              sx={{ display: "block", mb: 1 }}
+            >
               <Link
                 to={data.to}
                 className={`sidebar-link flex items-center ${open ? "rounded-md" : ""} space-x-3 py-2 px-4 transition-all duration-300 ${

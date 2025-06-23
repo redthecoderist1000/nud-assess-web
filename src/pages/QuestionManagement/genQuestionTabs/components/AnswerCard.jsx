@@ -14,6 +14,7 @@ import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import MultipleChoiceArea from "./answerArea/MultipleChoiceArea";
 import { useContext } from "react";
 import { questionContext } from "../CustomTab";
+import TFArea from "./answerArea/TFArea";
 
 function AnswerCard(props) {
   const { items, setItems } = useContext(questionContext);
@@ -23,13 +24,13 @@ function AnswerCard(props) {
 
   switch (data.type) {
     case "Multiple Choice":
-      qType = <MultipleChoiceArea answers={data.answers} index={index} />;
+      qType = <MultipleChoiceArea index={index} />;
       break;
     case "Identification":
       qType = <p>Identiodicionm</p>;
       break;
     case "T/F":
-      qType = <p>truf false</p>;
+      qType = <TFArea index={index} />;
       break;
     default:
       qType = <p>nothing</p>;

@@ -8,13 +8,99 @@ import questionManagementIcon from "../assets/images/questionmanagement_icon.png
 import classManagementIcon from "../assets/images/classmanagement_icon.png";
 import reportAnalyticsIcon from "../assets/images/reportanalytics_icon.png";
 import profileSettingIcon from "../assets/images/profilesetting_icon.png";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { userContext } from "../App";
 
+import MuiDrawer from "@mui/material/Drawer";
+import { styled, useTheme } from "@mui/material/styles";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import InboxIcon from "@mui/icons-material/MoveToInbox";
+import MailIcon from "@mui/icons-material/Mail";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
+import {
+  Box,
+  Divider,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
+
+const drawerWidth = 240;
+
+const openedMixin = (theme) => ({
+  width: drawerWidth,
+  backgroundColor: "#DDE4F5",
+  transition: theme.transitions.create("width", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  }),
+  overflowX: "hidden",
+  padding: "10px",
+});
+
+const closedMixin = (theme) => ({
+  transition: theme.transitions.create("width", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  backgroundColor: "#DDE4F5",
+  overflowX: "hidden",
+  width: `calc(${theme.spacing(7)} + 1px)`,
+  [theme.breakpoints.up("sm")]: {
+    width: `calc(${theme.spacing(8)} + 1px)`,
+  },
+});
+
+const DrawerHeader = styled("div")(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  padding: theme.spacing(0, 1),
+  // necessary for content to be below app bar
+  ...theme.mixins.toolbar,
+}));
+
+const Drawer = styled(MuiDrawer, {
+  shouldForwardProp: (prop) => prop !== "open",
+})(({ theme }) => ({
+  width: drawerWidth,
+  flexShrink: 0,
+  whiteSpace: "nowrap",
+  boxSizing: "border-box",
+  variants: [
+    {
+      props: ({ open }) => open,
+      style: {
+        ...openedMixin(theme),
+        "& .MuiDrawer-paper": openedMixin(theme),
+      },
+    },
+    {
+      props: ({ open }) => !open,
+      style: {
+        ...closedMixin(theme),
+        "& .MuiDrawer-paper": closedMixin(theme),
+      },
+    },
+  ],
+}));
+
 const NavBar = () => {
+  const theme = useTheme();
+  const [open, setOpen] = useState(true);
+
   const userCon = useContext(userContext);
   const navigate = useNavigate();
   const location = useLocation(); // Get the current route
+
+  const handleDrawer = () => {
+    setOpen(!open);
+  };
 
   const navItems =
     userCon.user.role == "Admin"
@@ -22,12 +108,12 @@ const NavBar = () => {
           { to: "/dashboard", label: "Dashboard", icon: dashboardIcon },
           {
             to: "/dashboard/QuizManagement",
-            label: "Quiz Management",
+            label: "Quizzes",
             icon: quizManagementIcon,
           },
           {
             to: "/dashboard/QuestionManagement",
-            label: "Question Management",
+            label: "Questions",
             icon: questionManagementIcon,
           },
           {
@@ -55,12 +141,12 @@ const NavBar = () => {
           { to: "/dashboard", label: "Dashboard", icon: dashboardIcon },
           {
             to: "/dashboard/QuizManagement",
-            label: "Quiz Management",
+            label: "Quizzes",
             icon: quizManagementIcon,
           },
           {
             to: "/dashboard/QuestionManagement",
-            label: "Question Management",
+            label: "Questions",
             icon: questionManagementIcon,
           },
           {
@@ -81,46 +167,57 @@ const NavBar = () => {
         ];
 
   return (
-    <aside className="sidebar w-72 min-h-screen bg-[#DDE4F5] shadow-md p-6 flex-col hidden md:flex">
-      {/* Logo Section */}
-      <header className="mb-6 flex justify-center">
-        <img src={logo} alt="Logo" className="logo w-40" />
-      </header>
-
-      {/* Profile Section */}
-      <div className="flex flex-col items-center mb-10">
-        <img
-          src={profilePic}
-          alt="Profile"
-          className="w-24 h-24 rounded-full object-cover"
-        />
-        <h2 className="text-lg font-semibold text-blue-900 mt-2">
-          {userCon.user.f_name + " " + userCon.user.l_name}
-        </h2>
-        <p className="text-gray-500">{userCon.user.role}</p>
-      </div>
-
-      {/* Navigation Links */}
-      <nav className="flex-1 space-y-4">
-        <ul className="space-y-2">
-          {navItems.map(({ to, label, icon }, index) => (
-            <li key={index}>
+    <Box>
+      <Drawer variant="permanent" open={open}>
+        <DrawerHeader>
+          <IconButton onClick={handleDrawer}>
+            {!open ? <MenuRoundedIcon /> : <ChevronLeftRoundedIcon />}
+          </IconButton>
+        </DrawerHeader>
+        {/* <Divider /> */}
+        {/* Logo sectirn */}
+        <header className="flex justify-center mt-5">
+          <img src={logo} alt="Logo" className="" />
+        </header>
+        {/* Profile Section */}
+        {open ? (
+          <div className="flex flex-col items-center mb-5">
+            <img
+              src={profilePic}
+              alt="Profile"
+              className="w-24 h-24 rounded-full object-cover"
+            />
+            <h2 className="text-lg font-semibold text-blue-900 mt-2">
+              {userCon.user.f_name + " " + userCon.user.l_name}
+            </h2>
+            <p className="text-gray-500">{userCon.user.role}</p>
+          </div>
+        ) : (
+          <></>
+        )}
+        <List>
+          {navItems.map((data, index) => (
+            <ListItem key={index} disablePadding sx={{ display: "block" }}>
               <Link
-                to={to}
-                className={`sidebar-link flex items-center space-x-3 py-2 px-4 rounded-md transition-all duration-300 ${
-                  location.pathname === to
+                to={data.to}
+                className={`sidebar-link flex items-center ${open ? "rounded-md" : ""} space-x-3 py-2 px-4 transition-all duration-300 ${
+                  location.pathname === data.to
                     ? "bg-[#2D3B87] text-white"
-                    : "text-[#2D3B87] opacity-90 hover:bg-[#2D3B87] hover:text-white hover:rounded-md"
+                    : "text-[#2D3B87] opacity-90 hover:bg-[#2D3B87] hover:text-white"
                 }`}
               >
-                <img src={icon} alt={`${label} Icon`} className="w-5 h-5" />
-                <span>{label}</span>
+                <img
+                  src={data.icon}
+                  alt={`${data.label} Icon`}
+                  className="w-5 h-5"
+                />
+                {open ? <span>{data.label}</span> : <></>}
               </Link>
-            </li>
+            </ListItem>
           ))}
-        </ul>
-      </nav>
-    </aside>
+        </List>
+      </Drawer>
+    </Box>
   );
 };
 

@@ -10,7 +10,7 @@ function ProtectedLoggedin() {
     isLoggedIn = true;
   }
 
-  return isLoggedIn ? <Navigate to="/dashboard" /> : <Outlet />;
+  return isLoggedIn ? <Navigate to="/" /> : <Outlet />;
 }
 
 export default ProtectedLoggedin;

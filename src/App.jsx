@@ -63,7 +63,7 @@ const AnimatedRoutes = () => {
       // console.log(event, session);
       // console.log("is_verified: ", session.user.user_metadata.email_verified);
       if (session == null) {
-        navigate("/");
+        navigate("/login");
         return;
       }
 
@@ -113,7 +113,7 @@ const AnimatedRoutes = () => {
             {/* Authentication Routes */}
 
             <Route element={<ProtectedLoggedin />}>
-              <Route path="/" element={<AuthPage />} />
+              <Route path="/login" element={<AuthPage />} />
               <Route path="/signup-otp" element={<SignupOtp />} />
               <Route path="/setup" element={<SetUpAccount />} />
 
@@ -128,7 +128,7 @@ const AnimatedRoutes = () => {
               <Route path="/class" element={<ClassPage />} />
               <Route path="/quiz" element={<QuizInfoPage />} />
 
-              <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route path="/" element={<DashboardLayout />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="QuizManagement" element={<QuizmanagementPage />} />
                 <Route path="QuestionSummary" element={<QuestionSummary />} />
@@ -160,7 +160,7 @@ const AnimatedRoutes = () => {
                   element={<CreateQuestionManually />}
                 />
                 <Route
-                  path="CreateQuestionAutomatically"
+                  path="GenerateQuestion"
                   element={<CreateQuestionAutomatically />}
                 />
                 <Route path="QuizResult" element={<QuizResultPage />} />

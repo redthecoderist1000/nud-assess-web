@@ -12,7 +12,7 @@ import {
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 
-import { useContext } from "react";
+import { useContext, useMemo, useRef } from "react";
 import { questionContext } from "../../CustomTab";
 
 function MultipleChoiceArea(props) {

@@ -105,62 +105,62 @@ const NavBar = () => {
   const navItems =
     userCon.user.role == "Admin"
       ? [
-          { to: "/dashboard", label: "Dashboard", icon: dashboardIcon },
+          { to: "/", label: "Dashboard", icon: dashboardIcon },
           {
-            to: "/dashboard/QuizManagement",
+            to: "/QuizManagement",
             label: "Quizzes",
             icon: quizManagementIcon,
           },
           {
-            to: "/dashboard/QuestionManagement",
+            to: "/QuestionManagement",
             label: "Questions",
             icon: questionManagementIcon,
           },
           {
-            to: "/dashboard/ClassManagement",
+            to: "/ClassManagement",
             label: "My Classes",
             icon: classManagementIcon,
           },
           {
-            to: "/dashboard/ReportAndAnalytics",
+            to: "/ReportAndAnalytics",
             label: "Report and Analytics",
             icon: reportAnalyticsIcon,
           },
           {
-            to: "/dashboard/Administration",
+            to: "/Administration",
             label: "Administration",
             icon: adminIcon,
           },
           {
-            to: "/dashboard/ProfileSettings",
+            to: "/ProfileSettings",
             label: "Profile Settings",
             icon: profileSettingIcon,
           },
         ]
       : [
-          { to: "/dashboard", label: "Dashboard", icon: dashboardIcon },
+          { to: "/", label: "Dashboard", icon: dashboardIcon },
           {
-            to: "/dashboard/QuizManagement",
+            to: "/QuizManagement",
             label: "Quizzes",
             icon: quizManagementIcon,
           },
           {
-            to: "/dashboard/QuestionManagement",
+            to: "/QuestionManagement",
             label: "Questions",
             icon: questionManagementIcon,
           },
           {
-            to: "/dashboard/ClassManagement",
+            to: "/ClassManagement",
             label: "My Classes",
             icon: classManagementIcon,
           },
           {
-            to: "/dashboard/ReportAndAnalytics",
+            to: "/ReportAndAnalytics",
             label: "Report and Analytics",
             icon: reportAnalyticsIcon,
           },
           {
-            to: "/dashboard/ProfileSettings",
+            to: "/ProfileSettings",
             label: "Profile Settings",
             icon: profileSettingIcon,
           },

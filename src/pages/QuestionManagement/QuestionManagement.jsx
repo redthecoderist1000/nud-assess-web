@@ -86,7 +86,7 @@ const QuestionManagementPage = () => {
           onClose={() => setRepoModalOpen(false)}
           onSelect={(selectedRepo) => {
             setRepoModalOpen(false); // Close the modal
-            navigate("/dashboard/CreateQuestionAutomatically", {
+            navigate("/GenerateQuestion", {
               state: { repository: selectedRepo }, // Pass the selected repository
             });
           }}

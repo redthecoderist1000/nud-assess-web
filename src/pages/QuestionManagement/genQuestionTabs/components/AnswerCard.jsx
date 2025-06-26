@@ -12,13 +12,44 @@ import {
 } from "@mui/material";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import MultipleChoiceArea from "./answerArea/MultipleChoiceArea";
-import { useContext } from "react";
+import { useContext, useMemo, useRef } from "react";
 import { questionContext } from "../CustomTab";
 import TFArea from "./answerArea/TFArea";
+import JoditEditor from "jodit-react";
 
 function AnswerCard(props) {
   const { items, setItems } = useContext(questionContext);
-  const { index, data, handleChangeItem } = props;
+  const { index, data, handleChangeItem, handleChangeQuestion } = props;
+  const editor = useRef(null);
+  const config = useMemo(
+    () => ({
+      readonly: false,
+      placeholder: "Start typing...",
+      toolbarAdaptive: false,
+      uploader: { insertImageAsBase64URI: true }, // configure image upalods
+      addNewLine: false,
+      statusbar: false,
+      buttons: [
+        "bold",
+        "italic",
+        "underline",
+        // "|",
+        // "strikethrough",
+        // "superscript",
+        // "subscript",
+        // "|",
+        // "ul",
+        // "ol",
+        // "|",
+        // "font",
+        // "align",
+        // "|",
+        // "link",
+        // "image",
+      ],
+    }),
+    []
+  );
 
   let qType;
 
@@ -62,6 +93,12 @@ function AnswerCard(props) {
               name="question"
               onChange={(e) => handleChangeItem(e, index)}
             />
+            {/* <JoditEditor
+              ref={editor}
+              value={data.question}
+              config={config}
+              onBlur={(e) => handleChangeQuestion(e, index)}
+            /> */}
           </Grid>
 
           <Grid flex={1}>

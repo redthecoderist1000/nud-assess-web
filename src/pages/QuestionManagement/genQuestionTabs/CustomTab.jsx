@@ -30,6 +30,12 @@ function CustomTab() {
     );
   };
 
+  const handleChangeQuestion = (e, index) => {
+    setItems((prev) =>
+      prev.map((d, i) => (index == i ? { ...d, question: e } : d))
+    );
+  };
+
   const addItem = () => {
     setItems([
       ...items,
@@ -49,6 +55,8 @@ function CustomTab() {
 
   const uploadQuestion = (e) => {
     e.preventDefault();
+
+    console.log("items:", items);
   };
 
   return (
@@ -61,6 +69,7 @@ function CustomTab() {
                 data={data}
                 index={index}
                 handleChangeItem={handleChangeItem}
+                handleChangeQuestion={handleChangeQuestion}
               />
             </questionContext.Provider>
           );

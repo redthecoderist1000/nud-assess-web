@@ -16,6 +16,7 @@ import { useContext, useMemo, useRef } from "react";
 import { questionContext } from "../CustomTab";
 import TFArea from "./answerArea/TFArea";
 import JoditEditor from "jodit-react";
+import IndentificationArea from "./answerArea/IndentificationArea";
 
 function AnswerCard(props) {
   const { items, setItems } = useContext(questionContext);
@@ -58,7 +59,7 @@ function AnswerCard(props) {
       qType = <MultipleChoiceArea index={index} />;
       break;
     case "Identification":
-      qType = <p>Identiodicionm</p>;
+      qType = <IndentificationArea index={index} />;
       break;
     case "T/F":
       qType = <TFArea index={index} />;

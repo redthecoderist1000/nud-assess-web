@@ -157,7 +157,7 @@ const CreateQuestionAutomatically = () => {
 
         {/* custom */}
         <CustomTabPanel value={tab} index={0}>
-          <CustomTab />
+          <CustomTab subject={subject} lesson={lesson} />
         </CustomTabPanel>
         {/* ai */}
         <CustomTabPanel value={tab} index={1}>

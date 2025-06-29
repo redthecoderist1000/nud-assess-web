@@ -14,13 +14,22 @@ function TFArea(props) {
   const { index } = props;
   const { items, setItems } = useContext(questionContext);
 
+  const setAnswer = (e) => {
+    console.log("event:", e.target.value);
+
+    const newAnswer = items.map((d, i) =>
+      index == i ? { ...d, answers: { answer: e.target.value } } : d
+    );
+    setItems(newAnswer);
+  };
+
   return (
     <div>
       <FormControl fullWidth>
-        <RadioGroup>
+        <RadioGroup value={items[index].answers.answer} onClick={setAnswer}>
           <Stack direction="row" justifyContent="space-evenly">
             <FormControlLabel
-              value="true"
+              value="True"
               control={
                 <Radio
                   color="success"
@@ -30,7 +39,7 @@ function TFArea(props) {
               label="True"
             />
             <FormControlLabel
-              value="false"
+              value="False"
               control={
                 <Radio
                   color="success"

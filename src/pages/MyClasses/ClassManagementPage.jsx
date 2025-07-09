@@ -133,7 +133,7 @@ const ClassManagementPage = () => {
       >
         <div className="w-7/10 p-5 rounded-lg">
           <div className="mb-6">
-            <h1 className="text-5xl font-semibold mb-2">Class Management</h1>
+            <h1 className="text-5xl font-semibold mb-2">My Classes</h1>
             <p className="text-gray-600">
               Organize class schedules, assignments, and analytics in one place.
             </p>

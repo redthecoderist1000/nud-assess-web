@@ -40,7 +40,7 @@ const QuestionManagementPage = () => {
     >
       <main className="flex-1 p-6 min-h-screen flex flex-col">
         <div>
-          <h1 className="text-5xl font-bold mb-4">Question Management</h1>
+          <h1 className="text-5xl font-bold mb-4">Questions</h1>
           <p className="text-gray-600 mb-6">
             Design and customize quizzes with questions, options, and scoring
             rules.

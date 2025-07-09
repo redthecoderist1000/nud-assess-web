@@ -172,7 +172,8 @@ const ClassPage = () => {
                 onClick={() => {
                   navigate("/quiz", {
                     state: {
-                      exam_id: quiz.exam_id,
+                      class_exam_id: quiz.class_exam_id,
+                      class_id: classData.id,
                     },
                   });
                 }}

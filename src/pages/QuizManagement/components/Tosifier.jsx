@@ -299,7 +299,7 @@ function Tosifier(props) {
         ]);
         // setQuiz(JSON.parse(result.response.text()));
         setResponse("Questions generated");
-        navigate("/dashboard/QuizResult", {
+        navigate("/QuizResult", {
           state: {
             quizDetail: quizDetail,
             rows: rows,

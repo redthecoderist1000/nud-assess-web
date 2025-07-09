@@ -130,7 +130,7 @@ const AnimatedRoutes = () => {
 
               <Route path="/" element={<DashboardLayout />}>
                 <Route index element={<DashboardPage />} />
-                <Route path="QuizManagement" element={<QuizmanagementPage />} />
+                <Route path="quizzes" element={<QuizmanagementPage />} />
                 <Route path="QuestionSummary" element={<QuestionSummary />} />
                 <Route
                   path="QuestionManagement"
@@ -167,10 +167,7 @@ const AnimatedRoutes = () => {
 
                 <Route element={<ProtectedAdmin />}>
                   {/* admin only */}
-                  <Route
-                    path="/dashboard/Administration"
-                    element={<AdminPage />}
-                  />
+                  <Route path="/Administration" element={<AdminPage />} />
                 </Route>
               </Route>
             </Route>

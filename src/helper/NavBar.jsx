@@ -107,7 +107,7 @@ const NavBar = () => {
       ? [
           { to: "/", label: "Dashboard", icon: dashboardIcon },
           {
-            to: "/QuizManagement",
+            to: "/quizzes",
             label: "Quizzes",
             icon: quizManagementIcon,
           },
@@ -140,7 +140,7 @@ const NavBar = () => {
       : [
           { to: "/", label: "Dashboard", icon: dashboardIcon },
           {
-            to: "/QuizManagement",
+            to: "/quizzes",
             label: "Quizzes",
             icon: quizManagementIcon,
           },

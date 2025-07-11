@@ -25,6 +25,17 @@ function QuizInfoPage() {
 
   useEffect(() => {
     fetchData();
+
+    supabase
+      .channel("custom-filter-channel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tbl_result" },
+        (payload) => {
+          fetchData();
+        }
+      )
+      .subscribe();
   }, []);
 
   const fetchData = async () => {

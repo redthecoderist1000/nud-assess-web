@@ -10,6 +10,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
@@ -63,7 +64,7 @@ function LessonAnalysisQuiz(props) {
                   </TableCell>
                   {/* </Grid>
                     <Grid size={1} border={1}> */}
-                  <TableCell align="left">
+                  <TableCell align="left" width={500}>
                     <LinearProgress
                       value={score}
                       variant="determinate"
@@ -75,7 +76,9 @@ function LessonAnalysisQuiz(props) {
                             : "warning"
                       }
                     />
-                    {score.toFixed(0)} %
+                    <Typography variant="body2" align="center">
+                      {score.toFixed(1)} %
+                    </Typography>
                   </TableCell>
                   {/* </Grid>
                   </Grid> */}

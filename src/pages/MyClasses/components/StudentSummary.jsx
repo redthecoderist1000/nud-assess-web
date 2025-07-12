@@ -28,6 +28,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import { Gauge, gaugeClasses } from "@mui/x-charts/Gauge";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useEffect, useMemo, useState } from "react";
 
@@ -61,6 +62,7 @@ function StudentSummary(props) {
       exam_name: resultData.tbl_class_exam.tbl_exam.name,
       total_score: resultData.correct_items,
       total_items: resultData.total_items,
+      average_score: (resultData.correct_items / resultData.total_items) * 100,
       created_at: new Date(resultData.created_at).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
@@ -126,6 +128,7 @@ function StudentSummary(props) {
       <DialogContent>
         {result_id ? (
           <Grid container spacing={1} width="100%">
+            {/* left grid */}
             <Grid flex="2.5">
               <Paper variant="outlined" sx={{ p: 2 }}>
                 <Stack
@@ -286,7 +289,56 @@ function StudentSummary(props) {
                 })}
               </Paper>
             </Grid>
-            <Grid flex="1"></Grid>
+            {/* right grid */}
+            <Grid flex="1">
+              <Stack justifyContent="center" rowGap={4}>
+                <Stack>
+                  <Typography variant="caption" align="center">
+                    Student Score Summary
+                  </Typography>
+                  <Typography variant="h6" align="center" fontWeight="bold">
+                    {resultDetails.exam_name}
+                  </Typography>
+                  <Typography variant="body2" align="center">
+                    on {resultDetails.created_at}
+                  </Typography>
+                </Stack>
+                {/* <Paper elevation={0}> */}
+                <Stack>
+                  <Gauge
+                    value={resultDetails.average_score}
+                    // value={resultDetails.average_score}
+                    startAngle={-120}
+                    cornerRadius={50}
+                    endAngle={120}
+                    color="white"
+                    sx={{
+                      [`& .${gaugeClasses.valueArc}`]: {
+                        fill:
+                          resultDetails.average_score > 80
+                            ? "#52b202"
+                            : resultDetails.average_score < 50
+                              ? "#FF4345"
+                              : "#FFAA2A",
+                      },
+                      ["& .MuiGauge-valueText"]: {
+                        fontSize: 40,
+                        transform: "translate(0px, 0px)",
+                      },
+                    }}
+                    text={({ value }) => `${value}`}
+                  />
+                  <Typography align="center" variant="body1" fontWeight="bold">
+                    {resultDetails.average_score > 80
+                      ? "MASTERED"
+                      : resultDetails.average_score < 50
+                        ? "NEEDS IMPROVEMENT"
+                        : "INTERMEDIATE"}
+                  </Typography>
+                </Stack>
+                {/* </Paper> */}
+              </Stack>
+            </Grid>
           </Grid>
         ) : (
           <DialogContentText>No Summary Available</DialogContentText>

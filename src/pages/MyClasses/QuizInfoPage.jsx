@@ -216,7 +216,10 @@ function QuizInfoPage() {
           </Card>
 
           {/* item analysis */}
-          <ItemAnalysisQuiz class_exam_id={class_exam_id} />
+          <ItemAnalysisQuiz
+            class_exam_id={class_exam_id}
+            exam_name={examName}
+          />
 
           {/* lesson analysis */}
           <LessonAnalysisQuiz class_exam_id={class_exam_id} />

@@ -21,6 +21,7 @@
     "@supabase/supabase-js": "^2.49.4",
     "@tailwindcss/vite": "^4.0.17",
     "axios": "^1.9.0",
+    "export-to-csv": "^1.4.0",
     "framer-motion": "^12.6.3",
     "jodit-react": "^5.2.19",
     "react": "^19.0.0",

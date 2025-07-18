@@ -38,8 +38,7 @@ function ItemAnalysisQuiz(props) {
   };
 
   const dlCsv = () => {
-    const text = exam_name;
-    let filename = text.replaceAll(" ", "_");
+    let filename = exam_name.replaceAll(" ", "_");
 
     const csvConfig = mkConfig({
       useKeysAsHeaders: true,

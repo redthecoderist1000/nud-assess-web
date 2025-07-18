@@ -6,7 +6,7 @@ import FacultyTab from "./tabs/FacultyTab";
 import AnnouncementTab from "./tabs/AnnouncementTab";
 
 function AdminPage() {
-  const [value, setValue] = useState(1);
+  const [value, setValue] = useState(2);
 
   function TabPanel(props) {
     const { children, value, index, ...other } = props;

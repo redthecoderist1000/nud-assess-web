@@ -30,6 +30,7 @@ import CloseIcon from "@mui/icons-material/CloseRounded";
 
 import AssignSubjectDialog from "../components/AssignSubjectDialog";
 import RemoveSubjectDialog from "../components/RemoveSubjectDialog";
+import { useNavigate } from "react-router-dom";
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -58,7 +59,7 @@ const headCells = [
     id: "subjects",
     numeric: false,
     disablePadding: false,
-    label: "Subject",
+    label: "Subject/s",
   },
 ];
 
@@ -99,6 +100,7 @@ function EnhancedTableHead(props) {
 }
 
 function FacultyTab() {
+  const navigate = useNavigate();
   const { user } = useContext(userContext);
   const [search, setSearch] = useState("");
   const [order, setOrder] = useState("asc");
@@ -110,7 +112,10 @@ function FacultyTab() {
 
   const [assignDialog, setAssignDialog] = useState(false);
   const [removeDialog, setRemoveDialog] = useState(false);
+
   const [selectedFaculty, setSelectedFaculty] = useState("");
+
+  const [facultyInfo, setFacultyInfo] = useState(false);
 
   async function fetchData() {
     let { data, error } = await supabase
@@ -235,6 +240,9 @@ function FacultyTab() {
                     hover
                     tabIndex={-1}
                     sx={{ cursor: "pointer" }}
+                    onClick={() => {
+                      navigate("faculty", { state: { facultyId: row.id } });
+                    }}
                   >
                     <TableCell component="th" scope="row">
                       {name}
@@ -257,7 +265,7 @@ function FacultyTab() {
                         })}
                         {/* {row.name} */}
                       </Stack>
-                      <Button
+                      {/* <Button
                         variant="text"
                         size="small"
                         onClick={() => {
@@ -266,8 +274,8 @@ function FacultyTab() {
                         }}
                       >
                         Assign
-                      </Button>
-                      {row.subjects[0] != null ? (
+                      </Button> */}
+                      {/* {row.subjects[0] != null ? (
                         <Button
                           variant="text"
                           color="error"
@@ -281,7 +289,7 @@ function FacultyTab() {
                         </Button>
                       ) : (
                         <></>
-                      )}
+                      )} */}
                     </TableCell>
                   </TableRow>
                 );

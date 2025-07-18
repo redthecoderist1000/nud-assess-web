@@ -43,6 +43,7 @@ import AuthPage from "./pages/Auth/AuthPage.jsx";
 import AdminPage from "./pages/Admin/AdminPage.jsx";
 import SetUpAccount from "./pages/Auth/SetUpAccount.jsx";
 import QuizInfoPage from "./pages/MyClasses/QuizInfoPage.jsx";
+import FacultyInfo from "./pages/Admin/pages/FacultyInfoPage.jsx";
 
 export const userContext = createContext();
 export const signupContext = createContext();
@@ -167,7 +168,8 @@ const AnimatedRoutes = () => {
 
                 <Route element={<ProtectedAdmin />}>
                   {/* admin only */}
-                  <Route path="/Administration" element={<AdminPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
+                  <Route path="/admin/faculty" element={<FacultyInfo />} />
                 </Route>
               </Route>
             </Route>

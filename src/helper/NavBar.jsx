@@ -127,8 +127,8 @@ const NavBar = () => {
             icon: reportAnalyticsIcon,
           },
           {
-            to: "/Administration",
-            label: "Administration",
+            to: "/admin",
+            label: "Administrator",
             icon: adminIcon,
           },
           {

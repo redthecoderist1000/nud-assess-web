@@ -17,6 +17,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "../../../helper/Supabase";
 import InchargeDialog from "../components/subjectInfo/InchargeDialog";
+import AddLessonDialog from "../components/subjectInfo/AddLessonDialog";
 
 function SubjectInfoPage() {
   const location = useLocation();
@@ -26,6 +27,7 @@ function SubjectInfoPage() {
   const [assigned, setAssigned] = useState([]);
   const [lesson, setLesson] = useState([]);
   const [inchargeDialog, setInchargeDialog] = useState(false);
+  const [addLessonDialog, setAddLessonDialog] = useState(false);
 
   useEffect(() => {
     fetchInfo();
@@ -39,6 +41,17 @@ function SubjectInfoPage() {
         { event: "*", schema: "public", table: "tbl_subject" },
         (payload) => {
           fetchInfo();
+        }
+      )
+      .subscribe();
+
+    supabase
+      .channel("lesson-channel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tbl_lesson" },
+        (payload) => {
+          fetchLesson();
         }
       )
       .subscribe();
@@ -232,7 +245,7 @@ function SubjectInfoPage() {
             size="small"
             color="success"
             disableElevation
-            onClick={() => {}}
+            onClick={() => setAddLessonDialog(true)}
           >
             Add
           </Button>
@@ -294,6 +307,13 @@ function SubjectInfoPage() {
         open={inchargeDialog}
         setOpen={setInchargeDialog}
         subjectId={subjectId}
+      />
+
+      <AddLessonDialog
+        open={addLessonDialog}
+        setOpen={setAddLessonDialog}
+        subjectId={subjectId}
+        subjectName={info.name}
       />
     </Container>
   );

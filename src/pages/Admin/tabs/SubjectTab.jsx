@@ -129,27 +129,12 @@ function SubjectTab() {
   const { user } = useContext(userContext);
 
   const [search, setSearch] = useState("");
-  const [edit, setEdit] = useState(false);
-  const [assign, setAssign] = useState(false);
-  const [remove, setRemove] = useState(false);
-  const [targetSubject, setTargetSubject] = useState({});
-  const [targetFaculty, setTargetFaculty] = useState({});
-  const [removeInchargeDialog, setRemoveInchargeDialog] = useState(false);
-
-  const [editInfo, setEditInfo] = useState({});
-
-  const [hasInchargeDialog, setHasInchargeDialog] = useState(false);
-  const [confirmAssignDialog, setConfirmAssignDialog] = useState(false);
 
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("subject_code");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [rows, setRows] = useState([]);
-
-  // for faculty autocomplete
-  const [options, setOptions] = useState([]);
-  const [facultySearch, setFacultySearch] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -195,133 +180,8 @@ function SubjectTab() {
     })();
   };
 
-  const handleFacultySearch = (e) => setFacultySearch(e.target.value);
-  const visibleOptions = useMemo(
-    () =>
-      options.filter((data) => {
-        const matchFname = data.f_name
-          .toLowerCase()
-          .includes(facultySearch.toLowerCase());
-
-        const matchLname = data.l_name
-          .toLowerCase()
-          .includes(facultySearch.toLowerCase());
-
-        return matchFname || matchLname;
-      }),
-    [facultySearch]
-  );
-
-  const clearFacultySearch = () => setFacultySearch("");
   const handleSearch = (e) => setSearch(e.target.value);
   const clearSearch = () => setSearch("");
-
-  const openDialog = (target) => {
-    switch (target) {
-      case "Edit":
-        setEdit(true);
-        break;
-
-      case "Assign":
-        setAssign(true);
-        // load autocomplete
-        (async () => {
-          setLoading(true);
-          const { data, error } = await supabase
-            .from("tbl_users")
-            .select("*")
-            .not("role", "eq", "Student");
-
-          if (error) {
-            console.error("Failed to load faculty", error);
-            return;
-          }
-          setOptions(data);
-          setLoading(false);
-        })();
-        break;
-
-      case "Remove":
-        setRemove(true);
-        break;
-
-      default:
-        break;
-    }
-  };
-
-  const assignFaculty = async () => {
-    setLoading(true);
-
-    const { error } = await supabase
-      .from("tbl_program_subject")
-      // .update({ faculty_incharge: null })
-      .update({ faculty_incharge: targetFaculty.id })
-      .eq("id", targetSubject.id);
-
-    if (error) {
-      console.log("Failed to assign faculty:", error);
-      return;
-    }
-
-    // check if faculty and subject already exists in tbl_faculty_subject
-    const { data, error: checkError } = await supabase
-      .from("tbl_faculty_subject")
-      .select("*")
-      .eq("faculty_id", targetFaculty.id)
-      .eq("program_subject_id", targetSubject.id);
-
-    if (checkError) {
-      console.log("Failed to check faculty-subject assignment:", checkError);
-      return;
-    }
-
-    if (data.length === 0) {
-      const { error: insertError } = await supabase
-        .from("tbl_faculty_subject")
-        .insert({
-          faculty_id: targetFaculty.id,
-          program_subject_id: targetSubject.id,
-        });
-
-      if (insertError) {
-        console.log(
-          "Failed to insert faculty-subject assignment:",
-          insertError
-        );
-        setLoading(false);
-        setConfirmAssignDialog(false);
-
-        return;
-      }
-    }
-
-    setLoading(false);
-    setConfirmAssignDialog(false);
-  };
-
-  const removeFaculty = async () => {
-    setLoading(true);
-
-    const { error } = await supabase
-      .from("tbl_program_subject")
-      .update({ faculty_incharge: null })
-      .eq("id", targetSubject.id);
-
-    if (error) {
-      console.log("Failed to remove faculty:", error);
-      return;
-    }
-    setLoading(false);
-    setRemoveInchargeDialog(false);
-  };
-
-  const closeDialog = () => {
-    setOptions([]);
-    setEdit(false);
-    setAssign(false);
-    setRemove(false);
-  };
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -355,11 +215,11 @@ function SubjectTab() {
             .toLowerCase()
             .includes(search.toLowerCase());
 
-          const matchFname = value.tbl_users?.f_name
+          const matchFname = value.tbl_subject.tbl_users?.f_name
             .toLowerCase()
             .includes(search.toLowerCase());
 
-          const matchLname = value.tbl_users?.l_name
+          const matchLname = value.tbl_subject.tbl_users?.l_name
             .toLowerCase()
             .includes(search.toLowerCase());
 
@@ -387,7 +247,7 @@ function SubjectTab() {
     let { data, error } = await supabase
       .from("tbl_program")
       .select(
-        "tbl_program_subject(id,tbl_subject(id, name, subject_code), tbl_users(id, suffix, f_name, m_name, l_name))"
+        "tbl_program_subject(id,tbl_subject(id, name, subject_code,tbl_users(id, suffix, f_name, m_name, l_name)))"
       )
       .eq("program_chair", user.user_id)
       .single();
@@ -444,8 +304,9 @@ function SubjectTab() {
             />
             <TableBody>
               {visibleRows.map((row, index) => {
-                const assigned = row.tbl_users == null ? false : true;
-                const user = row.tbl_users;
+                const assigned =
+                  row.tbl_subject.tbl_users == null ? false : true;
+                const user = row.tbl_subject.tbl_users;
                 const incharge = assigned
                   ? user.suffix + " " + user.f_name + " " + user.l_name
                   : "";
@@ -475,37 +336,6 @@ function SubjectTab() {
                         </p>
                       </TableCell>
                     )}
-                    {/* <TableCell align="right">
-                      <Stack direction="row" gap={3} width="min-content">
-                        <Button
-                          size="small"
-                          variant="contained"
-                          color={assigned ? "warning" : "success"}
-                          onClick={() => {
-                            if (assigned) setHasInchargeDialog(true);
-                            else openDialog("Assign");
-                            setTargetSubject(row);
-                          }}
-                        >
-                          {assigned ? "Re-assign" : "Assign"}
-                        </Button>
-                        {!assigned ? (
-                          <></>
-                        ) : (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            color="error"
-                            onClick={() => {
-                              setTargetSubject(row);
-                              setRemoveInchargeDialog(true);
-                            }}
-                          >
-                            Remove Incharge
-                          </Button>
-                        )}
-                      </Stack>
-                    </TableCell> */}
                   </TableRow>
                 );
               })}
@@ -522,176 +352,6 @@ function SubjectTab() {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-
-      {/* subject already has incharge, confirmation dialog */}
-      <Dialog
-        open={hasInchargeDialog}
-        onClose={() => setHasInchargeDialog(false)}
-        aria-labelledby="edit-dialog"
-      >
-        <DialogTitle>Assign faculty incharge?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            This subject already has a faculty incharge. Do you want to
-            continue?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setHasInchargeDialog(false)} color="danger">
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              setHasInchargeDialog(false);
-              openDialog("Assign");
-            }}
-          >
-            Continue
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* assign faculty inchargge */}
-      {/* <Dialog
-        open={assign}
-        onClose={closeDialog}
-        aria-labelledby="edit-dialog"
-        fullWidth={true}
-        maxWidth="md"
-      >
-        <DialogTitle id="edit-dialog-title">
-          Assign faculty incharge
-        </DialogTitle>
-        <DialogContent>
-          <Input
-            id="search_faculty_input"
-            placeholder="Search Faculty"
-            value={facultySearch}
-            sx={{ my: 2, width: "100%" }}
-            onChange={handleFacultySearch}
-            startAdornment={
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            }
-            endAdornment={
-              facultySearch == "" ? null : (
-                <InputAdornment position="end" onClick={clearFacultySearch}>
-                  <CloseIcon />
-                </InputAdornment>
-              )
-            }
-          />
-          {loading ? (
-            <CircularProgress />
-          ) : (
-            <List sx={{ width: "100%" }}>
-              {facultySearch == ""
-                ? options.map((data, index) => {
-                    const name =
-                      data.suffix + " " + data.f_name + " " + data.l_name;
-                    return (
-                      <ListItemButton
-                        key={index}
-                        onClick={() => {
-                          setTargetFaculty(data);
-                          closeDialog();
-                          setConfirmAssignDialog(true);
-                        }}
-                      >
-                        <ListItemText primary={name} />
-                      </ListItemButton>
-                    );
-                  })
-                : visibleOptions.map((data, index) => {
-                    const name =
-                      data.suffix + " " + data.f_name + " " + data.l_name;
-                    return (
-                      <ListItemButton
-                        key={index}
-                        onClick={() => {
-                          setTargetFaculty(data);
-                          closeDialog();
-                          setConfirmAssignDialog(true);
-                        }}
-                      >
-                        <ListItemText primary={name} />
-                      </ListItemButton>
-                    );
-                  })}
-            </List>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Stack direction="row" justifyContent="space-between" width="100%">
-            <Button onClick={closeDialog} color="error">
-              Cancel
-            </Button>
-          </Stack>
-        </DialogActions>
-      </Dialog> */}
-
-      {/* confirm assign */}
-      <Dialog
-        open={confirmAssignDialog}
-        onClose={() => setConfirmAssignDialog(false)}
-      >
-        <DialogTitle>Assign faculty incharge?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Assign {targetFaculty.suffix} {targetFaculty.f_name}{" "}
-            {targetFaculty.l_name} to be the faculty incharge for{" "}
-            {targetSubject.tbl_subject?.name ?? ""}?
-          </DialogContentText>
-        </DialogContent>
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          <DialogActions>
-            <Button
-              onClick={() => {
-                setConfirmAssignDialog(false);
-                openDialog("Assign");
-              }}
-              color="danger"
-            >
-              Back
-            </Button>
-            <Button onClick={assignFaculty}>Continue</Button>
-          </DialogActions>
-        )}
-      </Dialog>
-
-      {/* remove faculty dialog */}
-      <Dialog
-        fullWidth={true}
-        maxWidth="sm"
-        open={removeInchargeDialog}
-        onClose={() => setRemoveInchargeDialog(false)}
-      >
-        <DialogTitle>Remove faculty incharge?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Do you want to remove the faculty incharged for{" "}
-            {targetSubject.tbl_subject?.name ?? ""}?
-          </DialogContentText>
-        </DialogContent>
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          <DialogActions>
-            <Button
-              onClick={() => {
-                setRemoveInchargeDialog(false);
-              }}
-              color="danger"
-            >
-              Cancel
-            </Button>
-            <Button onClick={removeFaculty}>Continue</Button>
-          </DialogActions>
-        )}
-      </Dialog>
 
       {/* add subject dialog */}
       <Dialog

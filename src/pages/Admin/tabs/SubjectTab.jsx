@@ -34,6 +34,7 @@ import { supabase } from "../../../helper/Supabase";
 import SearchIcon from "@mui/icons-material/SearchRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import { userContext } from "../../../App";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -70,14 +71,14 @@ const headCells = [
     disablePadding: false,
     label: "Faculty Incharge",
   },
-  {
-    id: "actions",
-    numeric: false,
-    disablePadding: false,
-    label: "Actions",
-    // align: "right",
-    visibleSort: false,
-  },
+  // {
+  //   id: "actions",
+  //   numeric: false,
+  //   disablePadding: false,
+  //   label: "Actions",
+  //   // align: "right",
+  //   visibleSort: false,
+  // },
 ];
 
 function EnhancedTableHead(props) {
@@ -124,6 +125,7 @@ function EnhancedTableHead(props) {
 }
 
 function SubjectTab() {
+  const navigate = useNavigate();
   const { user } = useContext(userContext);
 
   const [search, setSearch] = useState("");
@@ -454,6 +456,11 @@ function SubjectTab() {
                     hover
                     tabIndex={-1}
                     sx={{ cursor: "pointer" }}
+                    onClick={() => {
+                      navigate("subject", {
+                        state: { subjectId: row.tbl_subject.id },
+                      });
+                    }}
                   >
                     <TableCell component="th" scope="row">
                       {row.tbl_subject.subject_code}
@@ -468,7 +475,7 @@ function SubjectTab() {
                         </p>
                       </TableCell>
                     )}
-                    <TableCell align="right">
+                    {/* <TableCell align="right">
                       <Stack direction="row" gap={3} width="min-content">
                         <Button
                           size="small"
@@ -498,7 +505,7 @@ function SubjectTab() {
                           </Button>
                         )}
                       </Stack>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 );
               })}
@@ -545,7 +552,7 @@ function SubjectTab() {
       </Dialog>
 
       {/* assign faculty inchargge */}
-      <Dialog
+      {/* <Dialog
         open={assign}
         onClose={closeDialog}
         aria-labelledby="edit-dialog"
@@ -622,7 +629,7 @@ function SubjectTab() {
             </Button>
           </Stack>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
 
       {/* confirm assign */}
       <Dialog

@@ -15,8 +15,9 @@ import {
 } from "@mui/material";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import AddMemberDialog from "../Admin/components/AddMemberDialog";
+// import AddMemberDialog from "../Admin/components/AddMemberDialog";
 import AssignQuizDialog from "./components/AssignQuizDialog";
+import AddMemberDialog from "./components/AddMemberDialog";
 
 const ClassPage = () => {
   const location = useLocation();

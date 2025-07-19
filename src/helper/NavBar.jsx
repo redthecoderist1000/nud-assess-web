@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/images/logo.png";
+import logo_icon from "../assets/images/logo_icon.png";
 import adminIcon from "../assets/images/admin_icon.png";
 import profilePic from "../assets/images/sample_profile.png";
 import dashboardIcon from "../assets/images/dashboard_icon.png";
@@ -177,7 +178,7 @@ const NavBar = () => {
         {/* <Divider /> */}
         {/* Logo sectirn */}
         <header className="flex justify-center mt-5">
-          <img src={logo} alt="Logo" className="" />
+          <img src={open ? logo : logo_icon} alt="Logo" className="" />
         </header>
         {/* Profile Section */}
         {open ? (

@@ -18,6 +18,7 @@ import { useLocation } from "react-router-dom";
 import { supabase } from "../../../helper/Supabase";
 import InchargeDialog from "../components/subjectInfo/InchargeDialog";
 import AddLessonDialog from "../components/subjectInfo/AddLessonDialog";
+import EditLessonDialog from "../components/subjectInfo/EditLessonDialog";
 
 function SubjectInfoPage() {
   const location = useLocation();
@@ -28,6 +29,10 @@ function SubjectInfoPage() {
   const [lesson, setLesson] = useState([]);
   const [inchargeDialog, setInchargeDialog] = useState(false);
   const [addLessonDialog, setAddLessonDialog] = useState(false);
+
+  // edit lesson
+  const [editLessonDialog, setEditLessonDialog] = useState(false);
+  const [selectedLesson, setSelectedLesson] = useState({ id: "", name: "" });
 
   useEffect(() => {
     fetchInfo();
@@ -292,6 +297,9 @@ function SubjectInfoPage() {
                       variant="contained"
                       color="warning"
                       disableElevation
+                      onClick={() =>
+                        setSelectedLesson({ id: data.id, name: data.title })
+                      }
                     >
                       Edit
                     </Button>
@@ -314,6 +322,10 @@ function SubjectInfoPage() {
         setOpen={setAddLessonDialog}
         subjectId={subjectId}
         subjectName={info.name}
+      />
+      <EditLessonDialog
+        set={setSelectedLesson}
+        selectedLesson={selectedLesson}
       />
     </Container>
   );

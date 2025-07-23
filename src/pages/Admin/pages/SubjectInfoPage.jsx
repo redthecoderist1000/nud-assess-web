@@ -19,6 +19,7 @@ import { supabase } from "../../../helper/Supabase";
 import InchargeDialog from "../components/subjectInfo/InchargeDialog";
 import AddLessonDialog from "../components/subjectInfo/AddLessonDialog";
 import EditLessonDialog from "../components/subjectInfo/EditLessonDialog";
+import RemoveLessonDialog from "../components/subjectInfo/RemoveLessonDialog";
 
 function SubjectInfoPage() {
   const location = useLocation();
@@ -31,8 +32,9 @@ function SubjectInfoPage() {
   const [addLessonDialog, setAddLessonDialog] = useState(false);
 
   // edit lesson
-  const [editLessonDialog, setEditLessonDialog] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState({ id: "", name: "" });
+  // remove lesson
+  const [removeLessonDialog, setRemoveLessonDialog] = useState(false);
 
   useEffect(() => {
     fetchInfo();
@@ -260,7 +262,7 @@ function SubjectInfoPage() {
               color="error"
               variant="contained"
               disableElevation
-              onClick={() => {}}
+              onClick={() => setRemoveLessonDialog(true)}
             >
               Remove
             </Button>
@@ -326,6 +328,12 @@ function SubjectInfoPage() {
       <EditLessonDialog
         set={setSelectedLesson}
         selectedLesson={selectedLesson}
+      />
+
+      <RemoveLessonDialog
+        open={removeLessonDialog}
+        setOpen={setRemoveLessonDialog}
+        subjectId={subjectId}
       />
     </Container>
   );

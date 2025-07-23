@@ -21,6 +21,12 @@ function AddLessonDialog(props) {
   const [lessonList, setLessonList] = useState([]);
   const [lesson, setLesson] = useState("");
 
+  const onClose = () => {
+    setOpen(false);
+    setLesson("");
+    setLessonList([]);
+  };
+
   const addToList = (e) => {
     e.preventDefault();
     setLessonList([...lessonList, lesson]);
@@ -57,7 +63,7 @@ function AddLessonDialog(props) {
       fullWidth
       maxWidth={lessonList.length == 0 ? "sm" : "lg"}
       open={open}
-      onClose={() => setOpen(false)}
+      onClose={onClose}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
@@ -115,8 +121,8 @@ function AddLessonDialog(props) {
       </DialogContent>
       <DialogActions>
         <Stack direction="row" justifyContent="space-between" width="100%">
-          <Button color="error" size="small" onClick={() => setOpen(false)}>
-            Disagree
+          <Button color="error" size="small" onClick={onClose}>
+            Cancel
           </Button>
           <Button
             color="success"

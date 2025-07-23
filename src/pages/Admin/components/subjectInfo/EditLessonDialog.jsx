@@ -71,7 +71,7 @@ function EditLessonDialog(props) {
             onClick={editLesson}
             disabled={name.length == 0}
           >
-            Continue
+            Confirm
           </Button>
         </Stack>
       </DialogActions>

@@ -286,6 +286,7 @@ function SubjectTab() {
         <Button
           variant="contained"
           size="small"
+          disableElevation
           onClick={() => {
             setAddSubDialog(true);
           }}
@@ -319,7 +320,10 @@ function SubjectTab() {
                     sx={{ cursor: "pointer" }}
                     onClick={() => {
                       navigate("subject", {
-                        state: { subjectId: row.tbl_subject.id },
+                        state: {
+                          subjectId: row.tbl_subject.id,
+                          progSubId: row.id,
+                        },
                       });
                     }}
                   >
@@ -368,6 +372,7 @@ function SubjectTab() {
               <TextField
                 required
                 id="subject_name"
+                size="small"
                 label="Subject Name"
                 onChange={handleSubFormChange}
               />
@@ -375,6 +380,7 @@ function SubjectTab() {
                 required
                 id="subject_code"
                 label="Subject Code"
+                size="small"
                 onChange={handleSubFormChange}
               />
             </Stack>
@@ -384,15 +390,26 @@ function SubjectTab() {
           <CircularProgress />
         ) : (
           <DialogActions>
-            <Button
-              onClick={() => {
-                setAddSubDialog(false);
-              }}
-              color="danger"
-            >
-              Cancel
-            </Button>
-            <Button onClick={addSubConfirm}>Continue</Button>
+            <Stack direction="row" width="100%" justifyContent="space-between">
+              <Button
+                onClick={() => {
+                  setAddSubDialog(false);
+                }}
+                color="error"
+                size="small"
+              >
+                Cancel
+              </Button>
+              <Button
+                disableElevation
+                size="small"
+                onClick={addSubConfirm}
+                color="success"
+                variant="contained"
+              >
+                Confirm
+              </Button>
+            </Stack>
           </DialogActions>
         )}
       </Dialog>

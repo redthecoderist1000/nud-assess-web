@@ -110,7 +110,7 @@ function RemoveLessonDialog(props) {
           <List dense disablePadding sx={{ width: "100%" }}>
             {lessonList.map((data, index) => {
               return (
-                <ListItem key={index} onClick={() => {}}>
+                <ListItem key={index}>
                   <ListItemText>{data.title}</ListItemText>
 
                   <Button

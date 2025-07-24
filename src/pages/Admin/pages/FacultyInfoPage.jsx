@@ -3,6 +3,7 @@ import {
   Container,
   Divider,
   Grid,
+  IconButton,
   Paper,
   Stack,
   Table,
@@ -13,6 +14,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
 import { useLocation } from "react-router-dom";
@@ -92,7 +94,12 @@ function FacultyInfo() {
   return (
     <Container maxWidth="xl" sx={{ my: 3 }}>
       <div className="mb-6">
+        {/* <Stack direction="row"> */}
+        {/* <IconButton size="small">
+          <ArrowBackIosNewRoundedIcon fontSize="small" />
+        </IconButton> */}
         <h1 className="text-5xl font-semibold mb-2">Faculty Information</h1>
+        {/* </Stack> */}
         {/* <p className="text-gray-600">
           Organize class schedules, assignments, and analytics in one place.
         </p> */}
@@ -157,15 +164,17 @@ function FacultyInfo() {
           >
             Add
           </Button>
-          <Button
-            size="small"
-            color="error"
-            variant="contained"
-            disableElevation
-            onClick={() => setRemoveDialog(true)}
-          >
-            Remove
-          </Button>
+          {load.length != 0 && (
+            <Button
+              size="small"
+              color="error"
+              variant="contained"
+              disableElevation
+              onClick={() => setRemoveDialog(true)}
+            >
+              Remove
+            </Button>
+          )}
         </Stack>
       </Stack>
       <TableContainer component={Paper} variant="outlined">

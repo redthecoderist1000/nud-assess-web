@@ -20,16 +20,24 @@ import InchargeDialog from "../components/subjectInfo/InchargeDialog";
 import AddLessonDialog from "../components/subjectInfo/AddLessonDialog";
 import EditLessonDialog from "../components/subjectInfo/EditLessonDialog";
 import RemoveLessonDialog from "../components/subjectInfo/RemoveLessonDialog";
+import AddAssigned from "../components/subjectInfo/AddAssigned";
+import RemoveAssignedDialog from "../components/subjectInfo/RemoveAssignedDialog";
 
 function SubjectInfoPage() {
   const location = useLocation();
-  const { subjectId } = location.state;
+  const { subjectId, progSubId } = location.state;
 
   const [info, setInfo] = useState({});
   const [assigned, setAssigned] = useState([]);
   const [lesson, setLesson] = useState([]);
   const [inchargeDialog, setInchargeDialog] = useState(false);
   const [addLessonDialog, setAddLessonDialog] = useState(false);
+
+  // assign faculaty
+  const [assignDialog, setAssignDialog] = useState(false);
+
+  // remove assign faculty
+  const [removeAssignDialog, setRemoveAssignDialog] = useState(false);
 
   // edit lesson
   const [selectedLesson, setSelectedLesson] = useState({ id: "", name: "" });
@@ -53,6 +61,17 @@ function SubjectInfoPage() {
       .subscribe();
 
     supabase
+      .channel("assigned-channel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tbl_faculty_subject" },
+        (payload) => {
+          fetchAssigned();
+        }
+      )
+      .subscribe();
+
+    supabase
       .channel("lesson-channel")
       .on(
         "postgres_changes",
@@ -68,7 +87,7 @@ function SubjectInfoPage() {
     const { data: infoData, error: infoErr } = await supabase
       .from("tbl_subject")
       .select(
-        "id, name, subject_code, tbl_department(shorthand_name), tbl_users(id, suffix, f_name, m_name, l_name)"
+        "id, name, subject_code, tbl_department(id,shorthand_name), tbl_users(id, suffix, f_name, m_name, l_name)"
       )
       .eq("id", subjectId)
       .single();
@@ -191,7 +210,7 @@ function SubjectInfoPage() {
             size="small"
             color="success"
             disableElevation
-            onClick={() => {}}
+            onClick={() => setAssignDialog(true)}
           >
             Add
           </Button>
@@ -201,7 +220,7 @@ function SubjectInfoPage() {
               color="error"
               variant="contained"
               disableElevation
-              onClick={() => {}}
+              onClick={() => setRemoveAssignDialog(true)}
             >
               Remove
             </Button>
@@ -334,6 +353,20 @@ function SubjectInfoPage() {
         open={removeLessonDialog}
         setOpen={setRemoveLessonDialog}
         subjectId={subjectId}
+      />
+
+      <AddAssigned
+        open={assignDialog}
+        setOpen={setAssignDialog}
+        subjectId={subjectId}
+        departmentId={info.tbl_department?.id}
+        progSubId={progSubId}
+      />
+
+      <RemoveAssignedDialog
+        open={removeAssignDialog}
+        setOpen={setRemoveAssignDialog}
+        progSubId={progSubId}
       />
     </Container>
   );

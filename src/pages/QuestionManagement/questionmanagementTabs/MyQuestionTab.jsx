@@ -13,6 +13,7 @@ import {
   TablePagination,
   TableRow,
   TextField,
+  Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
@@ -117,6 +118,14 @@ function MyQuestionTab() {
     [rows, search, page, rowsPerPage, searchBloom]
   );
 
+  if (rows.length <= 0) {
+    return (
+      <Typography variant="body2" color="textDisabled" align="center">
+        No question created yet
+      </Typography>
+    );
+  }
+
   return (
     <>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -150,6 +159,7 @@ function MyQuestionTab() {
 
       <TableContainer
         component={Paper}
+        variant="outlined"
         sx={{ marginTop: 2, overflow: "auto", maxHeight: "60vh" }}
       >
         <Table sx={{ minWidth: 650 }} aria-label="simple table" stickyHeader>

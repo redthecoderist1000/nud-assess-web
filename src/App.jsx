@@ -100,6 +100,7 @@ const AnimatedRoutes = () => {
               m_name: data.m_name,
               l_name: data.l_name,
               department_id: data.department_id,
+              allow_ai: data.allow_ai,
             });
           })();
         }

@@ -8,6 +8,7 @@ import {
   Paper,
   TextField,
   TablePagination,
+  Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
@@ -62,6 +63,14 @@ function MyQuizTab() {
     setPage(0);
   };
 
+  if (rows.length <= 0) {
+    return (
+      <Typography color="textDisabled" align="center" variant="body2">
+        No quiz created yet
+      </Typography>
+    );
+  }
+
   return (
     <>
       <TextField
@@ -74,6 +83,7 @@ function MyQuizTab() {
       <TableContainer
         component={Paper}
         sx={{ marginTop: 2, maxHeight: "60vh", overflow: "auto" }}
+        variant="outlined"
       >
         <Table sx={{ minWidth: 650 }} aria-label="simple table" stickyHeader>
           <TableHead>

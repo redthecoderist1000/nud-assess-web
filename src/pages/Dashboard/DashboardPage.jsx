@@ -105,7 +105,7 @@ const DashboardPage = () => {
 
   const handleButtonClick = (buttonName) => {
     if (buttonName === "Create Quiz") {
-      navigate("/dashboard/QuizManagement");
+      navigate("/quizzes");
     } else if (buttonName === "Create Questions") {
       setModalSource("question");
       setRepoModalOpen(true);
@@ -115,7 +115,7 @@ const DashboardPage = () => {
   };
 
   const handleQuizOption = (option) => {
-    navigate("/dashboard/QuestionManagement");
+    navigate("/quizzes");
   };
 
   const handleRepoSelect = (selectedOption) => {
@@ -124,13 +124,13 @@ const DashboardPage = () => {
       setShowTOS(true); // Show TOS first
     } else if (modalSource === "question") {
       setModalSource(null);
-      navigate("/dashboard/CreateQuestionAutomatically");
+      navigate("/CreateQuestionAutomatically");
     }
   };
 
   const handleTOSNext = () => {
     setShowTOS(false); // Hide TOS
-    navigate("/dashboard/CreateAutomatically"); // Navigate to CreateAutomatically
+    navigate("/CreateAutomatically"); // Navigate to CreateAutomatically
   };
 
   const handleCreateClassSave = (newClassData) => {

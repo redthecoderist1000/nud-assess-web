@@ -5,7 +5,7 @@ import QuizModal from "./components/QuizModal";
 import QuestionRepoModal from "../QuestionManagement/components/QuestionRepoModal";
 import VerticalBarChart from "../ReportnAnalytics/components/VerticalBarChart";
 import Tosifier from "./components/Tosifier";
-import { Box, Card, Tab, Tabs } from "@mui/material";
+import { Box, Card, Container, Tab, Tabs } from "@mui/material";
 import MyQuizTab from "./quizmanagementTabs/MyQuizTab";
 
 function CustomTabPanel(props) {
@@ -63,52 +63,53 @@ const QuizmanagementPage = () => {
   };
 
   return (
-    <motion.div
-      className="flex h-screen overflow"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-    >
-      <main className="flex-1 p-6 min-h-screen flex flex-col justify-start">
-        <div>
-          <h1 className="text-5xl font-bold mb-4">Quizzes</h1>
-          <p className="text-gray-600 mb-6">
-            Design and customize quizzes with questions, options, and scoring
-            rules.
-          </p>
-        </div>
+    <Container maxWidth="xl" sx={{ my: 5 }}>
+      <motion.div
+        className="flex h-screen overflow"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <main className="flex-1  min-h-screen flex flex-col justify-start">
+          <div>
+            <h1 className="text-5xl font-bold mb-4">Quizzes</h1>
+            <p className="text-gray-600 mb-6">
+              Design and customize quizzes with questions, options, and scoring
+              rules.
+            </p>
+          </div>
 
-        <div className="flex items-center justify-end py-3 px-4 rounded-lg">
-          <button
-            onClick={() => setIsQuizModalOpen(true)}
-            className="bg-blue-900 text-white py-2 px-4 rounded-lg hover:bg-blue-800"
-          >
-            Create Quiz
-          </button>
-        </div>
+          <div className="flex items-center justify-end py-3 px-4 rounded-lg">
+            <button
+              onClick={() => setIsQuizModalOpen(true)}
+              className="bg-blue-900 text-white py-2 px-4 rounded-lg hover:bg-blue-800"
+            >
+              Create Quiz
+            </button>
+          </div>
 
-        <Card>
-          <Box sx={{ width: "100%" }}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <Tabs
-                value={value}
-                onChange={handleChange}
-                aria-label="basic tabs example"
-              >
-                <Tab label="My Quizzes" />
-                {/* <Tab label="Shared Quizzes" /> */}
-              </Tabs>
-            </Box>
-            <CustomTabPanel value={value} index={0}>
-              <MyQuizTab />
-            </CustomTabPanel>
-            {/* <CustomTabPanel value={value} index={1}>
+          <Card variant="outlined">
+            <Box sx={{ width: "100%" }}>
+              <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                <Tabs
+                  value={value}
+                  onChange={handleChange}
+                  aria-label="basic tabs example"
+                >
+                  <Tab label="My Quizzes" />
+                  {/* <Tab label="Shared Quizzes" /> */}
+                </Tabs>
+              </Box>
+              <CustomTabPanel value={value} index={0}>
+                <MyQuizTab />
+              </CustomTabPanel>
+              {/* <CustomTabPanel value={value} index={1}>
               Item Two
             </CustomTabPanel> */}
-          </Box>
-        </Card>
+            </Box>
+          </Card>
 
-        {/* <div className="col-span-2 bg-white rounded-lg shadow-lg border border-gray-200 mt-6 w-full overflow">
+          {/* <div className="col-span-2 bg-white rounded-lg shadow-lg border border-gray-200 mt-6 w-full overflow">
           <div className="bg-blue-900 text-yellow-400 text-xl font-bold p-4 rounded-t-lg flex justify-between items-center">
             <span>{selectedYear}</span>
             <select
@@ -161,23 +162,24 @@ const QuizmanagementPage = () => {
           </div>
         </div> */}
 
-        <div>{/* <VerticalBarChart /> */}</div>
-      </main>
+          <div>{/* <VerticalBarChart /> */}</div>
+        </main>
 
-      {/* Quiz Modal */}
-      <QuizModal
-        isOpen={isQuizModalOpen}
-        onClose={() => setIsQuizModalOpen(false)}
-        onSelectOption={handleQuizModalSelect}
-      />
+        {/* Quiz Modal */}
+        <QuizModal
+          isOpen={isQuizModalOpen}
+          onClose={() => setIsQuizModalOpen(false)}
+          onSelectOption={handleQuizModalSelect}
+        />
 
-      {/* Question Repository Modal */}
-      <QuestionRepoModal
-        isOpen={isRepoModalOpen}
-        onClose={() => setIsRepoModalOpen(false)}
-        onSelect={handleRepoModalSelect}
-      />
-    </motion.div>
+        {/* Question Repository Modal */}
+        <QuestionRepoModal
+          isOpen={isRepoModalOpen}
+          onClose={() => setIsRepoModalOpen(false)}
+          onSelect={handleRepoModalSelect}
+        />
+      </motion.div>
+    </Container>
   );
 };
 

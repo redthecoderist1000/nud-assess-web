@@ -1,45 +1,74 @@
-import React from "react";
+import React, { useContext } from "react";
 import { motion } from "framer-motion";
+import { userContext } from "../../../App";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Stack,
+  Typography,
+} from "@mui/material";
 
-const QuizModal = ({ isOpen, onClose, onSelectOption }) => {
-  if (!isOpen) return null;
+const QuizModal = (props) => {
+  const { isOpen, onClose, onSelectOption } = props;
+  const { user } = useContext(userContext);
+
+  // console.log(user);
 
   return (
-    <div className="fixed inset-0  flex items-center justify-center z-50">
-      <motion.div
-        className="rounded-lg shadow-2xl p-5 w-100 bg-blue-900 text-white flex flex-col items-center bg-white"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
+    <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle
+        align="center"
+        component={Typography}
+        fontWeight="bold"
+        variant="h5"
       >
-        <h2 className="text-2xl font-bold  text-center text-stone-900">
-          Create Quiz
-        </h2>
-        <p className="mb-4 text-gray-600">
+        Create Quiz
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText align="center" mb={1}>
           Choose how your quiz will be created.
-        </p>
+        </DialogContentText>
         <ul className="space-y-4 w-full">
-          {/* <li>
+          <li>
             <button
               className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-              onClick={() => onSelectOption("Random Bank")}
+              onClick={() => onSelectOption("Random")}
             >
-              Random Bank
+              <b>Random Bank</b>
               <p className="text-sm text-gray-200">
                 Use random questions from the bank
               </p>
             </button>
-          </li> */}
+          </li>
           <li>
-            <button
-              className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-800"
-              onClick={() => onSelectOption("AI-Generated")}
-            >
-              <b>AI-Generated</b>
-              <p className="text-sm text-gray-200">
-                Use AI to create a set of questions
-              </p>
-            </button>
+            {user.allow_ai ? (
+              <button
+                className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-800"
+                onClick={() => onSelectOption("AI-Generated")}
+              >
+                <b>AI-Generated</b>
+                <p className="text-sm text-gray-200">
+                  Use AI to create a set of questions
+                </p>
+              </button>
+            ) : (
+              <button
+                className="w-full bg-gray-200 text-gray-400 py-2 px-4 rounded-lg"
+                disabled
+              >
+                <b>AI-Generated</b>
+                <p className="text-sm text-gray-400">
+                  Use AI to create a set of questions
+                </p>
+                <p className="text-xs text-gray-400">
+                  [Disabled by your admin]
+                </p>
+              </button>
+            )}
           </li>
           {/* <li>
             <button
@@ -51,14 +80,17 @@ const QuizModal = ({ isOpen, onClose, onSelectOption }) => {
             </button>
           </li> */}
         </ul>
-        <button
-          className="mt-6 w-full bg-red-500 text-white-800 py-2 px-4 rounded-lg hover:bg-red-400"
-          onClick={onClose}
-        >
-          Close
-        </button>
-      </motion.div>
-    </div>
+      </DialogContent>
+
+      <DialogActions>
+        <Stack direction="row" justifyContent="left" width="100%">
+          <Button onClick={onClose} color="error" size="small">
+            Cancel
+          </Button>
+        </Stack>
+      </DialogActions>
+      {/* </motion.div> */}
+    </Dialog>
   );
 };
 

@@ -106,6 +106,7 @@ const LoginPage = () => {
           m_name: data2.data.m_name,
           l_name: data2.data.l_name,
           department_id: data2.data.department_id,
+          allow_ai: data2.data.allow_ai,
         });
       });
 

@@ -1,36 +1,90 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Button, Stack } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Stack,
+  Typography,
+} from "@mui/material";
+import { userContext } from "../../../App";
+import { supabase } from "../../../helper/Supabase";
 
-const QuestionRepoModal = ({ isOpen, onClose, onSelect }) => {
-  if (!isOpen) return null;
+const QuestionRepoModal = (props) => {
+  const { isOpen, onClose, onSelect } = props;
+  const { user } = useContext(userContext);
+  const [isIncharge, setIsIncharge] = useState(false);
+  // if (!isOpen) return null;
+
+  // check if incharge
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    fetchData();
+  }, [isOpen]);
+
+  const fetchData = async () => {
+    const { data, error } = await supabase
+      .from("tbl_subject")
+      .select("id")
+      .eq("faculty_incharge", user.user_id);
+
+    if (error) {
+      console.log("error fetching incharge:", error);
+      return;
+    }
+
+    console.log(data);
+
+    if (data.length > 0) {
+      setIsIncharge(true);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <motion.div
-        className="rounded-lg shadow-2xl p-5 w-100 bg-blue-900 flex flex-col items-center bg-white"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
+    <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle
+        align="center"
+        component={Typography}
+        fontWeight="bold"
+        variant="h5"
       >
-        <h2 className="text-2xl font-bold text-center text-stone-900">
-          Question Repositories
-        </h2>
-        <p className="mb-4 text-gray-600">
+        Question Repositories
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText align="center" mb={1}>
           Choose where the questions will come from.
-        </p>
+        </DialogContentText>
         <ul className="space-y-4 w-full">
           <li>
-            <button
-              className="w-full bg-blue-200 text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-900 hover:text-white"
-              onClick={() => onSelect("Final Exam")}
-            >
-              <b>Final Exam</b>
-              <p className="text-sm ">
-                Contains questions available for final exams. Available for
-                faculty incharge only.
-              </p>
-            </button>
+            {isIncharge ? (
+              <button
+                className="w-full bg-blue-200 text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-900 hover:text-white"
+                onClick={() => onSelect("Final Exam")}
+              >
+                <b>Final Exam</b>
+                <p className="text-sm ">
+                  Contains questions available for final exams.
+                </p>
+              </button>
+            ) : (
+              <button
+                className="w-full bg-gray-200 text-gray-400 py-2 px-4 rounded-lg"
+                disabled
+              >
+                <b>Final Exam</b>
+                <p className="text-sm">
+                  Contains questions available for final exams.
+                </p>
+                <p className="text-xs">
+                  [Available for faculty incharge only.]
+                </p>
+              </button>
+            )}
           </li>
           <li>
             <button
@@ -52,14 +106,16 @@ const QuestionRepoModal = ({ isOpen, onClose, onSelect }) => {
             </button>
           </li> */}
         </ul>
-        <button
-          className="mt-6 w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-400"
-          onClick={onClose}
-        >
-          Close
-        </button>
-      </motion.div>
-    </div>
+      </DialogContent>
+
+      <DialogActions>
+        <Stack direction="row" justifyContent="left" width="100%">
+          <Button onClick={onClose} color="error" size="small">
+            Cancel
+          </Button>
+        </Stack>
+      </DialogActions>
+    </Dialog>
   );
 };
 

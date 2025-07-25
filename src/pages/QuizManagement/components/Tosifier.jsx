@@ -322,6 +322,7 @@ function Tosifier(props) {
   };
 
   useEffect(() => {
+    console.log(quizDetail);
     if (quizDetail.subject_id == "") {
       setLessonOption([]);
       return;
@@ -455,15 +456,17 @@ function Tosifier(props) {
             direction="row"
             justifyContent="space-around"
           >
-            <OutlinedInput
-              size="small"
-              required
-              name="materialInput"
-              className="materialInput"
-              type="file"
-              accept="application/pdf"
-              onChange={handleFileChange}
-            />
+            {quizDetail.mode == "AI-Generated" && (
+              <OutlinedInput
+                size="small"
+                required
+                name="materialInput"
+                className="materialInput"
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileChange}
+              />
+            )}
 
             <OutlinedInput
               size="small"
@@ -475,7 +478,12 @@ function Tosifier(props) {
             />
 
             <div className="tosInputBtn flex gap-10">
-              <Button variant="contained" size="small" onClick={addRow}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={addRow}
+                disableElevation
+              >
                 Add Topic
               </Button>
 
@@ -484,13 +492,14 @@ function Tosifier(props) {
                 size="small"
                 onClick={removeRow}
                 disabled={rows.length === 0}
+                disableElevation
               >
                 Remove Topic
               </Button>
             </div>
           </Stack>
           <Card>
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} variant="outlined">
               {/* <div>
             {materialList.map((data, index) => {
               return (
@@ -674,15 +683,18 @@ function Tosifier(props) {
               color="error"
               onClick={props.onCancel}
               sx={{ maxWidth: "100px" }}
+              disableElevation
             >
               Cancel
             </Button>
             {loading ? <CircularProgress /> : <></>}
             <Button
+              disableElevation
               disabled={loading}
               variant="contained"
               size="large"
               type="submit"
+              color="success"
               sx={{ maxWidth: "100px" }}
             >
               Continue

@@ -23,13 +23,15 @@ import {
   TableRow,
   TextField,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { model } from "../../../helper/GeminiModel";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../helper/Supabase";
+import { userContext } from "../../../App";
 
 function Tosifier(props) {
-  //   const { quizDetail } = props;
+  //   const { quizDetail } = props;\
+  const { user } = useContext(userContext);
   const navigate = useNavigate();
   const [subjectOptions, setSubjectOptions] = useState([]);
   const [quizDetail, setQuizDetail] = useState({
@@ -153,8 +155,24 @@ function Tosifier(props) {
   }, [total.hours, total.items]);
 
   //   fetch subjects by user department
-  useEffect(() => {
-    (async () => {
+  const fetchSubjects = async () => {
+    // console.log(props.quizDetail);
+
+    if (props.quizDetail.repository == "Final Exam") {
+      // only get subject incharge
+      // console.log(user);
+      const { data: inchargeData, error: inchargeErr } = await supabase
+        .from("tbl_subject")
+        .select("subject_id:id, subject_name:name")
+        .eq("faculty_incharge", user.user_id);
+
+      if (inchargeErr) {
+        console.log("Failed to fetch incharge sub:", inchargeErr);
+        return;
+      }
+      setSubjectOptions(inchargeData);
+      // console.log(inchargeData);
+    } else {
       const { data, error } = await supabase
         .from("vw_assignedsubject")
         .select("*");
@@ -163,9 +181,12 @@ function Tosifier(props) {
         console.log("Failed to fetch subject:", error);
         return;
       }
-
       setSubjectOptions(data);
-    })();
+    }
+  };
+
+  useEffect(() => {
+    fetchSubjects();
   }, []);
 
   const handleQuizDetail = (e) => {
@@ -518,7 +539,7 @@ function Tosifier(props) {
                   <TableRow>
                     {/* <th rowSpan={2}>Source Material</th> */}
                     <TableCell align="center" rowSpan={2}>
-                      <b>Topic</b>
+                      <b>Lesson</b>
                     </TableCell>
                     <TableCell align="center" rowSpan={2}>
                       <b>Hours</b>

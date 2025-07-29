@@ -133,20 +133,66 @@ function Tosifier(props) {
     if (total.hours === 0) return;
 
     const updatedRows = rows.map((row) => {
-      // var percentage = (row.hours / total.hours) * 100;
-      var percentage = Math.round((row.hours / total.hours) * 100);
-      var itemsPerRow = Math.round((total.items * percentage) / 100);
+      const percentage = Math.round((row.hours / total.hours) * 100);
+      const itemsPerRow = Math.round((total.items * percentage) / 100);
+
+      // Calculate exact values
+      const percents = {
+        remembering: 0.3,
+        understanding: 0.2,
+        applying: 0.2,
+        analyzing: 0.1,
+        creating: 0.1,
+        evaluating: 0.1,
+      };
+
+      // Compute exact and floored values
+      const exacts = {};
+      const floors = {};
+      const remainders = [];
+      let sumFloors = 0;
+      Object.entries(percents).forEach(([key, percent]) => {
+        const exact = itemsPerRow * percent;
+        exacts[key] = exact;
+        floors[key] = Math.floor(exact);
+        remainders.push({ key, remainder: exact - floors[key] });
+        sumFloors += floors[key];
+      });
+
+      // Distribute remaining items
+      let remaining = itemsPerRow - sumFloors;
+      // Sort by largest remainder, but only take as many as needed
+      remainders.sort((a, b) => b.remainder - a.remainder);
+
+      const result = { ...floors };
+      for (let i = 0; i < remainders.length && remaining > 0; i++) {
+        result[remainders[i].key]++;
+        remaining--;
+      }
+
+      // If still not matching, adjust (should not happen, but for safety)
+      const totalAssigned = Object.values(result).reduce((a, b) => a + b, 0);
+      if (totalAssigned > itemsPerRow) {
+        // Remove from the smallest remainders
+        let over = totalAssigned - itemsPerRow;
+        remainders.sort((a, b) => a.remainder - b.remainder);
+        for (let i = 0; i < remainders.length && over > 0; i++) {
+          if (result[remainders[i].key] > 0) {
+            result[remainders[i].key]--;
+            over--;
+          }
+        }
+      }
 
       return {
         ...row,
         percentage: percentage.toFixed(2),
-        remembering: Math.round(itemsPerRow * 0.3),
-        understanding: Math.round(itemsPerRow * 0.2),
-        applying: Math.round(itemsPerRow * 0.2),
-        analyzing: Math.round(itemsPerRow * 0.1),
-        creating: Math.round(itemsPerRow * 0.1),
-        evaluating: Math.round(itemsPerRow * 0.1),
-
+        remembering: result.remembering,
+        understanding: result.understanding,
+        applying: result.applying,
+        analyzing: result.analyzing,
+        creating: result.creating,
+        evaluating: result.evaluating,
         totalItems: itemsPerRow,
       };
     });
@@ -255,8 +301,83 @@ function Tosifier(props) {
     setRows([...rows]);
   };
 
-  const generateQuestion = async (e) => {
+  const submitForm = (e) => {
     e.preventDefault();
+
+    switch (quizDetail.mode) {
+      case "AI-Generated":
+        generateQuestion();
+        break;
+
+      case "Random":
+        randomQuiz();
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const getCount = async (category, lesson_id, limit) => {
+    const { data, error } = await supabase
+      .from("tbl_question")
+      .select("id")
+      .eq("repository", props.quizDetail.repository)
+      .eq("lesson_id", lesson_id)
+      .eq("blooms_category", category)
+      .limit(limit);
+
+    return { count: data.length, error: error };
+  };
+
+  const randomQuiz = async () => {
+    // console.log(rows);
+    // check if may avaialble questions
+    setLoading(true);
+
+    let isValid = true;
+    await Promise.all(
+      rows.map(async (d) => {
+        const categories = [
+          "Remembering",
+          "Understanding",
+          "Applying",
+          "Analyzing",
+          "Creating",
+          "Evaluating",
+        ];
+
+        for (const category of categories) {
+          const key = category.toLowerCase();
+          if (d[key] > 0) {
+            const { count, error } = await getCount(
+              category,
+              d.lesson_id,
+              d[key]
+            );
+            if (error) {
+              console.log(`error fetch ${category}:`, error);
+              return;
+            }
+            if (count < d[key]) {
+              isValid = false;
+            }
+          }
+        }
+      })
+    );
+
+    if (isValid) {
+      console.log("goods random");
+    } else {
+      console.log("There seems to be not enough quetions");
+    }
+
+    setLoading(false);
+  };
+
+  const generateQuestion = async () => {
+    // e.preventDefault();
     setLoading(true);
     setResponse("Generating...");
     setQuiz([]);
@@ -384,7 +505,7 @@ function Tosifier(props) {
 
   return (
     <Container maxWidth="xl">
-      <form onSubmit={generateQuestion}>
+      <form onSubmit={submitForm}>
         <h1 className="text-3xl font-bold mb-2 mt-10">Quiz Details</h1>
         <p className="mb-6 text-gray-600">Enter details about the quiz.</p>
         <Stack mb={10} rowGap={3}>

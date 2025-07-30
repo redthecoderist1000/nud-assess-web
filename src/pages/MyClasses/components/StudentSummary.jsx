@@ -45,7 +45,7 @@ function StudentSummary(props) {
       setLessonFilter("All");
       fetchData();
     }
-  }, [open]);
+  }, [open, result_id]);
 
   const fetchData = async () => {
     const { data: resultData, eror: resultErr } = await supabase
@@ -75,33 +75,67 @@ function StudentSummary(props) {
       .select("*")
       .eq("result_id", result_id);
 
+    if (lessonErr) {
+      console.log("Lesson fetch error:", lessonErr);
+      return;
+    }
+
+    console.log("lessonData:", lessonData);
+
     // console.log("lesson:", lessonData);
 
-    const newLessonList = lessonData.reduce((acc, cur) => {
-      // Find if this title already exists in acc
-      let found = acc.find((item) => item.title === cur.title);
-      if (!found) {
-        // If not found, add new group
-        acc.push({
+    // const newLessonList = lessonData.reduce((acc, cur) => {
+    //   // Find if this title already exists in acc
+    //   let found = acc.find((item) => item.title === cur.title);
+    //   if (!found) {
+    //     // If not found, add new group
+    //     acc.push({
+    //       title: cur.title,
+    //       score: cur.is_correct, // start with current score
+    //       questions: [
+    //         {
+    //           question: cur.question,
+    //           is_correct: cur.is_correct == 1 ? true : false,
+    //         },
+    //       ],
+    //     });
+    //   } else {
+    //     // If found, push question and add score
+    //     found.questions.push({
+    //       question: cur.question,
+    //       is_correct: cur.is_correct == 1 ? true : false,
+    //     });
+    //     found.score += cur.is_correct;
+    //   }
+    //   return acc;
+    // }, []);
+
+    const lessonMap = new Map();
+
+    lessonData.forEach((cur) => {
+      if (!lessonMap.has(cur.title)) {
+        lessonMap.set(cur.title, {
           title: cur.title,
-          score: cur.is_correct, // start with current score
+          score: cur.is_correct,
           questions: [
             {
               question: cur.question,
-              is_correct: cur.is_correct == 1 ? true : false,
+              is_correct: cur.is_correct == 1,
             },
           ],
         });
       } else {
-        // If found, push question and add score
-        found.questions.push({
+        const group = lessonMap.get(cur.title);
+        group.questions.push({
           question: cur.question,
-          is_correct: cur.is_correct == 1 ? true : false,
+          is_correct: cur.is_correct == 1,
         });
-        found.score += cur.is_correct;
+        group.score += cur.is_correct;
       }
-      return acc;
-    }, []);
+    });
+
+    const newLessonList = Array.from(lessonMap.values());
+    console.log(newLessonList);
 
     setLessonList(newLessonList);
   };
@@ -112,7 +146,7 @@ function StudentSummary(props) {
 
         return matchTitle || lessonFilter == "All";
       }),
-    [(open, lessonFilter)]
+    [open, lessonFilter, lessonList]
   );
 
   return (
@@ -240,7 +274,7 @@ function StudentSummary(props) {
                                 variant="determinate"
                                 color={
                                   score > 80
-                                    ? "primary"
+                                    ? "success"
                                     : score < 50
                                       ? "error"
                                       : "warning"

@@ -166,7 +166,7 @@ const AnimatedRoutes = () => {
                   path="GenerateQuestion"
                   element={<CreateQuestionAutomatically />}
                 />
-                <Route path="QuizResult" element={<QuizResultPage />} />
+                <Route path="quizsummary" element={<QuizResultPage />} />
 
                 <Route element={<ProtectedAdmin />}>
                   {/* admin only */}

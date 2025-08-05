@@ -18,6 +18,7 @@ function QuizInfoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [examName, setExamName] = useState("");
+  const [examInfo, setExamInfo] = useState({ name: "", mode: "" });
   const [totalScore, setTotalScore] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const [openSummary, setOpenSummary] = useState(false);
@@ -86,10 +87,14 @@ function QuizInfoPage() {
 
     const { data: examDetails } = await supabase
       .from("tbl_class_exam")
-      .select("tbl_exam(name)")
+      .select("tbl_exam(name, mode)")
       .eq("id", class_exam_id)
       .single();
     setExamName(examDetails?.tbl_exam.name || "Quiz");
+    setExamInfo({
+      name: examDetails?.tbl_exam.name,
+      mode: examDetails?.tbl_exam.mode,
+    });
 
     setLoading(false);
   };
@@ -122,7 +127,9 @@ function QuizInfoPage() {
           >
             <ArrowBackIosNewRoundedIcon fontSize="small" /> return{""}
           </Button>
-          <h1 className="text-7xl font-bold mt-30 text-white">{examName}</h1>
+          <h1 className="text-7xl font-bold mt-30 text-white">
+            {examInfo.name}
+          </h1>
         </Stack>
         <img
           src={Header}
@@ -170,7 +177,7 @@ function QuizInfoPage() {
 
           {/* Table */}
           {/* div className="bg-white rounded-xl shadow p-4 overflow-x-auto" */}
-          <Card sx={{ p: 2 }}>
+          <Card sx={{ p: 2 }} variant="outlined">
             {loading ? (
               <p>Loadindg...</p>
             ) : error ? (
@@ -216,10 +223,12 @@ function QuizInfoPage() {
           </Card>
 
           {/* item analysis */}
-          <ItemAnalysisQuiz
-            class_exam_id={class_exam_id}
-            exam_name={examName}
-          />
+          {examInfo.mode != "Random" && (
+            <ItemAnalysisQuiz
+              class_exam_id={class_exam_id}
+              exam_name={examName}
+            />
+          )}
 
           {/* lesson analysis */}
           <LessonAnalysisQuiz class_exam_id={class_exam_id} />

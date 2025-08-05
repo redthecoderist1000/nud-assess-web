@@ -85,7 +85,7 @@ function MyQuizTab() {
         sx={{ marginTop: 2, maxHeight: "60vh", overflow: "auto" }}
         variant="outlined"
       >
-        <Table sx={{ minWidth: 650 }} aria-label="simple table" stickyHeader>
+        <Table sx={{ minWidth: 650 }} size="small" stickyHeader>
           <TableHead>
             <TableRow>
               <TableCell>

@@ -8,6 +8,7 @@ import {
   FormControl,
   FormControlLabel,
   FormHelperText,
+  Grid,
   Input,
   InputLabel,
   MenuItem,
@@ -22,12 +23,18 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Typography,
 } from "@mui/material";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useContext, useEffect, useState } from "react";
 import { model } from "../../../helper/GeminiModel";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
+import Error from "./tosifierErrorDialogs/Error";
 
 function Tosifier(props) {
   //   const { quizDetail } = props;\
@@ -74,6 +81,8 @@ function Tosifier(props) {
   });
   const [loading, setLoading] = useState(false);
   const [lessonOption, setLessonOption] = useState([]);
+
+  const [error, setError] = useState(false);
 
   // calculate total hours when rows change
   useEffect(() => {
@@ -240,6 +249,12 @@ function Tosifier(props) {
     let name = e.target.name;
 
     // If subject_id is changed, also update subject_name
+
+    if (name == "open_time") {
+      console.log(e);
+      return;
+    }
+
     if (name === "subject_id") {
       const selected = subjectOptions.find(
         (option) => option.subject_id === value
@@ -368,9 +383,20 @@ function Tosifier(props) {
     );
 
     if (isValid) {
-      console.log("goods random");
+      console.log(quizDetail);
+
+      navigate("/quizsummary", {
+        state: {
+          quizDetail: quizDetail,
+          rows: rows,
+          total: total,
+          quiz: [],
+        },
+      });
     } else {
-      console.log("There seems to be not enough quetions");
+      // console.log("There seems to be not enough quetions");
+      // display errro
+      setError(true);
     }
 
     setLoading(false);
@@ -441,7 +467,7 @@ function Tosifier(props) {
         ]);
         // setQuiz(JSON.parse(result.response.text()));
         setResponse("Questions generated");
-        navigate("/QuizResult", {
+        navigate("/quizsummary", {
           state: {
             quizDetail: quizDetail,
             rows: rows,
@@ -547,20 +573,6 @@ function Tosifier(props) {
                 })}
               </Select>
             </FormControl>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  //   checked={quizDetail.is_random}
-                  onChange={() => {
-                    setQuizDetail({
-                      ...quizDetail,
-                      is_random: !quizDetail.is_random,
-                    });
-                  }}
-                />
-              }
-              label="Randomize quiz items"
-            />
           </Stack>
           <Stack direction="row" columnGap={3}>
             <TextField
@@ -582,6 +594,74 @@ function Tosifier(props) {
               onChange={handleQuizDetail}
             />
           </Stack>
+          <Divider>
+            <Typography variant="caption" color="textDisabled">
+              Advanced Options
+            </Typography>
+          </Divider>
+          <Grid container columnGap={3}>
+            <Grid flex={1}>
+              <TextField
+                size="small"
+                fullWidth
+                type="number"
+                label="Time Limit (mins.)"
+                name="time_limit"
+                onChange={handleQuizDetail}
+              />
+            </Grid>
+            {/* <Grid flex={1}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DateTimePicker
+                  label="Open quiz at:"
+                  name="open_time"
+                  value={quizDetail.open_time}
+                  slotProps={{
+                    textField: {
+                      sx: { width: "100%" },
+                      size: "small",
+                    },
+                  }}
+                  onChange={handleQuizDetail}
+                />
+              </LocalizationProvider>
+            </Grid>
+            <Grid flex={1}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DateTimePicker
+                  label="Close quiz at:"
+                  name="close_time"
+                  value={quizDetail.close_time}
+                  slotProps={{
+                    textField: {
+                      sx: { width: "100%" },
+                      size: "small",
+                    },
+                  }}
+                  onChange={handleQuizDetail}
+                />
+              </LocalizationProvider>
+            </Grid> */}
+            <Grid flex={1}>
+              <FormControl size="small" fullWidth>
+                <InputLabel id="shuffleLabel">Shuffle Items</InputLabel>
+                <Select
+                  label="Shuffle Items"
+                  labelId="shuffleLabel"
+                  value={quizDetail.is_random}
+                  onChange={handleQuizDetail}
+                  name="is_random"
+                >
+                  <MenuItem value={true} dense>
+                    true
+                  </MenuItem>
+                  <MenuItem value={false} dense>
+                    false
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
         </Stack>
         <Divider />
         <h1 className="text-3xl font-bold mb-2 mt-10">
@@ -845,6 +925,8 @@ function Tosifier(props) {
           <p className="response">{response}</p>
         </Stack>
       </form>
+
+      <Error open={error} setOpen={setError} />
     </Container>
   );
 }

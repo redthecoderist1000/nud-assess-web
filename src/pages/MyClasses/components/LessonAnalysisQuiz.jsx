@@ -37,9 +37,9 @@ function LessonAnalysisQuiz(props) {
   };
 
   return (
-    <Card sx={{ p: 2 }}>
+    <Card sx={{ p: 2 }} variant="outlined">
       <h2 className="text-2xl font-bold mb-4">Lesson Analysis</h2>
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} variant="outlined">
         <Table sx={{ minWidth: 650 }} size="small">
           <TableHead>
             <TableRow>

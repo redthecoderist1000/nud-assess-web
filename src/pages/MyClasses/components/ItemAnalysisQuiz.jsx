@@ -57,7 +57,7 @@ function ItemAnalysisQuiz(props) {
     download(csvConfig)(csv);
   };
   return (
-    <Card sx={{ p: 2 }}>
+    <Card sx={{ p: 2 }} variant="outlined">
       <Stack direction="row" mb={2} justifyContent="space-between">
         <h2 className="text-2xl font-bold ">Item Analysis</h2>
 
@@ -65,7 +65,7 @@ function ItemAnalysisQuiz(props) {
           <PrintRoundedIcon />
         </IconButton>
       </Stack>
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} variant="outlined">
         <Table sx={{ minWidth: 650 }} size="small">
           <TableHead>
             <TableRow>

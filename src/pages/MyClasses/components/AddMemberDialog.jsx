@@ -127,7 +127,7 @@ function AddMemberDialog({ open, setOpen, classId }) {
       aria-describedby="alert-dialog-description"
     >
       <DialogTitle>Add Member</DialogTitle>
-      <Divider />
+      {/* <Divider /> */}
       <DialogContent>
         {/* <DialogContentText id="alert-dialog-description">
           Let Google help apps determine location. This means sending anonymous
@@ -141,7 +141,7 @@ function AddMemberDialog({ open, setOpen, classId }) {
         ) : (
           <>
             {studentToAdd.length > 0 && (
-              <Card sx={{ mb: 2, p: 2 }}>
+              <Card sx={{ mb: 2, p: 2 }} variant="outlined">
                 <DialogContentText>Student/s to add:</DialogContentText>
                 <List sx={{ width: "100%" }} disablePadding>
                   {studentToAdd.map((data, index) => {
@@ -185,7 +185,7 @@ function AddMemberDialog({ open, setOpen, classId }) {
           </>
         )}
       </DialogContent>
-      <Divider />
+      {/* <Divider /> */}
       <DialogActions>
         <Stack direction="row" justifyContent="space-between" width="100%">
           <Button onClick={() => setOpen(false)} color="error">

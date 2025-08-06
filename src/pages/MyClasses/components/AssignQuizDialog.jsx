@@ -8,20 +8,27 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
+  Grid,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import dayjs from "dayjs";
 
 function AssignQuizDialog({ open, setOpen, classId }) {
   const [quizzes, setQuizzes] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedQuiz, setSelectedQuiz] = useState(null);
+  const [quizInfo, setQuizInfo] = useState({});
 
   useEffect(() => {
     if (!open) {
@@ -30,6 +37,7 @@ function AssignQuizDialog({ open, setOpen, classId }) {
     fetchQuizzes();
     setSelectedQuiz(null);
     setSearch("");
+    setQuizInfo({});
   }, [open]);
 
   const fetchQuizzes = async () => {
@@ -64,15 +72,24 @@ function AssignQuizDialog({ open, setOpen, classId }) {
   }, [search, quizzes]);
 
   const confirmAssign = async () => {
+    // console.log(quizInfo);
     const { error } = await supabase
       .from("tbl_class_exam")
-      .insert({ class_id: classId, exam_id: selectedQuiz.id });
+      .insert({ class_id: classId, exam_id: selectedQuiz.id, ...quizInfo });
 
     if (error) {
       console.log("fail to assign quiz:", error);
       return;
     }
     setOpen(false);
+  };
+
+  const handleOpenTime = (e) => {
+    setQuizInfo({ ...quizInfo, open_time: e });
+  };
+
+  const handleCloseTime = (e) => {
+    setQuizInfo({ ...quizInfo, close_time: e });
   };
 
   return (
@@ -85,7 +102,7 @@ function AssignQuizDialog({ open, setOpen, classId }) {
       aria-describedby="alert-dialog-description"
     >
       <DialogTitle id="alert-dialog-title">Assign Quiz</DialogTitle>
-      <Divider />
+      {/* <Divider /> */}
       <DialogContent>
         {/* <DialogContentText>
           Choose from the quizzes you have created.
@@ -93,29 +110,71 @@ function AssignQuizDialog({ open, setOpen, classId }) {
         {selectedQuiz == null ? (
           <></>
         ) : (
-          <Card sx={{ mb: 2 }}>
+          <Card sx={{ mb: 2 }} variant="outlined">
             <CardContent>
               <DialogContentText>Selected Quiz:</DialogContentText>
-              <ListItem>
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  width="100%"
-                >
-                  <Stack>
-                    <ListItemText>
-                      <b>{selectedQuiz.name}</b> | {selectedQuiz.total_items}{" "}
-                      items
-                    </ListItemText>
-                    <ListItemText>
-                      {selectedQuiz.subject_name} ({selectedQuiz.subject_code})
-                    </ListItemText>
-                  </Stack>
-                  <Button color="error" onClick={() => setSelectedQuiz(null)}>
-                    remove
-                  </Button>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                width="100%"
+              >
+                <Stack>
+                  <ListItemText>
+                    <b>{selectedQuiz.name}</b> | {selectedQuiz.total_items}{" "}
+                    items
+                  </ListItemText>
+                  <ListItemText>
+                    {selectedQuiz.subject_name} ({selectedQuiz.subject_code})
+                  </ListItemText>
                 </Stack>
-              </ListItem>
+                <Button color="error" onClick={() => setSelectedQuiz(null)}>
+                  remove
+                </Button>
+              </Stack>
+              <Typography variant="caption" color="textDisabled">
+                Schedule quiz (optional):
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid flex={1}>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DateTimePicker
+                      label="Open quiz at:"
+                      name="open_time"
+                      value={quizInfo.open_time}
+                      minDateTime={dayjs()}
+                      slotProps={{
+                        textField: {
+                          sx: { width: "100%" },
+                          size: "small",
+                        },
+                      }}
+                      onChange={handleOpenTime}
+                    />
+                  </LocalizationProvider>
+                </Grid>
+                <Grid flex={1}>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DateTimePicker
+                      label="Close quiz at:"
+                      name="close_time"
+                      value={quizInfo.close_time}
+                      minDateTime={
+                        quizInfo.open_time ? dayjs(quizInfo.open_time) : dayjs()
+                      }
+                      slotProps={{
+                        textField: {
+                          sx: { width: "100%" },
+                          size: "small",
+                        },
+                      }}
+                      onChange={handleCloseTime}
+                    />
+                  </LocalizationProvider>
+                </Grid>
+              </Grid>
+              {/* <Typography color="textDisabled" variant="caption">
+                note: empty quiz with no open time will be posted immediately
+              </Typography> */}
             </CardContent>
           </Card>
         )}
@@ -126,7 +185,7 @@ function AssignQuizDialog({ open, setOpen, classId }) {
           fullWidth
           onChange={(e) => setSearch(e.target.value)}
         />
-        <List sx={{ width: "100%" }}>
+        <List sx={{ width: "100%" }} dense>
           {filteredQuizzes.map((data, index) => {
             return (
               <ListItemButton key={index} onClick={() => setSelectedQuiz(data)}>
@@ -143,7 +202,7 @@ function AssignQuizDialog({ open, setOpen, classId }) {
           })}
         </List>
       </DialogContent>
-      <Divider />
+      {/* <Divider /> */}
       <DialogActions>
         <Stack direction="row" justifyContent="space-between" width="100%">
           <Button onClick={() => setOpen(false)} color="error">
@@ -152,6 +211,8 @@ function AssignQuizDialog({ open, setOpen, classId }) {
           <Button
             onClick={confirmAssign}
             variant="contained"
+            color="success"
+            disableElevation
             disabled={selectedQuiz == null}
           >
             Assign

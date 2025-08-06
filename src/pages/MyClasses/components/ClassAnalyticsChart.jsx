@@ -12,7 +12,7 @@ const ClassAnalyticsChart = ({ classes }) => {
   // Prepare data for the chart
   const data = classes.map((cls) => ({
     name: cls.class_name, // Extract the class code (e.g., INF221)
-    value: Math.floor(Math.random() * 50) + 10, // Generate random performance data
+    value: classes.length, // Generate random performance data
     color: "#FDE047",
   }));
 
@@ -22,13 +22,13 @@ const ClassAnalyticsChart = ({ classes }) => {
         <h3 className="font-bold text-lg text-yellow-500">Class Analytics</h3>
         <p className="text-sm text-white">See here your class data.</p>
       </div>
-  
+
       {/* Total Classes */}
       <div className="bg-white m-5 py-2 px-4 rounded-md shadow">
         <p className="text-gray-500 text-sm">Total class:</p>
         <p className="text-xl font-bold text-gray-800">{classes.length}</p>
       </div>
-  
+
       {/* Chart */}
       <div className="m-5">
         <ResponsiveContainer width="100%" height={350}>

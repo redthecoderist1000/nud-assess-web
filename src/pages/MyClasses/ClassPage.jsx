@@ -4,6 +4,7 @@ import Header from "../../assets/images/header.png";
 import { supabase } from "../../helper/Supabase";
 import {
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -14,10 +15,13 @@ import {
   Tooltip,
 } from "@mui/material";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import PersonAddAltRoundedIcon from "@mui/icons-material/PersonAddAltRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 // import AddMemberDialog from "../Admin/components/AddMemberDialog";
 import AssignQuizDialog from "./components/AssignQuizDialog";
 import AddMemberDialog from "./components/AddMemberDialog";
+import dayjs from "dayjs";
 
 const ClassPage = () => {
   const location = useLocation();
@@ -118,6 +122,87 @@ const ClassPage = () => {
     );
   };
 
+  const dateFormat = (dateTime) => {
+    const formatted = dayjs(dateTime).format("MMM DD, YYYY hh:mm A");
+
+    return formatted;
+  };
+
+  const statusChip = (openTime, closeTime) => {
+    const now = dayjs();
+
+    // <td className="py-3 px-4">
+    //   <span
+    //     className={`${s.is_answered ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"} px-2 py-1 rounded-full text-xs font-semibold`}
+    //   >
+    //     {s.is_answered ? "Turned In" : "Not Turned In"}
+    //   </span>
+    // </td>;
+
+    // If no open time is set, quiz is always open
+    if (!openTime) {
+      // If there's a close time and it's passed, quiz is closed
+      if (closeTime && now.isAfter(dayjs(closeTime))) {
+        return (
+          <span
+            className={
+              "bg-red-200 text-red-600 py-1 rounded-full text-xs font-semibold text-center"
+            }
+          >
+            Closed
+          </span>
+        );
+      }
+      // Otherwise, quiz is open
+      return (
+        <span
+          className={
+            "bg-green-200 text-green-600 py-1 rounded-full text-xs font-semibold text-center"
+          }
+        >
+          Open
+        </span>
+      );
+    }
+
+    // If open time hasn't arrived yet, quiz is scheduled
+    if (now.isBefore(dayjs(openTime))) {
+      return (
+        <span
+          className={
+            "bg-gray-200 text-gray-600 py-1 rounded-full text-xs font-semibold text-center"
+          }
+        >
+          Scheduled
+        </span>
+      );
+    }
+
+    // If there's a close time and it's passed, quiz is closed
+    if (closeTime && now.isAfter(dayjs(closeTime))) {
+      return (
+        <span
+          className={
+            "bg-red-200 text-red-600 py-1 rounded-full text-xs font-semibold text-center"
+          }
+        >
+          Closed
+        </span>
+      );
+    }
+
+    // Otherwise, quiz is open
+    return (
+      <span
+        className={
+          "bg-green-200 text-green-600 py-1 rounded-full text-xs font-semibold text-center"
+        }
+      >
+        Open
+      </span>
+    );
+  };
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Header Section */}
@@ -132,7 +217,7 @@ const ClassPage = () => {
             sx={{ color: "white", textTransform: "lowercase" }}
             onClick={() => navigate(-1)}
           >
-            <ArrowBackIosNewRoundedIcon fontSize="small" /> return{" "}
+            <ArrowBackIosNewRoundedIcon fontSize="small" /> back{" "}
           </Button>
           <h1 className="text-7xl font-bold mt-30 text-white">
             {classData.class_name}
@@ -155,6 +240,7 @@ const ClassPage = () => {
               <h2 className="text-xl font-bold">Quizzes</h2>
               <Button
                 variant="contained"
+                disableElevation
                 disabled={classData.is_active === false}
                 // className="bg-indigo-700 text-white px-4 py-2 rounded-md hover:bg-indigo-800"
                 onClick={() => setAssignQuiz(true)}
@@ -180,18 +266,27 @@ const ClassPage = () => {
                 }}
               >
                 <div>
-                  <h3 className="font-bold">{quiz.name}</h3>
+                  <h3>
+                    <b>{quiz.name}</b> | {quiz.total_items} Items
+                  </h3>
                   <p className="text-sm text-gray-500">
-                    {quiz.due_date == null
-                      ? "No due date"
-                      : "Due on: " + quiz.due_date}{" "}
-                    | {quiz.total_items} Items
+                    Opens on:{" "}
+                    {quiz.open_time
+                      ? dateFormat(quiz.open_time)
+                      : "No date set"}{" "}
+                    | Closes on:{" "}
+                    {quiz.close_time
+                      ? dateFormat(quiz.close_time)
+                      : "No date set"}
                   </p>
                 </div>
-                <p className="text-sm text-gray-500">
-                  {quiz.answered}
-                  {quiz.total} turned in
-                </p>
+                <Stack>
+                  <p className="text-sm text-gray-500">
+                    {quiz.answered}
+                    {quiz.total} turned in
+                  </p>
+                  {statusChip(quiz.open_time, quiz.close_time)}
+                </Stack>
               </div>
             ))}
           </div>
@@ -244,17 +339,18 @@ const ClassPage = () => {
               <p className="text-sm text-gray-300 m-0">
                 People ({people.length})
               </p>
-              <Button
+              <IconButton
                 size="small"
                 sx={{ color: "white" }}
-                variant="contained"
+                // variant="contained"
+                // disableElevation
                 disabled={classData.is_active === false}
                 onClick={() => {
                   setAddMemDia(true);
                 }}
               >
-                Add member
-              </Button>
+                <PersonAddAltRoundedIcon />
+              </IconButton>
             </Stack>
           </div>
 

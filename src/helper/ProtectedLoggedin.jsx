@@ -1,11 +1,8 @@
-import React, { useContext } from "react";
-import { useEffect } from "react";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
-import { supabase } from "./Supabase";
+import { useContext } from "react";
+import { Navigate, Outlet } from "react-router-dom";
 import { userContext } from "../App";
 
 function ProtectedLoggedin() {
-  const navigate = useNavigate();
   const userCon = useContext(userContext);
   let isLoggedIn = false;
 
@@ -13,7 +10,7 @@ function ProtectedLoggedin() {
     isLoggedIn = true;
   }
 
-  return isLoggedIn ? <Navigate to="/dashboard" /> : <Outlet />;
+  return isLoggedIn ? <Navigate to="/" /> : <Outlet />;
 }
 
 export default ProtectedLoggedin;

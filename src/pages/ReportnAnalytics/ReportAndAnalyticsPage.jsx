@@ -3,48 +3,75 @@ import { motion, AnimatePresence } from "framer-motion";
 import Class from "./tabs/Class";
 import Quiz from "./tabs/Quiz";
 import Question from "./tabs/Question";
+import FilterAnalytics from "./components/FilterAnalytics";
+import TetraBox from "./components/TetraBox";
 import { Container } from "@mui/material";
 
 const ReportAndAnalyticsPage = () => {
-  const [activeTab, setActiveTab] = useState("Class");
+  // Use "QuizReports" and "QuestionAnalysis" for tab keys
+  const [activeTab, setActiveTab] = useState("QuizReports");
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "Class":
-        return <Class />;
-      case "Quiz":
+      case "QuizReports":
         return <Quiz />;
-      case "Question":
+      case "QuestionAnalysis":
         return <Question />;
       default:
-        return <Class />;
+        return <Quiz />;
     }
   };
 
   return (
     <Container maxWidth="xl" className="my-5">
       {/* Header */}
-      <div>
-        <h1 className="text-5xl font-bold mb-2">Reports And Analytics</h1>
-        <p className="text-gray-600">
-          Monitor quiz performance and student engagement.
+      <div className="bg-white border-b border-gray-200 pt-6 pb-2">
+        <h1 className="text-2xl font-bold text-gray-900 mb-0">Reports & Analytics</h1>
+        <p className="text-sm text-gray-500 mt-1 mb-0">
+          Analytics and performance insights
         </p>
       </div>
 
-      {/* Navigation Tabs */}
-      <nav className="flex space-x-4 mt-8">
-        {["Class", "Quiz", "Question"].map((tab) => (
-          <button
-            key={tab}
-            className={`cursor-pointer ${
-              activeTab === tab ? "text-yellow-500 font-bold" : ""
-            } hover:text-amber-500`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </nav>
+      <FilterAnalytics />
+      <TetraBox />
+
+      {/* Custom Tabs */}
+      <div className="w-full flex justify-center mt-8">
+        <div
+          className="w-full"
+          style={{
+            background: "#f3f3f7",
+            borderRadius: 16,
+            padding: "4px",
+            display: "flex",
+            border: "none",
+            boxSizing: "border-box",
+          }}
+        >
+          {[
+            { label: "Quiz Reports", key: "QuizReports" },
+            { label: "Question Analysis", key: "QuestionAnalysis" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              className={`flex-1 text-center py-2 text-[15px] font-medium transition-colors rounded-full
+                ${activeTab === tab.key ? "bg-white text-black" : "text-gray-700"}
+              `}
+              style={{
+                margin: "2px",
+                background: activeTab === tab.key ? "#fff" : "transparent",
+                border: "none",
+                borderRadius: 9999,
+                boxShadow: activeTab === tab.key ? "0 1px 4px rgba(0,0,0,0.03)" : "none",
+                minWidth: 0,
+              }}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Tab Content */}
       <div className="mt-8">

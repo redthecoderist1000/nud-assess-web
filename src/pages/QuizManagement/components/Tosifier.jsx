@@ -1,16 +1,13 @@
 import {
   Button,
   Card,
-  Checkbox,
   CircularProgress,
   Container,
   Divider,
   FormControl,
-  FormControlLabel,
-  FormHelperText,
   Grid,
-  Input,
   InputLabel,
+  LinearProgress,
   MenuItem,
   OutlinedInput,
   Paper,
@@ -25,16 +22,14 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useContext, useEffect, useState } from "react";
-import { model } from "../../../helper/GeminiModel";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
 import Error from "./tosifierErrorDialogs/Error";
+import FileUpload from "../../../components/elements/FileUpload";
+import { aiRun } from "../../../helper/Gemini";
+import AiError from "./tosifierErrorDialogs/AiError";
 
 function Tosifier(props) {
   //   const { quizDetail } = props;\
@@ -62,10 +57,8 @@ function Tosifier(props) {
       totalItems: 0,
     },
   ]);
-  const [sourceMaterial, setSourceMaterial] = useState("");
-  const [materialList, setMaterialList] = useState([]);
 
-  const [response, setResponse] = useState([]);
+  const [response, setResponse] = useState("");
   const [quiz, setQuiz] = useState([]);
   const [total, setTotal] = useState({
     items: 0,
@@ -83,6 +76,8 @@ function Tosifier(props) {
   const [lessonOption, setLessonOption] = useState([]);
 
   const [error, setError] = useState(false);
+
+  const [files, setFiles] = useState([]);
 
   // calculate total hours when rows change
   useEffect(() => {
@@ -251,7 +246,7 @@ function Tosifier(props) {
     // If subject_id is changed, also update subject_name
 
     if (name == "open_time") {
-      console.log(e);
+      // console.log(e);
       return;
     }
 
@@ -269,17 +264,6 @@ function Tosifier(props) {
     }
 
     // console.log("Quiz Detail:", quizDetail);
-  };
-
-  const handleFileChange = (e) => {
-    setSourceMaterial(e.target.files[0]);
-
-    const path = URL.createObjectURL(e.target.files[0]);
-    setMaterialList([
-      ...materialList,
-      { filename: e.target.files[0].name, path: path },
-    ]);
-    console.log(materialList);
   };
 
   const addRow = () => {
@@ -383,7 +367,7 @@ function Tosifier(props) {
     );
 
     if (isValid) {
-      console.log(quizDetail);
+      // console.log(quizDetail);
 
       navigate("/quizsummary", {
         state: {
@@ -403,41 +387,46 @@ function Tosifier(props) {
   };
 
   const generateQuestion = async () => {
-    // e.preventDefault();
+    if (files.length <= 0) {
+      setResponse("Upload atleast 1 pdf file as reference.");
+      return;
+    }
+
     setLoading(true);
-    setResponse("Generating...");
     setQuiz([]);
-    // console.log("Generating...");
 
-    var reqs =
-      "The total number of questions are " +
-      total.items +
-      ". The Lessons are: ";
+    // gawa ng array of texts
+    const texts = rows.flatMap((data) => {
+      const r_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.remembering} question/s at the 'Remembering' level.`,
+      };
+      const u_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.understanding} question/s at the 'Understanding' level.`,
+      };
+      const ap_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.applying} question/s at the 'Applying' level.`,
+      };
+      const an_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.analyzing} question/s at the 'Analyzing' level.`,
+      };
+      const c_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.creating} question/s at the 'Creating' level.`,
+      };
+      const e_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.evaluating} question/s at the 'Evaluating' level.`,
+      };
 
-    rows.forEach((row, index) => {
-      reqs +=
-        "Lesson no. " +
-        (index + 1) +
-        ". Lesson_id: " +
-        row.lesson_id +
-        ". " +
-        row.topic +
-        " with " +
-        row.remembering +
-        " question on Remembering, " +
-        row.understanding +
-        " question on Understanding, " +
-        row.applying +
-        " question on Applying, " +
-        row.analyzing +
-        " question on Analyzing, " +
-        row.creating +
-        " question on Creating, and " +
-        row.evaluating +
-        " question on Evaluating. ";
+      const compiled = [
+        data.remembering > 0 && r_text,
+        data.understanding > 0 && u_text,
+        data.applying > 0 && ap_text,
+        data.analyzing > 0 && an_text,
+        data.creating > 0 && c_text,
+        data.evaluating > 0 && e_text,
+      ].filter(Boolean);
+
+      return compiled;
     });
-
-    const prompt = reqs;
 
     if (rows.length === 0) {
       setResponse("There must be atleast 1 topic");
@@ -449,48 +438,40 @@ function Tosifier(props) {
       return;
     }
 
-    const file = sourceMaterial;
-    const reader = new FileReader();
+    try {
+      const result = await aiRun(files, texts);
 
-    reader.onload = async (e) => {
-      const base64Data = e.target.result.split(",")[1];
-
-      try {
-        const result = await model.generateContent([
-          {
-            inlineData: {
-              data: base64Data,
-              mimeType: "application/pdf",
-            },
-          },
-          prompt,
-        ]);
-        // setQuiz(JSON.parse(result.response.text()));
-        setResponse("Questions generated");
+      if (result.status == "Success") {
+        // console.log("sakses response:", result);
+        setQuiz(result.questions);
         navigate("/quizsummary", {
           state: {
             quizDetail: quizDetail,
             rows: rows,
             total: total,
-            quiz: JSON.parse(result.response.text()),
+            quiz: result.questions,
           },
         });
-        setLoading(false);
-        props.onCancel();
-      } catch (error) {
-        console.error(error);
-        setLoading(false);
+      } else {
+        // success ai pero irrelevant ung pdf files
         setResponse(
-          "There seems to be a problem on our side. Please try again. "
+          "The files you uploaded may have been irrelevant to the subject and topics."
         );
       }
-    };
-
-    reader.readAsDataURL(file);
+      setLoading(false);
+      // props.onCancel();
+    } catch (error) {
+      // ai error
+      // console.error(error);
+      setLoading(false);
+      setResponse(
+        "There seems to be a problem on our side. Please try again. "
+      );
+    }
   };
 
   useEffect(() => {
-    console.log(quizDetail);
+    // console.log(quizDetail);
     if (quizDetail.subject_id == "") {
       setLessonOption([]);
       return;
@@ -530,9 +511,9 @@ function Tosifier(props) {
   };
 
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth="xl" sx={{ my: 5 }}>
       <form onSubmit={submitForm}>
-        <h1 className="text-3xl font-bold mb-2 mt-10">Quiz Details</h1>
+        <h1 className="text-3xl font-bold mb-2">Quiz Details</h1>
         <p className="mb-6 text-gray-600">Enter details about the quiz.</p>
         <Stack mb={10} rowGap={3}>
           <Stack direction="row" columnGap={3}>
@@ -610,38 +591,7 @@ function Tosifier(props) {
                 onChange={handleQuizDetail}
               />
             </Grid>
-            {/* <Grid flex={1}>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateTimePicker
-                  label="Open quiz at:"
-                  name="open_time"
-                  value={quizDetail.open_time}
-                  slotProps={{
-                    textField: {
-                      sx: { width: "100%" },
-                      size: "small",
-                    },
-                  }}
-                  onChange={handleQuizDetail}
-                />
-              </LocalizationProvider>
-            </Grid>
-            <Grid flex={1}>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateTimePicker
-                  label="Close quiz at:"
-                  name="close_time"
-                  value={quizDetail.close_time}
-                  slotProps={{
-                    textField: {
-                      sx: { width: "100%" },
-                      size: "small",
-                    },
-                  }}
-                  onChange={handleQuizDetail}
-                />
-              </LocalizationProvider>
-            </Grid> */}
+
             <Grid flex={1}>
               <FormControl size="small" fullWidth>
                 <InputLabel id="shuffleLabel">Shuffle Items</InputLabel>
@@ -670,69 +620,51 @@ function Tosifier(props) {
         <p className="mb-6 text-gray-600">
           Create Table of Specification to create a quiz.
         </p>
-        {/* <form onSubmit={generateQuestion}> */}
+
         <Stack rowGap={4}>
-          <Stack
-            width="80%"
-            m="auto"
-            direction="row"
-            justifyContent="space-around"
-          >
+          <Stack direction="row" justifyContent="center">
             {quizDetail.mode == "AI-Generated" && (
+              <FileUpload files={files} setFiles={setFiles} />
+            )}
+            <Stack
+              width="80%"
+              m="auto"
+              direction="row"
+              justifyContent="space-around"
+            >
               <OutlinedInput
                 size="small"
                 required
-                name="materialInput"
-                className="materialInput"
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
+                className="itemInput"
+                type="number"
+                placeholder="Total Items"
+                onChange={changeTotalItems}
               />
-            )}
 
-            <OutlinedInput
-              size="small"
-              required
-              className="itemInput"
-              type="number"
-              placeholder="Total Items"
-              onChange={changeTotalItems}
-            />
+              <div className="tosInputBtn flex gap-10">
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={addRow}
+                  disableElevation
+                >
+                  Add Topic
+                </Button>
 
-            <div className="tosInputBtn flex gap-10">
-              <Button
-                variant="contained"
-                size="small"
-                onClick={addRow}
-                disableElevation
-              >
-                Add Topic
-              </Button>
-
-              <Button
-                variant="contained"
-                size="small"
-                onClick={removeRow}
-                disabled={rows.length === 0}
-                disableElevation
-              >
-                Remove Topic
-              </Button>
-            </div>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={removeRow}
+                  disabled={rows.length === 0}
+                  disableElevation
+                >
+                  Remove Topic
+                </Button>
+              </div>
+            </Stack>
           </Stack>
           <Card>
             <TableContainer component={Paper} variant="outlined">
-              {/* <div>
-            {materialList.map((data, index) => {
-              return (
-                <p key={index} style={{ color: "white" }}>
-                  {" "}
-                  {data.filename}{" "}
-                </p>
-              );
-            })}
-          </div> */}
-
               <Table
               //   className="glassCard w-full m-auto p-10"
               >
@@ -897,36 +829,46 @@ function Tosifier(props) {
               </Table>
             </TableContainer>
           </Card>
-          <Stack direction="row" width="100%" justifyContent="space-between">
-            <Button
-              disabled={loading}
-              variant="contained"
-              size="large"
-              color="error"
-              onClick={props.onCancel}
-              sx={{ maxWidth: "100px" }}
-              disableElevation
-            >
-              Cancel
-            </Button>
-            {loading ? <CircularProgress /> : <></>}
-            <Button
-              disableElevation
-              disabled={loading}
-              variant="contained"
-              size="large"
-              type="submit"
-              color="success"
-              sx={{ maxWidth: "100px" }}
-            >
-              Continue
-            </Button>
-          </Stack>
-          <p className="response">{response}</p>
+          {loading ? (
+            <LinearProgress />
+          ) : (
+            <Stack direction="row" width="100%" justifyContent="space-between">
+              <Button
+                disabled={loading}
+                variant="contained"
+                size="large"
+                color="error"
+                onClick={props.onCancel}
+                sx={{ maxWidth: "100px" }}
+                disableElevation
+              >
+                Cancel
+              </Button>
+
+              {loading ? <CircularProgress /> : <></>}
+              <Button
+                disableElevation
+                disabled={loading}
+                variant="contained"
+                size="large"
+                type="submit"
+                color="success"
+                sx={{ maxWidth: "100px" }}
+              >
+                Continue
+              </Button>
+            </Stack>
+          )}
         </Stack>
       </form>
 
       <Error open={error} setOpen={setError} />
+
+      <AiError
+        open={response.length != 0}
+        setOpen={setResponse}
+        message={response}
+      />
     </Container>
   );
 }

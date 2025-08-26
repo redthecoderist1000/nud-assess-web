@@ -73,9 +73,18 @@ function AssignQuizDialog({ open, setOpen, classId }) {
 
   const confirmAssign = async () => {
     // console.log(quizInfo);
-    const { error } = await supabase
-      .from("tbl_class_exam")
-      .insert({ class_id: classId, exam_id: selectedQuiz.id, ...quizInfo });
+    const now = dayjs();
+    const open_time = quizInfo.open_time ?? now;
+    const status =
+      now.isAfter(open_time) || now.isSame(open_time) ? "Open" : "Scheduled";
+
+    const { error } = await supabase.from("tbl_class_exam").insert({
+      class_id: classId,
+      exam_id: selectedQuiz.id,
+      status: status,
+      open_time: open_time,
+      ...quizInfo,
+    });
 
     if (error) {
       console.log("fail to assign quiz:", error);

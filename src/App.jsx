@@ -59,6 +59,85 @@ const AnimatedRoutes = () => {
   const userVal = { user, setUser };
   const signupVal = { signupData, setSignupData };
 
+  const [lastActivity, setLastActivity] = useState(Date.now());
+  const INACTIVITY_TIMEOUT = 60 * 1000; // 5 minutes in milliseconds
+  const SESSION_CHECK_INTERVAL = 60 * 1000; // Check every minute
+
+  const checkSessionAndActivity = async () => {
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (!session) return;
+
+      const now = Date.now();
+      const timeInactive = now - lastActivity;
+      const sessionTimeLeft = session.expires_at * 1000 - now;
+
+      // Sign out if user has been inactive for too long
+      if (timeInactive > INACTIVITY_TIMEOUT) {
+        console.log("Signing out due to inactivity");
+        // setUser({});
+        // await supabase.auth.signOut();
+        return;
+      }
+
+      // Refresh session if it expires soon and user is active
+      if (sessionTimeLeft < 5 * 60 * 1000) {
+        // 5 minutes
+        console.log("Refreshing session...");
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          console.log("Failed to refresh session:", refreshError);
+          // userCon.setUser({});
+          // await supabase.auth.signOut();
+        } else {
+          console.log("Session refreshed successfully");
+        }
+      }
+    } catch (err) {
+      console.log("Error checking session:", err);
+    }
+  };
+
+  // Track user activity
+  const updateActivity = () => {
+    setLastActivity(Date.now());
+  };
+
+  useEffect(() => {
+    // Activity event listeners
+    const activityEvents = [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+      "click",
+    ];
+
+    // Add activity listeners
+    activityEvents.forEach((event) => {
+      document.addEventListener(event, updateActivity, true);
+    });
+
+    // Set up session checking interval
+    const sessionInterval = setInterval(
+      checkSessionAndActivity,
+      SESSION_CHECK_INTERVAL
+    );
+
+    // Cleanup
+    return () => {
+      activityEvents.forEach((event) => {
+        document.removeEventListener(event, updateActivity, true);
+      });
+      clearInterval(sessionInterval);
+    };
+  }, [lastActivity]);
+
   useEffect(() => {
     // supabase.auth.signOut();
     supabase.auth.onAuthStateChange((event, session) => {
@@ -108,6 +187,7 @@ const AnimatedRoutes = () => {
     });
   }, [user]);
 
+  // setInterval(checkSession, 10000);
   return (
     <signupContext.Provider value={signupVal}>
       <userContext.Provider value={userVal}>

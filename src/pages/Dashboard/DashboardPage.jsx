@@ -12,6 +12,7 @@ import QuestionRepoModal from "../QuestionManagement/components/QuestionRepoModa
 import CreateClass from "../MyClasses/components/CreateClass";
 import { userContext } from "../../App";
 import { supabase } from "../../helper/Supabase";
+import { Button } from "@mui/material";
 
 const DashboardPage = () => {
   const navigate = useNavigate();

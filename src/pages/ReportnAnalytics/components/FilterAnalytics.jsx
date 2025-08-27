@@ -3,25 +3,146 @@ import { Button, Select, MenuItem } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import DescriptionIcon from "@mui/icons-material/Description";
 import SummarizeIcon from "@mui/icons-material/Summarize";
+import { getReportHTML } from "../Download/DLReport";
+import { downloadFullCSV } from "../Download/CSVReport";
+import { downloadWordReport } from "../Download/WordReport";
 
+// dummy data
 const defaultClassOptions = ["BSIT 3A", "BSIT 3B", "BSIT 4A"];
 const defaultDateOptions = ["Last 7 days", "Last 30 days", "This semester"];
+const summaryData = {
+  students: 40,
+  quizzes: 10,
+  avgScore: "85%",
+  avgScoreChange: "+3%",
+  passRate: "90%",
+};
+const quizData = [
+  { quiz: "Quiz 1", avg: "85%", high: "98%", low: "72%", pass: "92%", attempts: 40 },
+  { quiz: "Quiz 2", avg: "78%", high: "95%", low: "65%", pass: "85%", attempts: 38 },
+  { quiz: "Quiz 3", avg: "82%", high: "100%", low: "68%", pass: "88%", attempts: 39 },
+];
+const scoreDist = [
+  { range: "90-100%", count: 12 },
+  { range: "80-89%", count: 15 },
+  { range: "70-79%", count: 8 },
+  { range: "60-69%", count: 4 },
+  { range: "0-59%", count: 1 },
+];
+const lessonPerf = [
+  { lesson: "Lesson 1", score: 78 },
+  { lesson: "Lesson 2", score: 82 },
+  { lesson: "Lesson 3", score: 85 },
+  { lesson: "Lesson 4", score: 80 },
+  { lesson: "Lesson 5", score: 88 },
+  { lesson: "Lesson 6", score: 91 },
+];
+const questionTypes = [
+  { type: "Multiple Choice", questions: 45, successRate: "84%", avgTime: "47s", disc: 0.56 },
+  { type: "Essay", questions: 12, successRate: "60%", avgTime: "210s", disc: 0.75 },
+  { type: "True/False", questions: 18, successRate: "78%", avgTime: "28s", disc: 0.62 },
+];
+const questionAnalysis = [
+  {
+    question: "What is cryptography?",
+    type: "Multiple Choice",
+    bloom: "Remembering",
+    successRate: "85%",
+    usage: "8x",
+    lastUsed: "2/20/2024",
+    status: "Good",
+  },
+  {
+    question: "Explain SQL injection attacks and their prevention methods",
+    type: "Essay",
+    bloom: "Analyzing",
+    successRate: "68%",
+    usage: "6x",
+    lastUsed: "2/18/2024",
+    status: "Good",
+  },
+  {
+    question: "Define HTTPS protocol",
+    type: "Multiple Choice",
+    bloom: "Understanding",
+    successRate: "75%",
+    usage: "12x",
+    lastUsed: "2/22/2024",
+    status: "Good",
+  },
+  {
+    question: "Which of the following is NOT a symmetric encryption algorithm?",
+    type: "Multiple Choice",
+    bloom: "Remembering",
+    successRate: "92%",
+    usage: "5x",
+    lastUsed: "2/25/2024",
+    status: "Too Easy",
+  },
+  {
+    question: "Analyze the security vulnerabilities in the given code snippet.",
+    type: "Essay",
+    bloom: "Evaluating",
+    successRate: "52%",
+    usage: "3x",
+    lastUsed: "2/23/2024",
+    status: "Good",
+  },
+  {
+    question: "True or False: Two-factor authentication eliminates all security risks.",
+    type: "True/False",
+    bloom: "Understanding",
+    successRate: "78%",
+    usage: "9x",
+    lastUsed: "2/21/2024",
+    status: "Good",
+  },
+];
+const tosPlacement = [
+  { level: "Remember", score: 85 },
+  { level: "Understand", score: 78 },
+  { level: "Apply/Placement", score: 92 },
+  { level: "Analyze", score: 88 },
+  { level: "Evaluate", score: 74 },
+];
+const taxonomyAnalysis = [
+  { level: "Remembering", count: 25, percent: "31.25%" },
+  { level: "Understanding", count: 20, percent: "25.00%" },
+  { level: "Applying", count: 15, percent: "18.75%" },
+  { level: "Analyzing", count: 10, percent: "12.50%" },
+  { level: "Evaluating", count: 7, percent: "8.75%" },
+  { level: "Creating", count: 3, percent: "3.75%" },
+];
+
+function openQuickSummaryPDF() {
+  const html = getReportHTML({
+    summaryData,
+    quizData,
+    scoreDist,
+    lessonPerf,
+    questionTypes,
+    questionAnalysis,
+    tosPlacement,
+    taxonomyAnalysis,
+  });
+  const win = window.open("", "_blank");
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  win.print();
+}
 
 const FilterAnalytics = ({ classOptions, dateOptions }) => {
-  // Simulate backend fetch with default data
   const [classes, setClasses] = useState(defaultClassOptions);
   const [dates, setDates] = useState(defaultDateOptions);
 
   useEffect(() => {
-    // If backend data is passed, use it
     if (Array.isArray(classOptions) && classOptions.length > 0) {
       setClasses(classOptions);
     }
     if (Array.isArray(dateOptions) && dateOptions.length > 0) {
       setDates(dateOptions);
     }
-    // Example: fetch from backend here in future
-    // fetch('/api/classes').then(...)
   }, [classOptions, dateOptions]);
 
   const [classValue, setClassValue] = useState(classes[0]);
@@ -34,26 +155,52 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
     setDateValue(dates[1] || dates[0]);
   }, [dates]);
 
+  // csv handler
+  const handleCSVDownload = () => {
+    downloadFullCSV({
+      summaryData,
+      quizData,
+      scoreDist,
+      lessonPerf,
+      questionTypes,
+      questionAnalysis,
+      tosPlacement,
+      taxonomyAnalysis,
+      filename: "class_report.csv"
+    });
+  };
+
+  // word handler
+  const handleWordDownload = () => {
+    downloadWordReport({
+      summaryData,
+      quizData,
+      scoreDist,
+      lessonPerf,
+      questionTypes,
+      questionAnalysis,
+      tosPlacement,
+      taxonomyAnalysis,
+      filename: "class_report.doc"
+    });
+  };
+
   return (
     <div
       className="flex flex-wrap items-center w-full justify-between mt-4"
       style={{ minHeight: 32, paddingTop: 8 }}
     >
-      {/* Left: Description */}
       <span className="text-[14px] text-gray-600 ml-2 mb-2 sm:mb-0">
         Monitor quiz performance and student engagement
       </span>
 
-      {/* Right: Controls */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Class Dropdown */}
         <Select
           value={classValue}
           onChange={e => setClassValue(e.target.value)}
           size="small"
           className="bg-gray-100 rounded-md"
           variant="outlined"
-          disableUnderline
           style={{
             minWidth: 110,
             height: 36,
@@ -69,14 +216,12 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
           ))}
         </Select>
 
-        {/* Date Dropdown */}
         <Select
           value={dateValue}
           onChange={e => setDateValue(e.target.value)}
           size="small"
           className="bg-gray-100 rounded-md"
           variant="outlined"
-          disableUnderline
           style={{
             minWidth: 110,
             height: 36,
@@ -92,7 +237,6 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
           ))}
         </Select>
 
-        {/* CSV Button */}
         <Button
           variant="outlined"
           size="small"
@@ -108,11 +252,11 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
             marginLeft: 4,
             marginRight: 4,
           }}
+          onClick={handleCSVDownload}
         >
           CSV
         </Button>
 
-        {/* Word Button */}
         <Button
           variant="outlined"
           size="small"
@@ -128,11 +272,11 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
             marginLeft: 4,
             marginRight: 4,
           }}
+          onClick={handleWordDownload}
         >
           Word
         </Button>
 
-        {/* Quick Summary Button */}
         <Button
           variant="contained"
           size="small"
@@ -151,6 +295,7 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
             marginLeft: 4,
             marginRight: 4,
           }}
+          onClick={openQuickSummaryPDF}
         >
           Quick Summary
         </Button>

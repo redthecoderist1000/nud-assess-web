@@ -8,14 +8,16 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
+  Link,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
-import React, { use, useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
 
 function AddMemberDialog({ open, setOpen, classId }) {
@@ -23,6 +25,12 @@ function AddMemberDialog({ open, setOpen, classId }) {
   const [loading, setLoading] = useState(false);
   const [studentList, setStudentList] = useState([]);
   const [studentToAdd, setStudentToAdd] = useState([]);
+
+  const fileRef = useRef(null);
+
+  const handleImportClick = () => {
+    fileRef.current && fileRef.current.click();
+  };
 
   const fetchStudents = async () => {
     const curMemRes = await supabase
@@ -52,14 +60,18 @@ function AddMemberDialog({ open, setOpen, classId }) {
 
   // for removing student in student to add list
   const removeAddStudent = (index, data) => {
+    // remove student sa add list
     const newList = studentToAdd.filter((_, i) => i !== index);
     setStudentToAdd(newList);
+    // add student back to options
     setStudentList([...studentList, data]);
   };
 
   // for adding student to add list
   const addStudent = (data) => {
+    // add student sa to add list
     setStudentToAdd([...studentToAdd, data]);
+    // remove sa options
     const newList = studentList.filter((item) => item.id !== data.id);
     setStudentList(newList);
   };
@@ -116,6 +128,44 @@ function AddMemberDialog({ open, setOpen, classId }) {
     setOpen(false);
   };
 
+  const handleImportCsv = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    //  setLoading(true);
+    // try {
+    const text = await file.text();
+    const lines = text
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    if (lines.length === 0) return;
+
+    // Parse header if present
+    const headerCols = lines[0].split(",").map((h) => h.trim().toLowerCase());
+    if (headerCols[0] != "student_email") return;
+    for (let i = 1; i < lines.length; i++) {
+      const element = lines[i];
+
+      // check if existing sa options
+      const raw = (element || "")
+        .replace(/^\uFEFF/, "") // strip BOM
+        .replace(/^"|"$/g, "") // strip surrounding quotes
+        .trim()
+        .toLowerCase();
+
+      const found = studentList.find(
+        (s) => s.email.trim().toLowerCase() === raw
+      );
+
+      if (found) {
+        addStudent(found);
+      }
+    }
+
+    if (e.target) e.target.value = null;
+  };
+
   return (
     <Dialog
       sx={{ p: 2 }}
@@ -129,11 +179,6 @@ function AddMemberDialog({ open, setOpen, classId }) {
       <DialogTitle>Add Member</DialogTitle>
       {/* <Divider /> */}
       <DialogContent>
-        {/* <DialogContentText id="alert-dialog-description">
-          Let Google help apps determine location. This means sending anonymous
-          location data to Google, even when no apps are running.
-        </DialogContentText> */}
-
         {studentList.length == 0 && studentToAdd.length == 0 ? (
           <DialogContentText id="noStudent">
             No available student left to add
@@ -184,20 +229,54 @@ function AddMemberDialog({ open, setOpen, classId }) {
             </List>
           </>
         )}
+        <Typography variant="caption" color="textDisabled">
+          For bulk adding of members, download csv format{" "}
+        </Typography>
+        <Link
+          component="a"
+          href="/bulk_member_format.csv"
+          download="bulk_member_format.csv"
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="caption"
+          color="textDisabled"
+          sx={{ cursor: "pointer" }}
+        >
+          here.
+        </Link>
       </DialogContent>
-      {/* <Divider /> */}
       <DialogActions>
         <Stack direction="row" justifyContent="space-between" width="100%">
           <Button onClick={() => setOpen(false)} color="error">
             Cancel
           </Button>
-          <Button
-            onClick={addConfirm}
-            variant="contained"
-            disabled={studentToAdd.length == 0}
-          >
-            Add
-          </Button>
+          <Stack direction="row" spacing={2}>
+            {/* hidden file input */}
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,text/csv"
+              style={{ display: "none" }}
+              onChange={handleImportCsv}
+            />
+            <Button
+              variant="outlined"
+              color="success"
+              size="small"
+              disableElevation
+              onClick={handleImportClick}
+            >
+              import csv
+            </Button>
+            <Button
+              onClick={addConfirm}
+              variant="contained"
+              disabled={studentToAdd.length == 0}
+              disableElevation
+            >
+              Add
+            </Button>
+          </Stack>
         </Stack>
       </DialogActions>
     </Dialog>

@@ -12,7 +12,7 @@ import QuestionRepoModal from "../QuestionManagement/components/QuestionRepoModa
 import CreateClass from "../MyClasses/components/CreateClass";
 import { userContext } from "../../App";
 import { supabase } from "../../helper/Supabase";
-import { Button } from "@mui/material";
+import { Button, Container } from "@mui/material";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -147,137 +147,139 @@ const DashboardPage = () => {
   }
 
   return (
-    <motion.main
-      className="flex-1 p-6 mt-12 md:mt-0"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
-      {/* Header */}
-      <motion.div
-        className="mb-6 flex justify-between items-center w-full px-4"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div>
-          <h1 className="text-5xl font-bold mb-2">Dashboard</h1>
-          <p className="text-gray-600">
-            Monitor quiz performance and student engagement.
-          </p>
-        </div>
-      </motion.div>
-
-      {/* Action Buttons */}
-      <motion.div
-        className="flex gap-4 px-4 mb-6"
+    <Container maxWidth="xl" sx={{ my: 5 }}>
+      <motion.main
+        className="flex-1  mt-12 "
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
+        transition={{ duration: 0.3 }}
       >
-        {["Create Quiz", "Create Questions", "Create Class"].map(
-          (text, index) => (
-            <motion.button
-              key={index}
-              onClick={() => handleButtonClick(text)}
-              className="flex items-center justify-center w-52 h-15 bg-[#35408E] text-white px-4 py-2 rounded hover:bg-[#2c357e] transition duration-300 ease-in-out"
-              whileHover={{ scale: 1.05 }}
-            >
-              <img
-                src={createIcon}
-                alt="Create Icon"
-                className="w-5 h-5 mr-2"
-              />
-              <span>{text}</span>
-            </motion.button>
-          )
-        )}
-      </motion.div>
-
-      {/* Stats Grid */}
-      <motion.div
-        className="grid grid-cols-4 gap-4 p-4 w-full"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        {loadingStats ? (
-          <p>Loading stats...</p>
-        ) : statsError ? (
-          <p className="text-red-500">Error: {statsError}</p>
-        ) : (
-          [
-            { label: "Total Quizzes", value: stats.totalQuizzes },
-            { label: "Total Questions", value: stats.totalQuestions },
-            { label: "Total Classes", value: stats.totalClasses },
-            { label: "Total Students", value: stats.totalStudents },
-          ].map((stat, index) => (
-            <motion.div
-              key={index}
-              className="flex flex-col items-start justify-center p-8 rounded-lg border border-gray-300 shadow-xl w-full"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.5 + index * 0.2 }}
-            >
-              <span className="text-gray-500 flex items-center gap-2 mb-2">
-                <img src={bookmarkIcon} alt="Icon" className="w-5 h-5" />
-                {stat.label}
-              </span>
-              <span className="text-2xl font-bold">{stat.value}</span>
-            </motion.div>
-          ))
-        )}
-      </motion.div>
-
-      {/* Charts */}
-      <motion.div
-        className="p-4 w-full mt-6 bg-white shadow-lg rounded-lg"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.7 }}
-      >
-        <h2 className="text-2xl font-semibold mb-4">
-          Performance Overview Per Class
-        </h2>
-        <LineChart />
-      </motion.div>
-
-      <motion.div
-        className="mt-6 flex gap-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.9 }}
-      >
-        <HorizontalLineChart />
-        <DoughnutChart />
-      </motion.div>
-
-      {/* Quiz Modal */}
-      <QuizModal
-        isOpen={quizModalOpen}
-        onClose={() => setQuizModalOpen(false)}
-        onSelectOption={handleQuizOption}
-      />
-
-      {/* Question Repo Modal */}
-      <QuestionRepoModal
-        isOpen={repoModalOpen}
-        onClose={() => setRepoModalOpen(false)}
-        onSelect={handleRepoSelect}
-      />
-
-      {/* Create Class Modal */}
-      {createClassOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 ">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
-            <CreateClass
-              onSave={handleCreateClassSave}
-              onCancel={() => setCreateClassOpen(false)}
-            />
+        {/* Header */}
+        <motion.div
+          className="mb-6 flex justify-between items-center w-full"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div>
+            <h1 className="text-5xl font-bold mb-2">Dashboard</h1>
+            <p className="text-gray-600">
+              Monitor quiz performance and student engagement.
+            </p>
           </div>
-        </div>
-      )}
-    </motion.main>
+        </motion.div>
+
+        {/* Action Buttons */}
+        <motion.div
+          className="flex gap-4 px-4 mb-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          {["Create Quiz", "Create Questions", "Create Class"].map(
+            (text, index) => (
+              <motion.button
+                key={index}
+                onClick={() => handleButtonClick(text)}
+                className="flex items-center justify-center w-52 h-15 bg-[#35408E] text-white px-4 py-2 rounded hover:bg-[#2c357e] transition duration-300 ease-in-out"
+                whileHover={{ scale: 1.05 }}
+              >
+                <img
+                  src={createIcon}
+                  alt="Create Icon"
+                  className="w-5 h-5 mr-2"
+                />
+                <span>{text}</span>
+              </motion.button>
+            )
+          )}
+        </motion.div>
+
+        {/* Stats Grid */}
+        <motion.div
+          className="grid grid-cols-4 gap-4 p-4 w-full"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          {loadingStats ? (
+            <p>Loading stats...</p>
+          ) : statsError ? (
+            <p className="text-red-500">Error: {statsError}</p>
+          ) : (
+            [
+              { label: "Total Quizzes", value: stats.totalQuizzes },
+              { label: "Total Questions", value: stats.totalQuestions },
+              { label: "Total Classes", value: stats.totalClasses },
+              { label: "Total Students", value: stats.totalStudents },
+            ].map((stat, index) => (
+              <motion.div
+                key={index}
+                className="flex flex-col items-start justify-center p-8 rounded-lg border border-gray-300 shadow-xl w-full"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.5 + index * 0.2 }}
+              >
+                <span className="text-gray-500 flex items-center gap-2 mb-2">
+                  <img src={bookmarkIcon} alt="Icon" className="w-5 h-5" />
+                  {stat.label}
+                </span>
+                <span className="text-2xl font-bold">{stat.value}</span>
+              </motion.div>
+            ))
+          )}
+        </motion.div>
+
+        {/* Charts */}
+        <motion.div
+          className="p-4 w-full mt-6 bg-white shadow-lg rounded-lg"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+        >
+          <h2 className="text-2xl font-semibold mb-4">
+            Performance Overview Per Class
+          </h2>
+          <LineChart />
+        </motion.div>
+
+        <motion.div
+          className="mt-6 flex gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.9 }}
+        >
+          <HorizontalLineChart />
+          <DoughnutChart />
+        </motion.div>
+
+        {/* Quiz Modal */}
+        <QuizModal
+          isOpen={quizModalOpen}
+          onClose={() => setQuizModalOpen(false)}
+          onSelectOption={handleQuizOption}
+        />
+
+        {/* Question Repo Modal */}
+        <QuestionRepoModal
+          isOpen={repoModalOpen}
+          onClose={() => setRepoModalOpen(false)}
+          onSelect={handleRepoSelect}
+        />
+
+        {/* Create Class Modal */}
+        {createClassOpen && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 ">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
+              <CreateClass
+                onSave={handleCreateClassSave}
+                onCancel={() => setCreateClassOpen(false)}
+              />
+            </div>
+          </div>
+        )}
+      </motion.main>
+    </Container>
   );
 };
 

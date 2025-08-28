@@ -9,6 +9,7 @@ import { supabase } from "../../helper/Supabase";
 import { userContext } from "../../App";
 import {
   Button,
+  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -123,15 +124,15 @@ const ClassManagementPage = () => {
   };
 
   return (
-    <AnimatePresence>
+    <Container maxWidth="xl" sx={{ my: 5 }}>
       <motion.div
-        className="flex gap-5 p-5"
+        className="flex gap-5 "
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -50 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="w-7/10 p-5 rounded-lg">
+        <div className="w-7/10 rounded-lg">
           <div className="mb-6">
             <h1 className="text-5xl font-semibold mb-2">My Classes</h1>
             <p className="text-gray-600">
@@ -294,7 +295,7 @@ const ClassManagementPage = () => {
           </DialogActions>
         </Dialog>
       </motion.div>
-    </AnimatePresence>
+    </Container>
   );
 };
 

@@ -2,7 +2,7 @@ import React from "react";
 
 const defaultQuizData = [
   {
-    name: "Quiz 1",
+    name: "Quiz dd1",
     avgScore: "85%",
     highest: "98%",
     lowest: "72%",
@@ -28,7 +28,8 @@ const defaultQuizData = [
 ];
 
 const PerformanceByQuiz = ({ data, className }) => {
-  const quizData = Array.isArray(data) && data.length > 0 ? data : defaultQuizData;
+  const quizData =
+    Array.isArray(data) && data.length > 0 ? data : defaultQuizData;
 
   return (
     <div
@@ -36,7 +37,9 @@ const PerformanceByQuiz = ({ data, className }) => {
       style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}
     >
       <div className="mb-2">
-        <h2 className="text-[17px] font-semibold text-gray-900 mb-0">Performance by Quiz</h2>
+        <h2 className="text-[17px] font-semibold text-gray-900 mb-0">
+          Performance by Quiz
+        </h2>
         <p className="text-sm text-gray-500 mt-1 mb-0">
           Detailed breakdown of quiz performance metrics
         </p>
@@ -55,15 +58,22 @@ const PerformanceByQuiz = ({ data, className }) => {
           </thead>
           <tbody>
             {quizData.map((quiz, idx) => (
-              <tr key={quiz.name} className="border-t border-gray-100 text-[15px]">
+              <tr
+                key={quiz.name}
+                className="border-t border-gray-100 text-[15px]"
+              >
                 <td className="py-2 px-4">{quiz.name}</td>
                 <td className="py-2 px-4 text-center">
-                  <span className="bg-blue-100 text-blue-700 rounded px-2 py-1 font-medium">{quiz.avgScore}</span>
+                  <span className="bg-blue-100 text-blue-700 rounded px-2 py-1 font-medium">
+                    {quiz.avgScore}
+                  </span>
                 </td>
                 <td className="py-2 px-4 text-center">{quiz.highest}</td>
                 <td className="py-2 px-4 text-center">{quiz.lowest}</td>
                 <td className="py-2 px-4 text-center">
-                  <span className="bg-green-100 text-green-700 rounded px-2 py-1 font-medium">{quiz.passRate}</span>
+                  <span className="bg-green-100 text-green-700 rounded px-2 py-1 font-medium">
+                    {quiz.passRate}
+                  </span>
                 </td>
                 <td className="py-2 px-4 text-center">{quiz.attempts}</td>
               </tr>

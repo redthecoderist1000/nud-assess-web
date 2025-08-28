@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Button, Select, MenuItem } from "@mui/material";
-import DownloadIcon from "@mui/icons-material/Download";
-import DescriptionIcon from "@mui/icons-material/Description";
-import SummarizeIcon from "@mui/icons-material/Summarize";
+import { useState, useEffect } from "react";
+import { Select, MenuItem } from "@mui/material";
+import InsertDriveFileRoundedIcon from "@mui/icons-material/InsertDriveFileRounded";
+import CalendarViewMonthRoundedIcon from "@mui/icons-material/CalendarViewMonthRounded";
+import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
 import { getReportHTML } from "../Download/DLReport";
 import { downloadFullCSV } from "../Download/CSVReport";
 import { downloadWordReport } from "../Download/WordReport";
@@ -18,9 +18,30 @@ const summaryData = {
   passRate: "90%",
 };
 const quizData = [
-  { quiz: "Quiz 1", avg: "85%", high: "98%", low: "72%", pass: "92%", attempts: 40 },
-  { quiz: "Quiz 2", avg: "78%", high: "95%", low: "65%", pass: "85%", attempts: 38 },
-  { quiz: "Quiz 3", avg: "82%", high: "100%", low: "68%", pass: "88%", attempts: 39 },
+  {
+    quiz: "Quiz 1",
+    avg: "85%",
+    high: "98%",
+    low: "72%",
+    pass: "92%",
+    attempts: 40,
+  },
+  {
+    quiz: "Quiz 2",
+    avg: "78%",
+    high: "95%",
+    low: "65%",
+    pass: "85%",
+    attempts: 38,
+  },
+  {
+    quiz: "Quiz 3",
+    avg: "82%",
+    high: "100%",
+    low: "68%",
+    pass: "88%",
+    attempts: 39,
+  },
 ];
 const scoreDist = [
   { range: "90-100%", count: 12 },
@@ -38,9 +59,27 @@ const lessonPerf = [
   { lesson: "Lesson 6", score: 91 },
 ];
 const questionTypes = [
-  { type: "Multiple Choice", questions: 45, successRate: "84%", avgTime: "47s", disc: 0.56 },
-  { type: "Essay", questions: 12, successRate: "60%", avgTime: "210s", disc: 0.75 },
-  { type: "True/False", questions: 18, successRate: "78%", avgTime: "28s", disc: 0.62 },
+  {
+    type: "Multiple Choice",
+    questions: 45,
+    successRate: "84%",
+    avgTime: "47s",
+    disc: 0.56,
+  },
+  {
+    type: "Essay",
+    questions: 12,
+    successRate: "60%",
+    avgTime: "210s",
+    disc: 0.75,
+  },
+  {
+    type: "True/False",
+    questions: 18,
+    successRate: "78%",
+    avgTime: "28s",
+    disc: 0.62,
+  },
 ];
 const questionAnalysis = [
   {
@@ -89,7 +128,8 @@ const questionAnalysis = [
     status: "Good",
   },
   {
-    question: "True or False: Two-factor authentication eliminates all security risks.",
+    question:
+      "True or False: Two-factor authentication eliminates all security risks.",
     type: "True/False",
     bloom: "Understanding",
     successRate: "78%",
@@ -166,7 +206,7 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
       questionAnalysis,
       tosPlacement,
       taxonomyAnalysis,
-      filename: "class_report.csv"
+      filename: "class_report.csv",
     });
   };
 
@@ -181,7 +221,7 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
       questionAnalysis,
       tosPlacement,
       taxonomyAnalysis,
-      filename: "class_report.doc"
+      filename: "class_report.doc",
     });
   };
 
@@ -197,7 +237,7 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
       <div className="flex flex-wrap items-center gap-3">
         <Select
           value={classValue}
-          onChange={e => setClassValue(e.target.value)}
+          onChange={(e) => setClassValue(e.target.value)}
           size="small"
           className="bg-gray-100 rounded-md"
           variant="outlined"
@@ -211,14 +251,16 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
             paddingRight: 12,
           }}
         >
-          {classes.map(option => (
-            <MenuItem key={option} value={option}>{option}</MenuItem>
+          {classes.map((option) => (
+            <MenuItem key={option} value={option}>
+              {option}
+            </MenuItem>
           ))}
         </Select>
 
         <Select
           value={dateValue}
-          onChange={e => setDateValue(e.target.value)}
+          onChange={(e) => setDateValue(e.target.value)}
           size="small"
           className="bg-gray-100 rounded-md"
           variant="outlined"
@@ -232,73 +274,46 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
             paddingRight: 12,
           }}
         >
-          {dates.map(option => (
-            <MenuItem key={option} value={option}>{option}</MenuItem>
+          {dates.map((option) => (
+            <MenuItem key={option} value={option}>
+              {option}
+            </MenuItem>
           ))}
         </Select>
 
-        <Button
-          variant="outlined"
+        <Select
+          className="bg-gray-100 rounded-md"
+          labelId="export_label"
           size="small"
-          startIcon={<DownloadIcon style={{ fontSize: 16 }} />}
-          className="bg-white text-black border-gray-300"
-          style={{
-            minWidth: 0,
-            padding: "0 16px",
+          sx={{
             height: 36,
             fontSize: 14,
-            fontWeight: 500,
-            borderRadius: 8,
-            marginLeft: 4,
-            marginRight: 4,
           }}
-          onClick={handleCSVDownload}
+          displayEmpty
+          value=""
         >
-          CSV
-        </Button>
-
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<DescriptionIcon style={{ fontSize: 16 }} />}
-          className="bg-white text-black border-gray-300"
-          style={{
-            minWidth: 0,
-            padding: "0 16px",
-            height: 36,
-            fontSize: 14,
-            fontWeight: 500,
-            borderRadius: 8,
-            marginLeft: 4,
-            marginRight: 4,
-          }}
-          onClick={handleWordDownload}
-        >
-          Word
-        </Button>
-
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<SummarizeIcon style={{ fontSize: 16 }} />}
-          className="whitespace-nowrap"
-          style={{
-            backgroundColor: "#35408E",
-            color: "#fff",
-            minWidth: 0,
-            padding: "0 20px",
-            height: 36,
-            fontSize: 14,
-            fontWeight: 600,
-            borderRadius: 8,
-            boxShadow: "none",
-            marginLeft: 4,
-            marginRight: 4,
-          }}
-          onClick={openQuickSummaryPDF}
-        >
-          Quick Summary
-        </Button>
+          <MenuItem value="" disabled>
+            Export as
+          </MenuItem>
+          <MenuItem onClick={handleCSVDownload} value="csv">
+            <CalendarViewMonthRoundedIcon
+              style={{ fontSize: 16 }}
+              color="success"
+            />
+            .csv
+          </MenuItem>
+          <MenuItem onClick={handleWordDownload} value="docx">
+            <InsertDriveFileRoundedIcon
+              style={{ fontSize: 16 }}
+              color="primary"
+            />
+            .docx
+          </MenuItem>
+          <MenuItem onClick={openQuickSummaryPDF} value="docx">
+            <PictureAsPdfRoundedIcon style={{ fontSize: 16 }} color="error" />
+            .pdf
+          </MenuItem>
+        </Select>
       </div>
     </div>
   );

@@ -2,9 +2,7 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
-  Paper,
   Select,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -14,6 +12,8 @@ import {
   TableRow,
   TextField,
   Typography,
+  Box,
+  Paper,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
@@ -22,6 +22,8 @@ function MyQuestionTab() {
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [searchBloom, setSearchBloom] = useState("");
+  const [searchSubject, setSearchSubject] = useState("");
+  const [searchType, setSearchType] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -29,23 +31,12 @@ function MyQuestionTab() {
     fetchData();
   }, []);
 
-  //   blooms_category: "Understanding";
-  //   lesson: "OWASP Top Vulnerabilities";
-  //   question: "What is the main purpose of the OWASP Top 10?";
-  //   question_id: "1be5bbd8-c09b-4eac-8289-fddf4682ddc1";
-  //   repository: "Quiz";
-  //   subject: "Information Assurance And Security\n";
-  //   type: "Multiple Choice";
-  //   usage_count: 1;
-
   const fetchData = async () => {
     const { data, error } = await supabase.from("vw_ownquestion").select("*");
-
     if (error) {
       console.error("Error fetching data:", error);
       return;
     }
-
     setRows(data);
   };
 
@@ -58,64 +49,39 @@ function MyQuestionTab() {
     setPage(0);
   };
 
+  const subjects = Array.from(new Set(rows.map(row => row.subject ?? ""))).filter(Boolean);
+  const types = Array.from(new Set(rows.map(row => row.type ?? ""))).filter(Boolean);
+
   const visibleRows = useMemo(
     () =>
       rows
         .filter((data) => {
           const isBloomAll = !searchBloom || searchBloom === "All";
+          const isSubjectAll = !searchSubject || searchSubject === "All";
+          const isTypeAll = !searchType || searchType === "All";
           const isSearchEmpty = !search || search.trim() === "";
-
-          if (isSearchEmpty && isBloomAll) return true;
 
           const matchQuestion = data.question
             .toLowerCase()
             .includes(search.toLowerCase());
 
-          const matchType = data.type
-            .toLowerCase()
-            .includes(search.toLowerCase());
+          const matchType = isTypeAll || data.type === searchType;
+          const matchBlooms = isBloomAll || data.blooms_category === searchBloom;
+          const matchLesson = data.lesson?.toLowerCase().includes(search.toLowerCase());
+          const matchSubject =
+            isSubjectAll || (data.subject ?? "").toLowerCase() === searchSubject.toLowerCase();
 
-          const matchBlooms = data.blooms_category
-            .toLowerCase()
-            .includes(search.toLowerCase());
+          const searchMatch =
+            isSearchEmpty ||
+            matchQuestion ||
+            (data.blooms_category ?? "").toLowerCase().includes(search.toLowerCase()) ||
+            matchLesson ||
+            (data.subject ?? "").toLowerCase().includes(search.toLowerCase());
 
-          const matchLesson = data.lesson
-            ?.toLowerCase()
-            .includes(search.toLowerCase());
-
-          const matchSubject = data.subject
-            ?.toLowerCase()
-            .includes(search.toLowerCase());
-
-          const matchBloomFilter =
-            searchBloom === "All" ||
-            data.blooms_category.toLowerCase() == searchBloom.toLowerCase();
-
-          if (!isSearchEmpty && !isBloomAll) {
-            return (
-              (matchQuestion ||
-                matchType ||
-                matchBlooms ||
-                matchLesson ||
-                matchSubject) &&
-              matchBloomFilter
-            );
-          } else if (!isSearchEmpty) {
-            return (
-              matchQuestion ||
-              matchType ||
-              matchBlooms ||
-              matchLesson ||
-              matchSubject
-            );
-          } else if (!isBloomAll) {
-            return matchBloomFilter;
-          }
-          return true;
+          return searchMatch && matchBlooms && matchSubject && matchType;
         })
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-
-    [rows, search, page, rowsPerPage, searchBloom]
+    [rows, search, page, rowsPerPage, searchBloom, searchSubject, searchType]
   );
 
   if (rows.length <= 0) {
@@ -128,25 +94,71 @@ function MyQuestionTab() {
 
   return (
     <>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          alignItems: "center",
+          background: "transparent",
+          paddingBottom: 1,
+          paddingTop: 3,
+        }}
+      >
         <TextField
           size="small"
-          label="search"
-          fullWidth
+          placeholder="Search questions..."
+          value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ maxWidth: "25%" }}
+          sx={{
+            flex: 2,
+            background: "#f6f7fb",
+            borderRadius: 2,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 2,
+            },
+          }}
         />
-        <FormControl fullWidth size="small" sx={{ maxWidth: "20%" }}>
-          <InputLabel id="bloom_filter_label">Bloom's Category</InputLabel>
+        <FormControl size="small" sx={{ minWidth: 140, background: "#f6f7fb", borderRadius: 2 }}>
           <Select
-            labelId="bloom_filter_label"
-            id="bloom_filter_select"
-            label="Bloom's Category"
+            displayEmpty
+            value={searchSubject}
+            onChange={(e) => setSearchSubject(e.target.value)}
+            sx={{ borderRadius: 2 }}
+          >
+            <MenuItem value="">All Subjects</MenuItem>
+            <MenuItem value="All">All Subjects</MenuItem>
+            {subjects.map((subject) => (
+              <MenuItem key={subject} value={subject}>
+                {subject}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 120, background: "#f6f7fb", borderRadius: 2 }}>
+          <Select
+            displayEmpty
+            value={searchType}
+            onChange={(e) => setSearchType(e.target.value)}
+            sx={{ borderRadius: 2 }}
+          >
+            <MenuItem value="">All Types</MenuItem>
+            <MenuItem value="All">All Types</MenuItem>
+            {types.map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 140, background: "#f6f7fb", borderRadius: 2 }}>
+          <Select
+            displayEmpty
             value={searchBloom}
             onChange={(e) => setSearchBloom(e.target.value)}
+            sx={{ borderRadius: 2 }}
           >
-            <MenuItem value="" disabled></MenuItem>
-            <MenuItem value="All">All</MenuItem>
+            <MenuItem value="">Bloom's Category</MenuItem>
+            <MenuItem value="All">Bloom's Category</MenuItem>
             <MenuItem value="Remembering">Remembering</MenuItem>
             <MenuItem value="Understanding">Understanding</MenuItem>
             <MenuItem value="Applying">Applying</MenuItem>
@@ -155,12 +167,17 @@ function MyQuestionTab() {
             <MenuItem value="Creating">Creating</MenuItem>
           </Select>
         </FormControl>
-      </Stack>
+      </Box>
 
       <TableContainer
         component={Paper}
         variant="outlined"
-        sx={{ marginTop: 2, overflow: "auto", maxHeight: "60vh" }}
+        sx={{
+          marginTop: 0,
+          overflow: "auto",
+          maxHeight: "60vh",
+          borderRadius: 2,
+        }}
       >
         <Table sx={{ minWidth: 650 }} aria-label="simple table" stickyHeader>
           <TableHead>
@@ -168,20 +185,17 @@ function MyQuestionTab() {
               <TableCell>
                 <b>Question</b>
               </TableCell>
-              <TableCell align="right">
+              <TableCell>
                 <b>Type</b>
               </TableCell>
-              <TableCell align="right">
-                <b>Bloom's Spec</b>
+              <TableCell>
+                <b>Blooms Spec</b>
               </TableCell>
-              <TableCell align="right">
-                <b>Lesson</b>
+              <TableCell>
+                <b>Lessons</b>
               </TableCell>
-              <TableCell align="right">
+              <TableCell>
                 <b>Subject</b>
-              </TableCell>
-              <TableCell align="right">
-                <b>Usage count</b>
               </TableCell>
             </TableRow>
           </TableHead>
@@ -193,12 +207,82 @@ function MyQuestionTab() {
               >
                 <TableCell component="th" scope="row">
                   {row.question}
+                  {row.keywords && Array.isArray(row.keywords) && (
+                    <Box sx={{ mt: 0.5, display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+                      {row.keywords.map((kw, i) => (
+                        <Box
+                          key={i}
+                          sx={{
+                            px: 1,
+                            py: 0.2,
+                            fontSize: "11px",
+                            background: "#f3f4f6",
+                            borderRadius: 1,
+                            color: "#555",
+                            border: "1px solid #e5e7eb",
+                            mr: 0.5,
+                            mb: 0.5,
+                            display: "inline-block",
+                          }}
+                        >
+                          {kw}
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
                 </TableCell>
-                <TableCell align="right">{row.type}</TableCell>
-                <TableCell align="right">{row.blooms_category}</TableCell>
-                <TableCell align="right">{row.lesson ?? ""}</TableCell>
-                <TableCell align="right">{row.subject ?? ""}</TableCell>
-                <TableCell align="right">{row.usage_count}</TableCell>
+                <TableCell>
+                  <Box
+                    sx={{
+                      display: "inline-block",
+                      px: 1,
+                      py: 0.2,
+                      background: "#eaf2ff",
+                      color: "#3b5cb8",
+                      borderRadius: 1,
+                      fontSize: "13px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {row.type}
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Box
+                    sx={{
+                      display: "inline-block",
+                      px: 1,
+                      py: 0.2,
+                      background:
+                        row.blooms_category === "Remembering"
+                          ? "#ffeaea"
+                          : row.blooms_category === "Analyzing"
+                          ? "#eaffea"
+                          : row.blooms_category === "Applying"
+                          ? "#fffbe5"
+                          : "#f3f4f6",
+                      color:
+                        row.blooms_category === "Remembering"
+                          ? "#d32f2f"
+                          : row.blooms_category === "Analyzing"
+                          ? "#388e3c"
+                          : row.blooms_category === "Applying"
+                          ? "#fbc02d"
+                          : "#555",
+                      borderRadius: 1,
+                      fontSize: "13px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {row.blooms_category}
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  {row.lesson}
+                </TableCell>
+                <TableCell>
+                  {row.subject}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

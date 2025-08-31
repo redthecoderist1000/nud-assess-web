@@ -1,31 +1,22 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import temporaryImage from "../../assets/images/temporaryimage.png";
+import { motion } from "framer-motion";
 import ClassAnalyticsChart from "./components/ClassAnalyticsChart";
 import CreateClass from "./components/CreateClass";
-import { useEffect } from "react";
+import ClassGrid from "./components/ClassGrid";
 import { supabase } from "../../helper/Supabase";
 import { userContext } from "../../App";
 import {
   Button,
+  Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   Divider,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  Popover,
   Stack,
-  Typography,
 } from "@mui/material";
-import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
-import ArchiveRoundedIcon from "@mui/icons-material/ArchiveRounded";
-import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 
 const ClassManagementPage = () => {
   const { user } = useContext(userContext);
@@ -38,14 +29,7 @@ const ClassManagementPage = () => {
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [archiveDialog, setArchiveDialog] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const filteredClasses = classes.filter((cls) => {
-    if (activeTab == "active") {
-      return cls.is_active;
-    } else {
-      return !cls.is_active;
-    }
-  });
+  const [selectedAnalyticsClass, setSelectedAnalyticsClass] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -55,7 +39,7 @@ const ClassManagementPage = () => {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "tbl_class" },
-        (payload) => {
+        () => {
           fetchData();
         }
       )
@@ -92,11 +76,31 @@ const ClassManagementPage = () => {
 
     if (error) {
       console.error("Error archiving class:", error);
+      setLoading(false);
       return;
     }
 
     setLoading(false);
     setArchiveDialog(false);
+    setAnchorEl(null);
+    setSelectedClass({});
+  };
+
+  const handleActivate = async (cls) => {
+    setLoading(true);
+
+    const { error } = await supabase
+      .from("tbl_class")
+      .update({ is_active: true })
+      .eq("id", cls.id);
+
+    if (error) {
+      console.error("Error activating class:", error);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
     setAnchorEl(null);
     setSelectedClass({});
   };
@@ -110,6 +114,7 @@ const ClassManagementPage = () => {
 
     if (error) {
       console.error("Error deleting class:", error);
+      setLoading(false);
       return;
     }
     setLoading(false);
@@ -122,125 +127,114 @@ const ClassManagementPage = () => {
     setAnchorEl(null);
   };
 
+  const filteredClasses = classes.filter((cls) => {
+    if (activeTab === "active") {
+      return cls.is_active;
+    } else {
+      return !cls.is_active;
+    }
+  });
+
+  const handleClassDoubleClick = (cls) => {
+    navigate("/class", { state: cls });
+  };
+
+  const handleClassClick = (cls) => {
+    setSelectedAnalyticsClass(cls);
+  };
+
   return (
-    <AnimatePresence>
+    <Container maxWidth="xl" sx={{ my: 5 }}>
       <motion.div
-        className="flex gap-5 p-5"
+        className="flex flex-col gap-5"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -50 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="w-7/10 p-5 rounded-lg">
-          <div className="mb-6">
-            <h1 className="text-5xl font-semibold mb-2">My Classes</h1>
-            <p className="text-gray-600">
+
+        <div className="w-full bg-white border-b border-gray-200 py-3 mb-3 flex items-center justify-between mt-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-0">My Classes</h1>
+            <p className="text-sm text-gray-500 mt-1 mb-0">
               Organize class schedules, assignments, and analytics in one place.
             </p>
           </div>
+          <button
+            className="flex items-center gap-2 bg-[#4854a3] hover:bg-[#2C388F] text-white font-medium py-2 px-4 rounded-lg text-sm"
+            onClick={() => setCreateModalVisible(true)}
+          >
+            Create Class
+          </button>
+        </div>
 
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex gap-4">
-              <span
-                className={`cursor-pointer font-bold ${activeTab === "active" ? "text-yellow-500" : "text-gray-500"}`}
-                onClick={() => setActiveTab("active")}
-              >
-                Active
-              </span>
-              <span
-                className={`cursor-pointer font-bold ${activeTab === "archived" ? "text-yellow-500" : "text-gray-500"}`}
-                onClick={() => setActiveTab("archived")}
-              >
-                Archive
-              </span>
-            </div>
+          <div className="flex gap-5">
+            <div className="w-7/10 rounded-lg">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex bg-[#f3f4f6] rounded-full p-1" style={{ minWidth: 260, maxWidth: 300 }}>
             <button
-              className="bg-[#35408E] text-white px-4 py-2 rounded-lg transform transition-transform duration-300 ease-in-out hover:scale-105"
-              onClick={() => setCreateModalVisible(true)}
+              className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
+                ${activeTab === "active" ? "bg-white text-black shadow-sm" : "text-gray-700"}
+              `}
+              style={{
+                border: "none",
+                background: activeTab === "active" ? "#fff" : "transparent",
+                boxShadow: activeTab === "active" ? "0 1px 4px rgba(0,0,0,0.03)" : "none",
+              }}
+              onClick={() => setActiveTab("active")}
             >
-              Create
+              Active
             </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {filteredClasses.map((cls) => (
-              <div
-                key={cls.id}
-                className="relative flex items-center bg-yellow-300 rounded-lg p-3 h-30 transition duration-300 ease-in-out hover:from-yellow-500 hover:to-yellow-300"
-              >
-                <div
-                  className="flex items-center flex-1 cursor-pointer"
-                  onClick={() => {
-                    navigate("/class", { state: cls });
-                  }}
-                >
-                  <img
-                    src={
-                      cls.image ||
-                      temporaryImage ||
-                      "https://via.placeholder.com/150"
-                    }
-                    alt="Class"
-                    className="w-25 h-15 bg-gray-300 rounded-md object-cover"
-                  />
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    ml={2}
-                    sx={{ width: "100%" }}
-                  >
-                    <strong>{cls.class_name}</strong>
-                  </Stack>
+            <button
+              className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
+                ${activeTab === "archived" ? "bg-white text-black shadow-sm" : "text-gray-700"}
+              `}
+              style={{
+                border: "none",
+                background: activeTab === "archived" ? "#fff" : "transparent",
+                boxShadow: activeTab === "archived" ? "0 1px 4px rgba(0,0,0,0.03)" : "none",
+              }}
+              onClick={() => setActiveTab("archived")}
+            >
+              Archive
+            </button>
                 </div>
-                <div className="relative"></div>
-                <IconButton onClick={(e) => handleOpenPopover(e, cls)}>
-                  <MoreVertRoundedIcon />
-                </IconButton>
-                <Popover
-                  open={open}
-                  anchorEl={anchorEl}
-                  onClose={handleClosePopover}
-                  anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: "left",
-                  }}
-                >
-                  <List>
-                    {cls.is_active ? (
-                      <>
-                        <ListItemButton onClick={() => setArchiveDialog(true)}>
-                          <ArchiveRoundedIcon className="text-gray-600" />
-                          <Typography className="ml-2">Archive</Typography>
-                        </ListItemButton>
-                        <Divider />
-                      </>
-                    ) : (
-                      <></>
-                    )}
-                    <ListItemButton onClick={() => setDeleteDialog(true)}>
-                      <DeleteRoundedIcon className="text-red-600" />
-                      <Typography className="ml-2">Delete</Typography>
-                    </ListItemButton>
-                  </List>
-                </Popover>
               </div>
-            ))}
-          </div>
-        </div>
 
-        <div className="w-1/3 mt-30">
-          <ClassAnalyticsChart classes={classes} />
-        </div>
+              {activeTab === "archived" && filteredClasses.length === 0 ? (
+                <div className="text-center text-gray-500 py-10">
+            No Archive Class
+                </div>
+              ) : (
+                <ClassGrid
+            classes={filteredClasses}
+            open={open}
+            selectedClass={selectedClass}
+            anchorEl={anchorEl}
+            handleOpenPopover={handleOpenPopover}
+            handleClosePopover={handleClosePopover}
+            handleArchiveDialog={() => setArchiveDialog(true)}
+            handleActivate={handleActivate}
+            handleDeleteDialog={() => setDeleteDialog(true)}
+            handleSelectAnalyticsClass={handleClassClick}
+            onDoubleClick={handleClassDoubleClick}
+                />
+              )}
+            </div>
 
-        {createModalVisible && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
-              <CreateClass onCancel={() => setCreateModalVisible(false)} />
+            <div className="w-1/3 mt-15">
+              <ClassAnalyticsChart classes={classes} selectedClass={selectedAnalyticsClass} />
             </div>
           </div>
-        )}
-        {/* archive dialog */}
+
+          {createModalVisible && (
+            <div className="fixed inset-0 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
+                <CreateClass onCancel={() => setCreateModalVisible(false)} />
+              </div>
+            </div>
+          )}
+
         <Dialog open={archiveDialog} onClose={() => setArchiveDialog(false)}>
           <DialogTitle>Archive Class: {selectedClass.class_name}</DialogTitle>
           <Divider />
@@ -267,7 +261,6 @@ const ClassManagementPage = () => {
           </DialogActions>
         </Dialog>
 
-        {/* delete dialog */}
         <Dialog open={deleteDialog} onClose={() => setDeleteDialog(false)}>
           <DialogTitle>Delete Class: {selectedClass.class_name}</DialogTitle>
           <Divider />
@@ -294,7 +287,7 @@ const ClassManagementPage = () => {
           </DialogActions>
         </Dialog>
       </motion.div>
-    </AnimatePresence>
+    </Container>
   );
 };
 

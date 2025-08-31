@@ -2,6 +2,8 @@ import React, { useContext, useState, useEffect } from "react";
 import { Container } from "@mui/material";
 import DashboardLead from "./component/DashboardLead";
 import PerfOverview from "./component/PerfOverview/PerfOverview";
+import TopPerf from "./component/TopPerf";
+import LowPerf from "./component/LowPerf";
 import QuizModal from "../QuizManagement/components/QuizModal";
 import ExamCompletionRate from "./component/ExamCompletionRate/ExamCompletionRate";
 import TOSPlacement from "../ReportnAnalytics/components/TOSPlacement";
@@ -210,6 +212,23 @@ const DashboardPage = () => {
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col h-full">
             <ExamCompletionRate />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          {/* Top Performers */}
+          <div className="flex flex-col h-full">
+            <div className="flex-1 min-h-[400px] overflow-y-auto">
+              <TopPerf />
+            </div>
+          </div>
+          {/* Low Performers */}
+          <div className="flex flex-col h-full">
+            <div className="flex-1 min-h-[400px] overflow-y-auto">
+              <LowPerf />
+            </div>
           </div>
         </div>
       </div>

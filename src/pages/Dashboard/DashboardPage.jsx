@@ -1,5 +1,4 @@
 import React, { useContext, useState, useEffect } from "react";
-import { Container } from "@mui/material";
 import DashboardLead from "./component/DashboardLead";
 import PerfOverview from "./component/PerfOverview/PerfOverview";
 import TopPerf from "./component/TopPerf";
@@ -11,6 +10,7 @@ import QuestionRepoModal from "../QuestionManagement/components/QuestionRepoModa
 import CreateClass from "../MyClasses/components/CreateClass";
 import { userContext } from "../../App";
 import { supabase } from "../../helper/Supabase";
+import { Button, Container } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const DashboardPage = () => {
@@ -122,8 +122,21 @@ const DashboardPage = () => {
   const leadStats = [
     {
       icon: (
-        <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" />
+        <svg
+          className="w-6 h-6 text-yellow-400"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <rect
+            x="4"
+            y="4"
+            width="16"
+            height="16"
+            rx="2"
+            stroke="currentColor"
+          />
           <line x1="8" y1="8" x2="16" y2="8" stroke="currentColor" />
           <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" />
           <line x1="8" y1="16" x2="12" y2="16" stroke="currentColor" />
@@ -134,7 +147,13 @@ const DashboardPage = () => {
     },
     {
       icon: (
-        <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <svg
+          className="w-6 h-6 text-yellow-400"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
           <circle cx="12" cy="12" r="10" stroke="currentColor" />
           <path d="M12 16v-4" stroke="currentColor" />
           <circle cx="12" cy="8" r="1" fill="currentColor" />
@@ -145,7 +164,13 @@ const DashboardPage = () => {
     },
     {
       icon: (
-        <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <svg
+          className="w-6 h-6 text-yellow-400"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
           <path d="M17 21v-2a4 4 0 0 0-8 0v2" stroke="currentColor" />
           <circle cx="12" cy="7" r="4" stroke="currentColor" />
           <path d="M5.5 17a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" />
@@ -157,8 +182,21 @@ const DashboardPage = () => {
     },
     {
       icon: (
-        <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" />
+        <svg
+          className="w-6 h-6 text-yellow-400"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="2"
+            stroke="currentColor"
+          />
           <path d="M7 17v-6M12 17v-2M17 17v-8" stroke="currentColor" />
         </svg>
       ),
@@ -198,15 +236,30 @@ const DashboardPage = () => {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4 flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <span>
-                  <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 text-blue-500"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
                     <circle cx="12" cy="12" r="10" stroke="currentColor" />
-                    <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M12 16v-4M12 8h.01"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </span>
-                <span className="font-semibold text-blue-700 text-sm">TOS Recommendation</span>
+                <span className="font-semibold text-blue-700 text-sm">
+                  TOS Recommendation
+                </span>
               </div>
               <div className="text-xs text-blue-700 ml-6">
-                Consider adding more higher-order thinking questions (Analyzing, Evaluating, Creating) to challenge students and meet Bloom's taxonomy distribution goals.
+                Consider adding more higher-order thinking questions (Analyzing,
+                Evaluating, Creating) to challenge students and meet Bloom's
+                taxonomy distribution goals.
               </div>
             </div>
           </div>

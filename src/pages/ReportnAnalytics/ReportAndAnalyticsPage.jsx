@@ -26,7 +26,7 @@ const ReportAndAnalyticsPage = () => {
     <Container maxWidth="xl" className="my-5">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 pt-6 pb-2">
-        <h1 className="text-2xl font-bold text-gray-900 mb-0">Reports & Analytics</h1>
+        <h1 className="text-5xl font-bold mb-4">Reports & Analytics</h1>
         <p className="text-sm text-gray-500 mt-1 mb-0">
           Analytics and performance insights
         </p>
@@ -62,7 +62,8 @@ const ReportAndAnalyticsPage = () => {
                 background: activeTab === tab.key ? "#fff" : "transparent",
                 border: "none",
                 borderRadius: 9999,
-                boxShadow: activeTab === tab.key ? "0 1px 4px rgba(0,0,0,0.03)" : "none",
+                boxShadow:
+                  activeTab === tab.key ? "0 1px 4px rgba(0,0,0,0.03)" : "none",
                 minWidth: 0,
               }}
               onClick={() => setActiveTab(tab.key)}

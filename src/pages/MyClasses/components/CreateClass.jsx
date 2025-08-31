@@ -19,50 +19,39 @@ const CreateClass = ({ onCancel }) => {
     setClassData({ ...classData, [name]: value.trim() });
   };
 
-  // const handleImageUpload = (e) => {
-  //   const file = e.target.files[0];
-  //   setClassData({ ...classData, image: file });
-  // };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     // check if existing anme
-
     const { data: nameCheck, error: checkError } = await supabase
       .from("tbl_class")
       .select("class_name")
-      .eq("created_by", user.user_id);
+      .eq("created_by", user.user_id)
+      .like("class_name", classData.class_name + "%");
     if (checkError) {
       console.log("Failed to check name");
       setLoading(false);
       return;
     }
 
-    const sameNameList = nameCheck.filter(
-      (data) =>
-        data.class_name.trim().substr(0, classData.class_name.trim().length) ==
-        classData.class_name.trim()
-    );
+    const baseName = classData.class_name;
+    const pattern = new RegExp(`^${baseName}(?: \\(\\d+\\))?$`);
 
-    let finalName = classData.class_name.trim();
-    if (sameNameList.length >= 1) {
-      finalName = finalName + " (" + (sameNameList.length + 1) + ")";
-    }
+    const filtered = nameCheck
+      .map((item) => item.class_name)
+      .filter((name) => pattern.test(name));
 
-    let r = (Math.random() + 1).toString(36).substring(2, 9);
+    const name =
+      filtered.length > 0 ? getNextAvailableName(baseName, filtered) : baseName;
 
     const { data, error } = await supabase
       .from("tbl_class")
-      .insert({ ...classData, join_code: r, class_name: finalName })
-      .select("*")
-      .single();
+      .insert([{ ...classData, class_name: name }]);
 
     if (error) {
-      console.log("Failed to create class:", error);
+      console.log("Failed to create class");
       setLoading(false);
-      onCancel();
       return;
     }
 
@@ -70,6 +59,25 @@ const CreateClass = ({ onCancel }) => {
     onCancel();
   };
 
+  function getNextAvailableName(baseName, existingNames) {
+    const usedNumbers = new Set();
+
+    existingNames.forEach((name) => {
+      const match = name.match(new RegExp(`^${baseName}(?:\\((\\d+)\\))?$`));
+      if (match) {
+        const num = match[1] ? parseInt(match[1]) : 0;
+        usedNumbers.add(num);
+      }
+    });
+
+    // Find the smallest unused number starting from 0
+    let nextNum = 0;
+    while (usedNumbers.has(nextNum)) {
+      nextNum++;
+    }
+
+    return nextNum === 0 ? baseName : `${baseName}(${nextNum})`;
+  }
   return (
     <>
       <h2 className="text-2xl font-bold mb-4">Create Class</h2>

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import QuestionRepoModal from "./components/QuestionRepoModal";
-import { Box, Card, Container } from "@mui/material";
+
+import { Box, Card, Container, Tab, Tabs } from "@mui/material";
+
 import MyQuestionTab from "./questionmanagementTabs/MyQuestionTab";
 import TetraBox from "./components/TetraBox";
 import { supabase } from "../../helper/Supabase";
@@ -171,13 +173,16 @@ const QuestionManagementPage = () => {
             )}
           </Box>
 
+
           <QuestionRepoModal
             isOpen={repoModalOpen}
             onClose={() => setRepoModalOpen(false)}
             onSelect={(selectedRepo) => {
-              setRepoModalOpen(false);
+
+              setRepoModalOpen(false); // Close the modal
               navigate("/GenerateQuestion", {
-                state: { repository: selectedRepo },
+                state: { repository: selectedRepo }, // Pass the selected repository
+
               });
             }}
           />

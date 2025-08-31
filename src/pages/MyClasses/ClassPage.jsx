@@ -5,6 +5,7 @@ import { supabase } from "../../helper/Supabase";
 import {
   Button,
   Chip,
+  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -130,14 +131,6 @@ const ClassPage = () => {
 
   const statusChip = (openTime, closeTime) => {
     const now = dayjs();
-
-    // <td className="py-3 px-4">
-    //   <span
-    //     className={`${s.is_answered ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"} px-2 py-1 rounded-full text-xs font-semibold`}
-    //   >
-    //     {s.is_answered ? "Turned In" : "Not Turned In"}
-    //   </span>
-    // </td>;
 
     // If no open time is set, quiz is always open
     if (!openTime) {

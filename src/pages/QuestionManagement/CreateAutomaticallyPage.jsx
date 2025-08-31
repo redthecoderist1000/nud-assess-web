@@ -166,7 +166,7 @@ const CreateAutomaticallyPage = () => {
             Generate Quiz Automatically
           </h1>
           <p className="text-gray-600">
-            Input basic details and upload your file to generate a quiz.
+            Input basic details or upload your file to generate a quiz.
           </p>
         </div>
 

@@ -24,48 +24,46 @@ const QuestionManagementPage = () => {
   });
 
   useEffect(() => {
-    const fetchStats = async () => {
-      // My Questions count
-      const { data: myQuestions } = await supabase
-        .from("questions")
-        .select("id", { count: "exact" })
-        .eq("owner_id", supabase.auth.user()?.id);
-
-      // Shared Questions count
-      const { data: sharedQuestions } = await supabase
-        .from("questions")
-        .select("id", { count: "exact" })
-        .eq("is_shared", true);
-
-      // Total Usage (sum of usage_count column)
-      const { data: usageData } = await supabase
-        .from("questions")
-        .select("usage_count");
-
-      // Calculate stats
-      const myQuestionsCount = myQuestions?.length || 0;
-      const sharedQuestionsCount = sharedQuestions?.length || 0;
-      const totalUsage = usageData ? usageData.reduce((sum, q) => sum + (q.usage_count || 0), 0) : 0;
-      const avgUsage = myQuestionsCount > 0
-        ? Math.round(totalUsage / myQuestionsCount)
-        : 0;
-
-      const myQuestionsDelta = 3;
-
-      setTetraStats({
-        myQuestions: myQuestionsCount,
-        myQuestionsDelta,
-        sharedQuestions: sharedQuestionsCount,
-        totalUsage,
-        avgUsage,
-      });
-    };
-
-    fetchStats();
+    // const fetchStats = async () => {
+    //   // My Questions count
+    //   const { data: myQuestions } = await supabase
+    //     .from("questions")
+    //     .select("id", { count: "exact" })
+    //     .eq("owner_id", supabase.auth.user()?.id);
+    //   // Shared Questions count
+    //   const { data: sharedQuestions } = await supabase
+    //     .from("questions")
+    //     .select("id", { count: "exact" })
+    //     .eq("is_shared", true);
+    //   // Total Usage (sum of usage_count column)
+    //   const { data: usageData } = await supabase
+    //     .from("questions")
+    //     .select("usage_count");
+    //   // Calculate stats
+    //   const myQuestionsCount = myQuestions?.length || 0;
+    //   const sharedQuestionsCount = sharedQuestions?.length || 0;
+    //   const totalUsage = usageData ? usageData.reduce((sum, q) => sum + (q.usage_count || 0), 0) : 0;
+    //   const avgUsage = myQuestionsCount > 0
+    //     ? Math.round(totalUsage / myQuestionsCount)
+    //     : 0;
+    //   const myQuestionsDelta = 3;
+    //   setTetraStats({
+    //     myQuestions: myQuestionsCount,
+    //     myQuestionsDelta,
+    //     sharedQuestions: sharedQuestionsCount,
+    //     totalUsage,
+    //     avgUsage,
+    //   });
+    // };
+    // fetchStats();
   }, []);
 
   return (
-    <Container maxWidth="xl" className="my-5" sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+    <Container
+      maxWidth="xl"
+      className="my-5"
+      sx={{ height: "100vh", display: "flex", flexDirection: "column" }}
+    >
       <motion.div
         className="flex flex-col h-full overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
@@ -86,7 +84,9 @@ const QuestionManagementPage = () => {
             }}
           >
             <Box>
-              <h1 className="text-2xl font-bold text-gray-900 mb-0">Questions</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-0">
+                Questions
+              </h1>
               <p className="text-sm text-gray-500 mt-1 mb-0">
                 Manage your test bank and track student performance
               </p>
@@ -102,11 +102,45 @@ const QuestionManagementPage = () => {
               }}
               onClick={() => setRepoModalOpen(true)}
             >
-              <svg className="w-4 h-4" fill="none" stroke="white" strokeWidth="2" viewBox="0 0 24 24">
-                <rect x="4" y="4" width="16" height="16" rx="3" stroke="white" />
-                <line x1="8" y1="8" x2="16" y2="8" stroke="white" strokeLinecap="round" />
-                <line x1="8" y1="12" x2="16" y2="12" stroke="white" strokeLinecap="round" />
-                <line x1="8" y1="16" x2="12" y2="16" stroke="white" strokeLinecap="round" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <rect
+                  x="4"
+                  y="4"
+                  width="16"
+                  height="16"
+                  rx="3"
+                  stroke="white"
+                />
+                <line
+                  x1="8"
+                  y1="8"
+                  x2="16"
+                  y2="8"
+                  stroke="white"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1="8"
+                  y1="12"
+                  x2="16"
+                  y2="12"
+                  stroke="white"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1="8"
+                  y1="16"
+                  x2="12"
+                  y2="16"
+                  stroke="white"
+                  strokeLinecap="round"
+                />
               </svg>
               Create Questions
             </button>
@@ -143,7 +177,10 @@ const QuestionManagementPage = () => {
                     background: activeTab === tab.key ? "#fff" : "transparent",
                     border: "none",
                     borderRadius: 9999,
-                    boxShadow: activeTab === tab.key ? "0 1px 4px rgba(0,0,0,0.03)" : "none",
+                    boxShadow:
+                      activeTab === tab.key
+                        ? "0 1px 4px rgba(0,0,0,0.03)"
+                        : "none",
                     minWidth: 0,
                   }}
                   onClick={() => setActiveTab(tab.key)}
@@ -155,17 +192,60 @@ const QuestionManagementPage = () => {
           </div>
 
           {/* Tab Content: Make table scrollable, page fixed */}
-          <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <Box
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
             {activeTab === "MyQuestions" && (
-              <Card sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-                <Box sx={{ width: "100%", flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+              <Card
+                sx={{
+                  flex: 1,
+                  minHeight: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden",
+                }}
+              >
+                <Box
+                  sx={{
+                    width: "100%",
+                    flex: 1,
+                    minHeight: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
+                  }}
+                >
                   <MyQuestionTab />
                 </Box>
               </Card>
             )}
             {activeTab === "SharedQuestions" && (
-              <Card variant="outlined" sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-                <Box sx={{ width: "100%", flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+              <Card
+                variant="outlined"
+                sx={{
+                  flex: 1,
+                  minHeight: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden",
+                }}
+              >
+                <Box
+                  sx={{
+                    width: "100%",
+                    flex: 1,
+                    minHeight: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
+                  }}
+                >
                   {/* Replace with your shared questions tab component */}
                   Item Two
                 </Box>
@@ -173,16 +253,13 @@ const QuestionManagementPage = () => {
             )}
           </Box>
 
-
           <QuestionRepoModal
             isOpen={repoModalOpen}
             onClose={() => setRepoModalOpen(false)}
             onSelect={(selectedRepo) => {
-
               setRepoModalOpen(false); // Close the modal
               navigate("/GenerateQuestion", {
                 state: { repository: selectedRepo }, // Pass the selected repository
-
               });
             }}
           />

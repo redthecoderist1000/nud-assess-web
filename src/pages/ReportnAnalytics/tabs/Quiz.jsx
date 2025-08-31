@@ -6,13 +6,13 @@ import PerformancePerLesson from "../components/PerformancePerLesson";
 import TOSPlacement from "../components/TOSPlacement";
 import BTaxonomyAnalysis from "../components/BTaxonomyAnalysis";
 
-const Quiz = () => {
+const Quiz = ({ analyticsData }) => {
   return (
     <div className="w-full flex flex-col gap-6">
       {/* Top row: PerformanceByQuiz and ScoreDistribution */}
       <div className="w-full flex flex-col lg:flex-row gap-6 items-stretch">
         <div className="flex-[2] min-w-0 flex">
-          <PerformanceByQuiz className="w-full h-full" />
+          <PerformanceByQuiz perf_by_quiz={analyticsData.perf_by_quiz} />
         </div>
         <div className="flex-1 min-w-0 flex">
           <ScoreDistribution className="w-full h-full" />

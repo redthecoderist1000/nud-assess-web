@@ -1,24 +1,67 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Class from "./tabs/Class";
 import Quiz from "./tabs/Quiz";
 import Question from "./tabs/Question";
 import FilterAnalytics from "./components/FilterAnalytics";
 import TetraBox from "./components/TetraBox";
-import { Container } from "@mui/material";
+import { Box, CircularProgress, Container } from "@mui/material";
+import { supabase } from "../../helper/Supabase";
 
 const ReportAndAnalyticsPage = () => {
   // Use "QuizReports" and "QuestionAnalysis" for tab keys
-  const [activeTab, setActiveTab] = useState("QuizReports");
+  const [activeTab, setActiveTab] = useState("quiz");
+  const [filter, setFilter] = useState({
+    class_id: "",
+    start_time: "2025-07-15 06:30:15.928965+00",
+    end_time: "2025-08-19 11:36:47.1426+00",
+  });
+  const [analyticsData, setAnalyticsData] = useState({});
+
+  useEffect(() => {
+    if (filter.class_id == "") {
+      return;
+    }
+
+    if (activeTab == "quiz") fetchQuizData();
+    // distribution, bloom_tax, perf_by_quiz
+  }, [filter, activeTab]);
+
+  const fetchQuizData = async () => {
+    setAnalyticsData({});
+
+    const { data, error } = await supabase
+      .rpc("get_quiz_analytics", {
+        p_class_id: filter.class_id,
+        p_start_time: filter.start_time,
+        p_end_time: filter.end_time,
+      })
+      .single();
+
+    if (error) {
+      console.log("error fetching analytics:", error);
+      return;
+    }
+    console.log(data);
+    setAnalyticsData(data);
+  };
 
   const renderTabContent = () => {
+    if (!analyticsData || Object.keys(analyticsData).length === 0) {
+      return (
+        <Box display="flex" justifyContent="center" alignItems="center" py={6}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
     switch (activeTab) {
-      case "QuizReports":
-        return <Quiz />;
-      case "QuestionAnalysis":
-        return <Question />;
+      case "quiz":
+        return <Quiz analyticsData={analyticsData} />;
+      case "question":
+        return <Question analyticsData={analyticsData} />;
       default:
-        return <Quiz />;
+        return <Quiz analyticsData={analyticsData} />;
     }
   };
 
@@ -32,7 +75,7 @@ const ReportAndAnalyticsPage = () => {
         </p>
       </div>
 
-      <FilterAnalytics />
+      <FilterAnalytics filter={filter} setFilter={setFilter} />
       <TetraBox />
 
       {/* Custom Tabs */}

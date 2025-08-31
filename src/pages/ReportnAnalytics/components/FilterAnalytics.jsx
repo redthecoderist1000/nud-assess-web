@@ -6,6 +6,7 @@ import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
 import { getReportHTML } from "../Download/DLReport";
 import { downloadFullCSV } from "../Download/CSVReport";
 import { downloadWordReport } from "../Download/WordReport";
+import { supabase } from "../../../helper/Supabase";
 
 // dummy data
 const defaultClassOptions = ["BSIT 3A", "BSIT 3B", "BSIT 4A"];
@@ -172,9 +173,10 @@ function openQuickSummaryPDF() {
   win.print();
 }
 
-const FilterAnalytics = ({ classOptions, dateOptions }) => {
+const FilterAnalytics = ({ classOptions, dateOptions, filter, setFilter }) => {
   const [classes, setClasses] = useState(defaultClassOptions);
   const [dates, setDates] = useState(defaultDateOptions);
+  const [classOption, setClassOption] = useState([]);
 
   useEffect(() => {
     if (Array.isArray(classOptions) && classOptions.length > 0) {
@@ -194,6 +196,26 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
   useEffect(() => {
     setDateValue(dates[1] || dates[0]);
   }, [dates]);
+
+  useEffect(() => {
+    fetchOptions();
+  }, []);
+
+  const fetchOptions = async () => {
+    // console.log((await supabase.auth.getUser()).data.user.id);
+    const { data: authData, error } = await supabase.auth.getUser();
+    const user_id = authData?.user?.id;
+    const { data: classOptionData, error: classErr } = await supabase
+      .from("tbl_class")
+      .select("*")
+      .eq("created_by", user_id);
+    if (classErr) {
+      console, log("error fetch class option:", classErr);
+      return;
+    }
+    setClassOption(classOptionData);
+    // console.log(classOptionData);
+  };
 
   // csv handler
   const handleCSVDownload = () => {
@@ -236,8 +258,8 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
 
       <div className="flex flex-wrap items-center gap-3">
         <Select
-          value={classValue}
-          onChange={(e) => setClassValue(e.target.value)}
+          value={filter.class_id}
+          onChange={(e) => setFilter({ ...filter, class_id: e.target.value })}
           size="small"
           className="bg-gray-100 rounded-md"
           variant="outlined"
@@ -251,9 +273,9 @@ const FilterAnalytics = ({ classOptions, dateOptions }) => {
             paddingRight: 12,
           }}
         >
-          {classes.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
+          {classOption.map((data, index) => (
+            <MenuItem key={index} value={data.id}>
+              {data.class_name}
             </MenuItem>
           ))}
         </Select>

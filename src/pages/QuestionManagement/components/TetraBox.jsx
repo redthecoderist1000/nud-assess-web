@@ -6,7 +6,9 @@ const stats = [
     value: 7,
     subtitle: (
       <span>
-        <span style={{ color: "#3b82f6", fontSize: "14px", marginRight: 4 }}>↗ +3</span>
+        <span style={{ color: "#3b82f6", fontSize: "14px", marginRight: 4 }}>
+          ↗ +3
+        </span>
         from last month
       </span>
     ),
@@ -21,7 +23,14 @@ const stats = [
         }}
       >
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="8" stroke="#2C388F" strokeWidth="2" fill="none" />
+          <circle
+            cx="12"
+            cy="12"
+            r="8"
+            stroke="#2C388F"
+            strokeWidth="2"
+            fill="none"
+          />
           <circle cx="12" cy="12" r="2" fill="#2C388F" />
         </svg>
       </span>
@@ -69,7 +78,14 @@ const stats = [
         }}
       >
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="8" stroke="#2563eb" strokeWidth="2" fill="none" />
+          <circle
+            cx="12"
+            cy="12"
+            r="8"
+            stroke="#2563eb"
+            strokeWidth="2"
+            fill="none"
+          />
           <circle cx="12" cy="12" r="2" fill="#2563eb" />
         </svg>
       </span>
@@ -122,7 +138,7 @@ const TetraBox = () => (
   >
     {stats.map((stat, idx) => (
       <div
-        key={stat.title}
+        key={idx}
         style={{
           flex: 1,
           background: "#fff",
@@ -146,14 +162,32 @@ const TetraBox = () => (
             borderRadius: "16px 0 0 16px",
           }}
         />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontWeight: 600, fontSize: "16px", color: "#222" }}>{stat.title}</span>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span style={{ fontWeight: 600, fontSize: "16px", color: "#222" }}>
+            {stat.title}
+          </span>
           {stat.icon}
         </div>
         <div style={{ marginTop: "18px", marginBottom: "2px" }}>
-          <span style={{ fontWeight: 700, fontSize: "28px", color: stat.borderColor }}>{stat.value}</span>
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: "28px",
+              color: stat.borderColor,
+            }}
+          >
+            {stat.value}
+          </span>
         </div>
-        <div style={{ fontSize: "14px", color: "#6b7280" }}>{stat.subtitle}</div>
+        <div style={{ fontSize: "14px", color: "#6b7280" }}>
+          {stat.subtitle}
+        </div>
       </div>
     ))}
   </div>

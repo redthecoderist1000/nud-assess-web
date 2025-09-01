@@ -13,41 +13,62 @@ const ReportAndAnalyticsPage = () => {
   const [activeTab, setActiveTab] = useState("quiz");
   const [filter, setFilter] = useState({
     class_id: "",
-    start_time: "2025-07-15 06:30:15.928965+00",
-    end_time: "2025-08-19 11:36:47.1426+00",
+    start_time: "all",
   });
   const [analyticsData, setAnalyticsData] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     if (filter.class_id == "") {
       return;
     }
 
     if (activeTab == "quiz") fetchQuizData();
     // distribution, bloom_tax, perf_by_quiz
+    setLoading(false);
   }, [filter, activeTab]);
 
   const fetchQuizData = async () => {
     setAnalyticsData({});
 
-    const { data, error } = await supabase
-      .rpc("get_quiz_analytics", {
-        p_class_id: filter.class_id,
-        p_start_time: filter.start_time,
-        p_end_time: filter.end_time,
-      })
-      .single();
+    if (filter.start_time == "all") {
+      const { data, error } = await supabase
+        .rpc("get_quiz_analytics", {
+          p_class_id: filter.class_id,
+        })
+        .single();
 
-    if (error) {
-      console.log("error fetching analytics:", error);
-      return;
+      if (error) {
+        console.log("error fetching analytics:", error);
+        return;
+      }
+      console.log(data);
+      setAnalyticsData(data);
+    } else {
+      const days7 = new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000
+      ).toISOString();
+      const days30 = new Date(
+        Date.now() - 30 * 24 * 60 * 60 * 1000
+      ).toISOString();
+      const { data, error } = await supabase
+        .rpc("get_quiz_analytics", {
+          p_class_id: filter.class_id,
+          p_start_time: filter.start_time == "7" ? days7 : days30,
+        })
+        .single();
+
+      if (error) {
+        console.log("error fetching analytics:", error);
+        return;
+      }
+      setAnalyticsData(data);
     }
-    console.log(data);
-    setAnalyticsData(data);
   };
 
   const renderTabContent = () => {
-    if (!analyticsData || Object.keys(analyticsData).length === 0) {
+    if (loading) {
       return (
         <Box display="flex" justifyContent="center" alignItems="center" py={6}>
           <CircularProgress />
@@ -92,8 +113,8 @@ const ReportAndAnalyticsPage = () => {
           }}
         >
           {[
-            { label: "Quiz Reports", key: "QuizReports" },
-            { label: "Question Analysis", key: "QuestionAnalysis" },
+            { label: "Quiz Reports", key: "quiz" },
+            { label: "Question Analysis", key: "question" },
           ].map((tab) => (
             <button
               key={tab.key}

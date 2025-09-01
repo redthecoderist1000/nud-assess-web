@@ -10,7 +10,7 @@ import { supabase } from "../../../helper/Supabase";
 
 // dummy data
 const defaultClassOptions = ["BSIT 3A", "BSIT 3B", "BSIT 4A"];
-const defaultDateOptions = ["Last 7 days", "Last 30 days", "This semester"];
+const defaultDateOptions = ["Last 7 days", "Last 30 days"];
 const summaryData = {
   students: 40,
   quizzes: 10,
@@ -214,6 +214,9 @@ const FilterAnalytics = ({ classOptions, dateOptions, filter, setFilter }) => {
       return;
     }
     setClassOption(classOptionData);
+    if (classOptionData.length > 0) {
+      setFilter({ ...filter, class_id: classOptionData[0].id });
+    }
     // console.log(classOptionData);
   };
 
@@ -281,8 +284,8 @@ const FilterAnalytics = ({ classOptions, dateOptions, filter, setFilter }) => {
         </Select>
 
         <Select
-          value={dateValue}
-          onChange={(e) => setDateValue(e.target.value)}
+          value={filter.start_time}
+          onChange={(e) => setFilter({ ...filter, start_time: e.target.value })}
           size="small"
           className="bg-gray-100 rounded-md"
           variant="outlined"
@@ -296,11 +299,9 @@ const FilterAnalytics = ({ classOptions, dateOptions, filter, setFilter }) => {
             paddingRight: 12,
           }}
         >
-          {dates.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
+          <MenuItem value="all">All</MenuItem>
+          <MenuItem value="7">last 7 days</MenuItem>
+          <MenuItem value="30">last 30 days</MenuItem>
         </Select>
 
         <Select

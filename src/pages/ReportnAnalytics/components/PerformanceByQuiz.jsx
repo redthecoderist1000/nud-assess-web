@@ -1,24 +1,8 @@
 import { Typography } from "@mui/material";
 import React from "react";
 
-// [
-//   {
-//     lowest: "80%",
-//     highest: "80%",
-//     attempts: 2,
-//     avgScore: "80%",
-//     passRate: "50%",
-//     quiz_name: "random_quiz_test",
-//     class_exam_id: "658549e0-5fc2-4343-bb27-383395641c95",
-//   },
-// ];
-
 const PerformanceByQuiz = ({ perf_by_quiz }) => {
   const quizData = perf_by_quiz;
-
-  // if (perf_by_quiz == null) {
-  //   return <Typography>no record yet</Typography>;
-  // }
 
   return (
     <div
@@ -75,7 +59,7 @@ const PerformanceByQuiz = ({ perf_by_quiz }) => {
                       <span
                         className={` ${quiz.passRate >= 60 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"} rounded px-2 py-1 font-medium`}
                       >
-                        {quiz.passRate}
+                        {quiz.passRate} %
                       </span>
                     </td>
                     <td className="py-2 px-4 text-center">{quiz.attempts}</td>

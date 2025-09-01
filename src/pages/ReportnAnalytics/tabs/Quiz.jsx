@@ -15,7 +15,7 @@ const Quiz = ({ analyticsData }) => {
           <PerformanceByQuiz perf_by_quiz={analyticsData.perf_by_quiz} />
         </div>
         <div className="flex-1 min-w-0 flex">
-          <ScoreDistribution className="w-full h-full" />
+          <ScoreDistribution distribution={analyticsData.distribution} />
         </div>
       </div>
       {/* PerformancePerLesson full width */}

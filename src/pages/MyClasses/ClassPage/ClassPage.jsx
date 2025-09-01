@@ -1,41 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Header from "../../assets/images/header.png";
-import { supabase } from "../../helper/Supabase";
+import { supabase } from "../../../helper/Supabase";
 import {
   Button,
-  Chip,
-  Container,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  IconButton,
   Stack,
+  IconButton,
   Tooltip,
 } from "@mui/material";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PersonAddAltRoundedIcon from "@mui/icons-material/PersonAddAltRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-// import AddMemberDialog from "../Admin/components/AddMemberDialog";
-import AssignQuizDialog from "./components/AssignQuizDialog";
-import AddMemberDialog from "./components/AddMemberDialog";
+import AssignQuizDialog from "../components/AssignQuizDialog";
+import AddMemberDialog from "../components/AddMemberDialog";
 import dayjs from "dayjs";
+import SidebarSection from "./component/SidebarSection";
 
 const ClassPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const classData = location.state;
-
-  // class_name: "CCTAPTAPTAP";
-  // created_at: "2025-05-22T18:57:20.687898+00:00";
-  // created_by: "f033b1aa-cc33-497f-bae7-ed8de67fe495";
-  // desc: "";
-  // id: "f195ee56-98c2-4a91-8d06-f09e6c250b41";
-  // is_active: true;
-  // join_code: "gsavxjr";
 
   const [addMembDia, setAddMemDia] = useState(false);
   const [assignQuiz, setAssignQuiz] = useState(false);
@@ -111,7 +95,6 @@ const ClassPage = () => {
   const copy = (text) => {
     navigator.clipboard.writeText(text).then(
       () => {
-        // alert("Copied to clipboard");
         setCopyToolTip(true);
         setTimeout(() => {
           setCopyToolTip(false);
@@ -125,16 +108,13 @@ const ClassPage = () => {
 
   const dateFormat = (dateTime) => {
     const formatted = dayjs(dateTime).format("MMM DD, YYYY hh:mm A");
-
     return formatted;
   };
 
   const statusChip = (openTime, closeTime) => {
     const now = dayjs();
 
-    // If no open time is set, quiz is always open
     if (!openTime) {
-      // If there's a close time and it's passed, quiz is closed
       if (closeTime && now.isAfter(dayjs(closeTime))) {
         return (
           <span
@@ -146,7 +126,6 @@ const ClassPage = () => {
           </span>
         );
       }
-      // Otherwise, quiz is open
       return (
         <span
           className={
@@ -158,7 +137,6 @@ const ClassPage = () => {
       );
     }
 
-    // If open time hasn't arrived yet, quiz is scheduled
     if (now.isBefore(dayjs(openTime))) {
       return (
         <span
@@ -171,7 +149,6 @@ const ClassPage = () => {
       );
     }
 
-    // If there's a close time and it's passed, quiz is closed
     if (closeTime && now.isAfter(dayjs(closeTime))) {
       return (
         <span
@@ -184,7 +161,6 @@ const ClassPage = () => {
       );
     }
 
-    // Otherwise, quiz is open
     return (
       <span
         className={
@@ -207,20 +183,15 @@ const ClassPage = () => {
       >
         <Stack justifyContent="start" alignItems="self-start">
           <Button
-            sx={{ color: "white", textTransform: "lowercase" }}
+            sx={{ color: "white", textTransform: "none" }}
             onClick={() => navigate(-1)}
           >
-            <ArrowBackIosNewRoundedIcon fontSize="small" /> back{" "}
+            <ArrowBackIosNewRoundedIcon fontSize="big" /> Back to Classes{" "}
           </Button>
           <h1 className="text-7xl font-bold mt-30 text-white">
             {classData.class_name}
           </h1>
         </Stack>
-        <img
-          src={Header}
-          alt="Header"
-          className="h-60 object-contain ml-4 mt-5"
-        />
       </div>
 
       {/* Content Section */}
@@ -235,7 +206,6 @@ const ClassPage = () => {
                 variant="contained"
                 disableElevation
                 disabled={classData.is_active === false}
-                // className="bg-indigo-700 text-white px-4 py-2 rounded-md hover:bg-indigo-800"
                 onClick={() => setAssignQuiz(true)}
               >
                 Assign Quiz
@@ -286,115 +256,16 @@ const ClassPage = () => {
         </div>
 
         {/* Sidebar Section */}
-        <div className="w-1/4 bg-indigo-900 text-white p-6 rounded-md shadow-lg h-235 m-5 overflow-hidden">
-          {/* Fixed Section */}
-          <div className="sticky top-0 bg-indigo-900 z-10">
-            <h2 className="text-lg font-bold mb-4">In this class</h2>
-            <div className="mb-4">
-              <p className="text-sm text-gray-300">Description</p>
-              <p className="text-base font-semibold">{classData.desc}</p>
-            </div>
-            {/* Join Code Section */}
-            {classData.is_active ? (
-              <div className="mb-4">
-                <p className="text-sm text-gray-300">Class join code</p>
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <p className="text-base font-semibold">
-                    {classData.join_code}
-                  </p>
-                  <Tooltip
-                    open={copyToolTip}
-                    arrow
-                    placement="top-start"
-                    disableFocusListener
-                    title="Copied to clipboard"
-                  >
-                    <IconButton
-                      size="small"
-                      onClick={() => copy(classData.join_code)}
-                    >
-                      <ContentCopyRoundedIcon
-                        sx={{ color: "whitesmoke" }}
-                        fontSize="small"
-                      />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-              </div>
-            ) : (
-              <></>
-            )}
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <p className="text-sm text-gray-300 m-0">
-                People ({people.length})
-              </p>
-              <IconButton
-                size="small"
-                sx={{ color: "white" }}
-                // variant="contained"
-                // disableElevation
-                disabled={classData.is_active === false}
-                onClick={() => {
-                  setAddMemDia(true);
-                }}
-              >
-                <PersonAddAltRoundedIcon />
-              </IconButton>
-            </Stack>
-          </div>
-
-          {/* Scrollable People List */}
-          <ul className="mt-2 space-y-2 overflow-y-auto h-[calc(100%-10rem)]">
-            {people.map((person, index) => (
-              <li
-                key={index}
-                className="flex items-center justify-between bg-indigo-800 p-2 rounded-md relative"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Stack>
-                  {/* <img
-                    src={person.avatar}
-                    alt={person.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  /> */}
-                  <span>{person.f_name + " " + person.l_name}</span>
-                  <span>{person.email}</span>
-                </Stack>
-                {/* <button
-                  className="text-gray-300 hover:text-white"
-                  // onClick={(e) => {
-                  //   e.stopPropagation();
-                  //   setDropdownVisible(
-                  //     dropdownVisible === person.id ? null : person.id
-                  //   );
-                  // }}
-                >
-                  ⋮
-                </button> */}
-                {dropdownVisible === person.id && (
-                  <div className="absolute right-0 mt-2 bg-white text-black rounded-md shadow-lg z-10">
-                    <button
-                      className="block px-4 py-2 text-sm hover:bg-gray-200 w-full text-left"
-                      onClick={() => alert(`Assigning quiz to ${person.name}`)}
-                    >
-                      Assign Quiz
-                    </button>
-                    <button
-                      className="block px-4 py-2 text-sm hover:bg-gray-200 w-full text-left"
-                      onClick={() => handleRemove(person)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <SidebarSection
+          classData={classData}
+          people={people}
+          copyToolTip={copyToolTip}
+          copy={copy}
+          setAddMemDia={setAddMemDia}
+          dropdownVisible={dropdownVisible}
+          setDropdownVisible={setDropdownVisible}
+          handleRemove={handleRemove}
+        />
       </div>
       <AddMemberDialog
         open={addMembDia}

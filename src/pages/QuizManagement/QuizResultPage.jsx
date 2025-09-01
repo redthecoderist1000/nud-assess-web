@@ -365,13 +365,12 @@ const QuizResultPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 5 }}>
-      <div className="mb-6">
-        <h1 className="text-5xl font-bold mb-2">Quiz Summary</h1>
-        <p className="text-gray-600">
+      <div className="bg-white border-b border-gray-200 pt-6 pb-2 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-0">Quiz Summary</h1>
+        <p className="text-sm text-gray-500 mt-1 mb-0">
           Here are the details and generated questions for your quiz.
         </p>
       </div>
-
       {/* Quiz Details */}
       <Card sx={{ padding: 3, mb: 3 }} variant="outlined">
         <Stack

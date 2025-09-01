@@ -1,15 +1,17 @@
 import React, { useContext, useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   Stack,
   Typography,
+  Box,
+  Divider,
+  Avatar,
 } from "@mui/material";
+import DescriptionIcon from "@mui/icons-material/Description";
 import { userContext } from "../../../App";
 import { supabase } from "../../../helper/Supabase";
 
@@ -17,9 +19,7 @@ const QuestionRepoModal = (props) => {
   const { isOpen, onClose, onSelect } = props;
   const { user } = useContext(userContext);
   const [isIncharge, setIsIncharge] = useState(false);
-  // if (!isOpen) return null;
 
-  // check if incharge
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -38,82 +38,141 @@ const QuestionRepoModal = (props) => {
       return;
     }
 
-    console.log(data);
-
     if (data.length > 0) {
       setIsIncharge(true);
     }
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        sx: {
+          m: { xs: 1, sm: "auto" },
+          borderRadius: { xs: 2, sm: 3 },
+          width: { xs: "100%", sm: 600 },
+        },
+      }}
+    >
       <DialogTitle
-        align="center"
-        component={Typography}
-        fontWeight="bold"
-        variant="h5"
+        align="left"
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          pb: 0,
+          px: { xs: 2, sm: 3 },
+          pt: { xs: 2, sm: 3 },
+        }}
       >
-        Question Repositories
+        <Avatar sx={{ bgcolor: "#3b82f6", width: 32, height: 32 }}>
+          <DescriptionIcon />
+        </Avatar>
+        <Typography fontWeight="bold" variant="h6">
+          Question Repositories
+        </Typography>
       </DialogTitle>
-      <DialogContent>
-        <DialogContentText align="center" mb={1}>
+      <DialogContent
+        sx={{
+          pt: { xs: 1, sm: 2 },
+          px: { xs: 2, sm: 3 },
+        }}
+      >
+        <Typography align="left" color="text.secondary" sx={{ mb: 2 }}>
           Choose where the questions will come from.
-        </DialogContentText>
-        <ul className="space-y-4 w-full">
-          <li>
-            {isIncharge ? (
-              <button
-                className="w-full bg-blue-200 text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-900 hover:text-white"
-                onClick={() => onSelect("Final Exam")}
-              >
-                <b>Final Exam</b>
-                <p className="text-sm ">
-                  Contains questions available for final exams.
-                </p>
-              </button>
-            ) : (
-              <button
-                className="w-full bg-gray-200 text-gray-400 py-2 px-4 rounded-lg"
-                disabled
-              >
-                <b>Final Exam</b>
-                <p className="text-sm">
-                  Contains questions available for final exams.
-                </p>
-                <p className="text-xs">
-                  [Available for faculty incharge only.]
-                </p>
-              </button>
+        </Typography>
+        <Stack spacing={2}>
+          <Box
+            sx={{
+              border: "1.5px solid #e5e7eb",
+              borderRadius: 2,
+              bgcolor: "#fff",
+              p: 2,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <Button
+              fullWidth
+              variant="contained"
+              disabled={!isIncharge}
+              onClick={() => isIncharge && onSelect("Final Exam")}
+              sx={{
+                bgcolor: isIncharge ? "#e0edff" : "#2563eb",
+                color: isIncharge ? "#2563eb" : "#2563eb",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                borderRadius: 2,
+                boxShadow: "none",
+                py: 1.5,
+                mb: 1,
+                opacity: isIncharge ? 1 : 0.6, 
+                "&:hover": {
+                  bgcolor: isIncharge ? "#2563eb" : "#e0edff",
+                  color: isIncharge ? "#fff" : "#2563eb",
+                },
+              }}
+            >
+              FINAL EXAM
+            </Button>
+            <Typography variant="body2" color="text.secondary" align="center">
+              Contains questions available for final exams.
+            </Typography>
+            {!isIncharge && (
+              <Typography variant="caption" color="text.secondary" align="center">
+                [Available for faculty incharge only.]
+              </Typography>
             )}
-          </li>
-          <li>
-            <button
-              className="w-full bg-blue-200 text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-900 hover:text-white"
+          </Box>
+          <Box
+            sx={{
+              border: "1.5px solid #e5e7eb",
+              borderRadius: 2,
+              bgcolor: "#fff",
+              p: 2,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <Button
+              fullWidth
+              variant="contained"
               onClick={() => onSelect("Quiz")}
+              sx={{
+                bgcolor: "#e0edff",
+                color: "#2563eb",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                borderRadius: 2,
+                boxShadow: "none",
+                py: 1.5,
+                mb: 1,
+                "&:hover": {
+                  bgcolor: "#2563eb",
+                  color: "#fff",
+                },
+              }}
             >
-              <b>Quizzes Repository</b>
-              <p className="text-sm ">
-                Contains questions available for quizzes
-              </p>
-            </button>
-          </li>
-          {/* <li>
-            <button
-              className="w-full bg-white text-blue-900 py-2 px-4 rounded-lg hover:bg-blue-200"
-              onClick={() => onSelect("Private")}
-            >
-              Private
-            </button>
-          </li> */}
-        </ul>
-      </DialogContent>
-
-      <DialogActions>
-        <Stack direction="row" justifyContent="left" width="100%">
-          <Button onClick={onClose} color="error" size="small">
-            Cancel
-          </Button>
+              Quizzes Repository
+            </Button>
+            <Typography variant="body2" color="text.secondary" align="center">
+              Contains questions available for quizzes
+            </Typography>
+          </Box>
         </Stack>
+        <Divider sx={{ my: 0}} />
+      </DialogContent>
+      <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: 2, mt: "-8px"}}>
+        <Button onClick={onClose} color="error" size="medium" variant="outlined">
+          Cancel
+        </Button>
       </DialogActions>
     </Dialog>
   );

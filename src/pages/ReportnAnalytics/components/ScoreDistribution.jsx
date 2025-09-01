@@ -37,7 +37,7 @@ const ScoreDistribution = ({ className, distribution }) => {
                     {item.range}
                   </span>
                   <span className="text-[15px] font-semibold text-gray-900">
-                    {item.value} students
+                    {item.value} student/s
                   </span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-gray-200 relative">

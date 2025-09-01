@@ -19,18 +19,17 @@ const ReportAndAnalyticsPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
     if (filter.class_id == "") {
       return;
     }
 
     if (activeTab == "quiz") fetchQuizData();
     // distribution, bloom_tax, perf_by_quiz
-    setLoading(false);
   }, [filter, activeTab]);
 
   const fetchQuizData = async () => {
-    setAnalyticsData({});
+    // setAnalyticsData({});
+    setLoading(true);
 
     if (filter.start_time == "all") {
       const { data, error } = await supabase
@@ -43,7 +42,7 @@ const ReportAndAnalyticsPage = () => {
         console.log("error fetching analytics:", error);
         return;
       }
-      console.log(data);
+      // console.log(data);
       setAnalyticsData(data);
     } else {
       const days7 = new Date(
@@ -65,6 +64,7 @@ const ReportAndAnalyticsPage = () => {
       }
       setAnalyticsData(data);
     }
+    setLoading(false);
   };
 
   const renderTabContent = () => {

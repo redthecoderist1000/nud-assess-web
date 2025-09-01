@@ -28,7 +28,7 @@ const Quiz = ({ analyticsData }) => {
           <TOSPlacement className="w-full h-full" />
         </div>
         <div className="flex-1 min-w-0 flex">
-          <BTaxonomyAnalysis className="w-full h-full" />
+          <BTaxonomyAnalysis bloom_tax={analyticsData.bloom_tax} />
         </div>
       </div>
     </div>

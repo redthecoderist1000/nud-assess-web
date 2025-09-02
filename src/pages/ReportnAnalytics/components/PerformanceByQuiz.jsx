@@ -1,8 +1,25 @@
-import { Typography } from "@mui/material";
-import React from "react";
+import { TablePagination, Typography } from "@mui/material";
+import React, { useMemo, useState } from "react";
 
 const PerformanceByQuiz = ({ perf_by_quiz }) => {
   const quizData = perf_by_quiz;
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [page, setPage] = useState(0);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const visibleRows = useMemo(() => {
+    const start = page * rowsPerPage;
+    const end = start + rowsPerPage;
+    return quizData.slice(start, end);
+  }, [page, rowsPerPage, quizData]);
 
   return (
     <div
@@ -41,7 +58,7 @@ const PerformanceByQuiz = ({ perf_by_quiz }) => {
                 </tr>
               </thead>
               <tbody>
-                {quizData.map((quiz, idx) => (
+                {visibleRows.map((quiz, idx) => (
                   <tr
                     key={idx}
                     className="border-t border-gray-100 text-[15px]"
@@ -67,6 +84,15 @@ const PerformanceByQuiz = ({ perf_by_quiz }) => {
                 ))}
               </tbody>
             </table>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={quizData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
           </div>
         </>
       )}

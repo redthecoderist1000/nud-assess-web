@@ -155,54 +155,14 @@ const taxonomyAnalysis = [
   { level: "Creating", count: 3, percent: "3.75%" },
 ];
 
-function openQuickSummaryPDF() {
-  const html = getReportHTML({
-    summaryData,
-    quizData,
-    scoreDist,
-    lessonPerf,
-    questionTypes,
-    questionAnalysis,
-    tosPlacement,
-    taxonomyAnalysis,
-  });
-  const win = window.open("", "_blank");
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  win.print();
-}
-
-const FilterAnalytics = ({ classOptions, dateOptions, filter, setFilter }) => {
-  const [classes, setClasses] = useState(defaultClassOptions);
-  const [dates, setDates] = useState(defaultDateOptions);
+const FilterAnalytics = ({ filter, setFilter, generalData, analyticsData }) => {
   const [classOption, setClassOption] = useState([]);
-
-  useEffect(() => {
-    if (Array.isArray(classOptions) && classOptions.length > 0) {
-      setClasses(classOptions);
-    }
-    if (Array.isArray(dateOptions) && dateOptions.length > 0) {
-      setDates(dateOptions);
-    }
-  }, [classOptions, dateOptions]);
-
-  const [classValue, setClassValue] = useState(classes[0]);
-  const [dateValue, setDateValue] = useState(dates[1] || dates[0]);
-
-  useEffect(() => {
-    setClassValue(classes[0]);
-  }, [classes]);
-  useEffect(() => {
-    setDateValue(dates[1] || dates[0]);
-  }, [dates]);
 
   useEffect(() => {
     fetchOptions();
   }, []);
 
   const fetchOptions = async () => {
-    // console.log((await supabase.auth.getUser()).data.user.id);
     const { data: authData, error } = await supabase.auth.getUser();
     const user_id = authData?.user?.id;
     const { data: classOptionData, error: classErr } = await supabase
@@ -217,7 +177,6 @@ const FilterAnalytics = ({ classOptions, dateOptions, filter, setFilter }) => {
     if (classOptionData.length > 0) {
       setFilter({ ...filter, class_id: classOptionData[0].id });
     }
-    // console.log(classOptionData);
   };
 
   // csv handler
@@ -249,6 +208,25 @@ const FilterAnalytics = ({ classOptions, dateOptions, filter, setFilter }) => {
       filename: "class_report.doc",
     });
   };
+
+  // pdf handler
+  function openQuickSummaryPDF() {
+    const html = getReportHTML({
+      summaryData,
+      quizData,
+      scoreDist,
+      lessonPerf,
+      questionTypes,
+      questionAnalysis,
+      tosPlacement,
+      taxonomyAnalysis,
+    });
+    const win = window.open("", "_blank");
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    win.print();
+  }
 
   return (
     <div

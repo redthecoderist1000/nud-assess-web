@@ -14,9 +14,19 @@ const ReportAndAnalyticsPage = () => {
     class_id: "",
     start_time: "all",
   });
+  const [generalData, setGeneralData] = useState({});
   const [analyticsData, setAnalyticsData] = useState({});
+  const [generalLoading, setGeneralLoading] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [hasGeneral, setHasGeneral] = useState(true);
   const [hasResult, setHasResult] = useState(true);
+
+  useEffect(() => {
+    if (filter.class_id == "") {
+      return;
+    }
+    fetchGeneralData();
+  }, [filter]);
 
   useEffect(() => {
     if (filter.class_id == "") {
@@ -29,9 +39,55 @@ const ReportAndAnalyticsPage = () => {
     // distribution, bloom_tax, perf_by_quiz
   }, [filter, activeTab]);
 
+  const fetchGeneralData = async () => {
+    setGeneralLoading(true);
+    const exists = await checkHasResult();
+    setHasGeneral(exists);
+    if (!exists) {
+      setGeneralLoading(false);
+      return;
+    }
+
+    if (filter.start_time == "all") {
+      const { data, error } = await supabase
+        .rpc("get_general_analytics", {
+          p_class_id: filter.class_id,
+        })
+        .single();
+
+      if (error) {
+        console.log("error fetching analytics:", error);
+        return;
+      }
+      setGeneralData(data);
+    } else {
+      const days7 = new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000
+      ).toISOString();
+      const days30 = new Date(
+        Date.now() - 30 * 24 * 60 * 60 * 1000
+      ).toISOString();
+      const { data, error } = await supabase
+        .rpc("get_general_analytics", {
+          p_class_id: filter.class_id,
+          p_start_time: filter.start_time == "7" ? days7 : days30,
+        })
+        .single();
+
+      if (error) {
+        console.log("error fetching analytics:", error);
+        return;
+      }
+      setGeneralData(data);
+    }
+
+    setGeneralLoading(false);
+  };
+
   const fetchQuizData = async () => {
     // setAnalyticsData({});
     setLoading(true);
+
     const exists = await checkHasResult();
     setHasResult(exists);
     if (!exists) {
@@ -184,8 +240,19 @@ const ReportAndAnalyticsPage = () => {
         </p>
       </div>
 
-      <FilterAnalytics filter={filter} setFilter={setFilter} />
-      <TetraBox />
+      <FilterAnalytics
+        filter={filter}
+        setFilter={setFilter}
+        generalData={generalData}
+        analyticsData={analyticsData}
+      />
+      {generalLoading ? (
+        <></>
+      ) : hasGeneral ? (
+        <TetraBox generalData={generalData} />
+      ) : (
+        <></>
+      )}
 
       {/* Custom Tabs */}
       <div className="w-full flex justify-center mt-8">

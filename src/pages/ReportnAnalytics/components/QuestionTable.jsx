@@ -36,7 +36,7 @@ const successColors = (rate) => {
   return "bg-red-100 text-red-700";
 };
 
-const QuestionTable = ({ data, detailed_que_analysis }) => {
+const QuestionTable = ({ detailed_que_analysis }) => {
   const questions = detailed_que_analysis;
 
   const [levelOptions, setLevelOptions] = useState([]);

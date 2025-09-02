@@ -23,8 +23,19 @@ const defaultBoxes = [
     value: "85%",
     subtitle: (
       <span className="flex items-center text-green-600 text-[13px] font-medium">
-        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{ marginRight: 2 }}>
-          <path d="M5 10l4 4 6-8" stroke="#16a34a" strokeWidth="2" fill="none" />
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 20 20"
+          fill="none"
+          style={{ marginRight: 2 }}
+        >
+          <path
+            d="M5 10l4 4 6-8"
+            stroke="#16a34a"
+            strokeWidth="2"
+            fill="none"
+          />
         </svg>
         +3% from last month
       </span>
@@ -42,28 +53,90 @@ const defaultBoxes = [
   },
 ];
 
-const TetraBox = ({ data }) => {
+const TetraBox = ({ data, generalData }) => {
   const boxes = Array.isArray(data) && data.length > 0 ? data : defaultBoxes;
+
+  //  {
+  //     member_count: 2,
+  //     exam_count: 8,
+  //     ave_acore: 25.76,
+  //     passing_rate: 9.09
+  //   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full mt-6">
-      {boxes.map((box) => (
-        <div
-          key={box.title}
-          className="bg-white rounded-xl border border-gray-200 h-[140px] px-6 py-5 shadow-sm flex flex-col justify-between w-full"
-          style={{
-            minWidth: 0,
-            boxSizing: "border-box",
-          }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[15px] font-medium text-gray-700">{box.title}</span>
-            {box.icon}
-          </div>
-          <div className="text-[32px] font-bold text-black leading-none mb-1">{box.value}</div>
-          <div className="text-[13px] text-gray-500">{box.subtitle}</div>
+      {/* member_count */}
+      <div
+        className="bg-white rounded-xl border border-gray-200  px-6 py-5 shadow-sm flex flex-col justify-between w-full"
+        style={{
+          minWidth: 0,
+          boxSizing: "border-box",
+        }}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[15px] font-medium text-gray-700">
+            Number of Students
+          </span>
+          <PeopleAltOutlinedIcon style={{ fontSize: 22, color: "#888" }} />
         </div>
-      ))}
+        <div className="text-[32px] font-bold text-black leading-none mb-1">
+          {generalData.member_count}
+        </div>
+      </div>
+      {/* exam_count */}
+      <div
+        className="bg-white rounded-xl border border-gray-200  px-6 py-5 shadow-sm flex flex-col justify-between w-full"
+        style={{
+          minWidth: 0,
+          boxSizing: "border-box",
+        }}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[15px] font-medium text-gray-700">
+            Number of Quizzes
+          </span>
+          <DescriptionOutlinedIcon style={{ fontSize: 22, color: "#888" }} />
+        </div>
+        <div className="text-[32px] font-bold text-black leading-none mb-1">
+          {generalData.exam_count}
+        </div>
+      </div>
+      {/* ave_score */}
+      <div
+        className="bg-white rounded-xl border border-gray-200  px-6 py-5 shadow-sm flex flex-col justify-between w-full"
+        style={{
+          minWidth: 0,
+          boxSizing: "border-box",
+        }}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[15px] font-medium text-gray-700">
+            Average Class Score
+          </span>
+          <TrackChangesOutlinedIcon style={{ fontSize: 22, color: "#888" }} />
+        </div>
+        <div className="text-[32px] font-bold text-black leading-none mb-1">
+          {generalData.ave_score} %
+        </div>
+      </div>
+      {/* passing_rate */}
+      <div
+        className="bg-white rounded-xl border border-gray-200  px-6 py-5 shadow-sm flex flex-col justify-between w-full"
+        style={{
+          minWidth: 0,
+          boxSizing: "border-box",
+        }}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[15px] font-medium text-gray-700">
+            Passing Rate
+          </span>
+          <EmojiEventsOutlinedIcon style={{ fontSize: 22, color: "#888" }} />
+        </div>
+        <div className="text-[32px] font-bold text-black leading-none mb-1">
+          {generalData.passing_rate} %
+        </div>
+      </div>
     </div>
   );
 };

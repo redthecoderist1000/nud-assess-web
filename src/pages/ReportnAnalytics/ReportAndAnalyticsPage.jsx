@@ -5,11 +5,10 @@ import Quiz from "./tabs/Quiz";
 import Question from "./tabs/Question";
 import FilterAnalytics from "./components/FilterAnalytics";
 import TetraBox from "./components/TetraBox";
-import { Box, CircularProgress, Container } from "@mui/material";
+import { Box, CircularProgress, Container, Typography } from "@mui/material";
 import { supabase } from "../../helper/Supabase";
 
 const ReportAndAnalyticsPage = () => {
-  // Use "QuizReports" and "QuestionAnalysis" for tab keys
   const [activeTab, setActiveTab] = useState("quiz");
   const [filter, setFilter] = useState({
     class_id: "",
@@ -17,6 +16,7 @@ const ReportAndAnalyticsPage = () => {
   });
   const [analyticsData, setAnalyticsData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [hasResult, setHasResult] = useState(true);
 
   useEffect(() => {
     if (filter.class_id == "") {
@@ -24,12 +24,20 @@ const ReportAndAnalyticsPage = () => {
     }
 
     if (activeTab == "quiz") fetchQuizData();
+    if (activeTab == "question") fetchQuestionData();
+
     // distribution, bloom_tax, perf_by_quiz
   }, [filter, activeTab]);
 
   const fetchQuizData = async () => {
     // setAnalyticsData({});
     setLoading(true);
+    const exists = await checkHasResult();
+    setHasResult(exists);
+    if (!exists) {
+      setLoading(false);
+      return;
+    }
 
     if (filter.start_time == "all") {
       const { data, error } = await supabase
@@ -42,7 +50,6 @@ const ReportAndAnalyticsPage = () => {
         console.log("error fetching analytics:", error);
         return;
       }
-      console.log(data);
       setAnalyticsData(data);
     } else {
       const days7 = new Date(
@@ -67,11 +74,60 @@ const ReportAndAnalyticsPage = () => {
     setLoading(false);
   };
 
+  const fetchQuestionData = async () => {
+    setLoading(true);
+    const exists = await checkHasResult();
+    setHasResult(exists);
+    if (!exists) {
+      setLoading(false);
+      return;
+    }
+
+    //
+
+    setLoading(false);
+  };
+
+  const checkHasResult = async () => {
+    const { data: classExamId, error: classExamErr } = await supabase
+      .from("tbl_class_exam")
+      .select("id")
+      .eq("class_id", filter.class_id);
+
+    const ids = (classExamId || []).map((e) => e.id);
+    if (ids.length === 0) {
+      /* no matches */
+      return false;
+    }
+
+    const { data: resultData, error } = await supabase
+      .from("tbl_result")
+      .select("id")
+      .in("class_exam_id", ids)
+      .limit(1);
+
+    if (error) {
+      console.log("error checking results:", error);
+      return false;
+    }
+
+    return (resultData?.length || 0) > 0;
+  };
+
   const renderTabContent = () => {
     if (loading) {
       return (
         <Box display="flex" justifyContent="center" alignItems="center" py={6}>
           <CircularProgress />
+        </Box>
+      );
+    }
+    if (!hasResult) {
+      return (
+        <Box display="flex" justifyContent="center" alignItems="center" py={6}>
+          <Typography>
+            No data available for the selected class and time range.
+          </Typography>
         </Box>
       );
     }

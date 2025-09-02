@@ -20,12 +20,12 @@ const Quiz = ({ analyticsData }) => {
       </div>
       {/* PerformancePerLesson full width */}
       <div className="w-full">
-        <PerformancePerLesson className="w-full h-full" />
+        <PerformancePerLesson perf_per_lesson={analyticsData.perf_per_lesson} />
       </div>
       {/* TOSPlacement and BTaxonomyAnalysis side by side */}
       <div className="w-full flex flex-col lg:flex-row gap-6 items-stretch">
         <div className="flex-1 min-w-0 flex">
-          <TOSPlacement className="w-full h-full" />
+          <TOSPlacement perf_by_bloom={analyticsData.perf_by_bloom} />
         </div>
         <div className="flex-1 min-w-0 flex">
           <BTaxonomyAnalysis bloom_tax={analyticsData.bloom_tax} />

@@ -42,7 +42,7 @@ const ReportAndAnalyticsPage = () => {
         console.log("error fetching analytics:", error);
         return;
       }
-      // console.log(data);
+      console.log(data);
       setAnalyticsData(data);
     } else {
       const days7 = new Date(

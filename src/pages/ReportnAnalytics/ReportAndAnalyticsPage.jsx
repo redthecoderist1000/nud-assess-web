@@ -84,6 +84,38 @@ const ReportAndAnalyticsPage = () => {
     }
 
     //
+    if (filter.start_time == "all") {
+      const { data, error } = await supabase
+        .rpc("get_question_analytics", {
+          p_class_id: filter.class_id,
+        })
+        .single();
+
+      if (error) {
+        console.log("error fetching analytics:", error);
+        return;
+      }
+      setAnalyticsData(data);
+    } else {
+      const days7 = new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000
+      ).toISOString();
+      const days30 = new Date(
+        Date.now() - 30 * 24 * 60 * 60 * 1000
+      ).toISOString();
+      const { data, error } = await supabase
+        .rpc("get_question_analytics", {
+          p_class_id: filter.class_id,
+          p_start_time: filter.start_time == "7" ? days7 : days30,
+        })
+        .single();
+
+      if (error) {
+        console.log("error fetching analytics:", error);
+        return;
+      }
+      setAnalyticsData(data);
+    }
 
     setLoading(false);
   };
@@ -125,7 +157,7 @@ const ReportAndAnalyticsPage = () => {
     if (!hasResult) {
       return (
         <Box display="flex" justifyContent="center" alignItems="center" py={6}>
-          <Typography>
+          <Typography color="textDisabled">
             No data available for the selected class and time range.
           </Typography>
         </Box>

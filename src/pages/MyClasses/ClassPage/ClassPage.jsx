@@ -1,20 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../../helper/Supabase";
-import {
-  Button,
-  Stack,
-  IconButton,
-  Tooltip,
-} from "@mui/material";
-import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import PersonAddAltRoundedIcon from "@mui/icons-material/PersonAddAltRounded";
+import { Button, Stack } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import AssignQuizDialog from "../components/AssignQuizDialog";
 import AddMemberDialog from "../components/AddMemberDialog";
-import dayjs from "dayjs";
 import SidebarSection from "./component/SidebarSection";
+import QuizTab from "./ClassTabs/QuizTab";
+import PeopleTab from "./ClassTabs/PeopleTab";
+import GradeTab from "./ClassTabs/GradeTab";
+import AnnouncementTab from "./ClassTabs/AnnouncementTab";
+import QuizIcon from "@mui/icons-material/Quiz";
+import GroupIcon from "@mui/icons-material/Group";
+import AnnouncementIcon from "@mui/icons-material/Announcement";
+import BarChartIcon from "@mui/icons-material/BarChart";
+
+const tabList = [
+  { key: "quiz", label: "Quizzes", icon: <QuizIcon fontSize="small" /> },
+  { key: "people", label: "People", icon: <GroupIcon fontSize="small" /> },
+  { key: "announcement", label: "Announcements", icon: <AnnouncementIcon fontSize="small" /> },
+  { key: "grade", label: "Grades", icon: <BarChartIcon fontSize="small" /> },
+];
 
 const ClassPage = () => {
   const location = useLocation();
@@ -22,22 +27,13 @@ const ClassPage = () => {
   const classData = location.state;
 
   const [addMembDia, setAddMemDia] = useState(false);
-  const [assignQuiz, setAssignQuiz] = useState(false);
   const [copyToolTip, setCopyToolTip] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(null);
   const [people, setPeople] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
 
-  const handleRemove = (person) => {
-    if (window.confirm(`Are you sure you want to remove ${person.name}?`)) {
-      setPeople((prevPeople) => prevPeople.filter((p) => p.id !== person.id));
-      alert(`${person.name} has been removed.`);
-    }
-  };
-
-  const handleClickOutside = () => {
-    setDropdownVisible(null);
-  };
+  // Tab state: "quiz", "people", "announcement", "grade"
+  const [activeTab, setActiveTab] = useState("quiz");
 
   const fetchQuizzes = async () => {
     const { data, error } = await supabase
@@ -52,6 +48,7 @@ const ClassPage = () => {
     setQuizzes(data);
   };
 
+  // Fetch basic member info
   const fetchMember = async () => {
     const { data, error } = await supabase
       .from("vw_membersperclass")
@@ -59,23 +56,75 @@ const ClassPage = () => {
       .eq("class_id", classData.id);
 
     if (error) {
-      console.log("fail to fetch memebrs:", error);
-      return;
+      console.log("fail to fetch members:", error);
+      return [];
     }
-    setPeople(data);
+    return data;
+  };
+
+  // Fetch and calculate average score per student
+  const fetchStudentAverages = async () => {
+    const { data, error } = await supabase
+      .from("vw_studentlistperquiz")
+      .select("name, score, total_items, class_id")
+      .eq("class_id", classData.id);
+
+    if (error) {
+      console.log("fail to fetch student averages:", error);
+      return [];
+    }
+
+    // Group by name and calculate average score
+    const grouped = {};
+    data.forEach((row) => {
+      if (!grouped[row.name]) {
+        grouped[row.name] = {
+          name: row.name,
+          totalScore: 0,
+          totalItems: 0,
+        };
+      }
+      grouped[row.name].totalScore += row.score || 0;
+      grouped[row.name].totalItems += row.total_items || 0;
+    });
+
+    return Object.values(grouped).map((student) => ({
+      ...student,
+      average_score:
+        student.totalItems > 0
+          ? Math.round((student.totalScore / student.totalItems) * 100)
+          : null,
+    }));
+  };
+
+  // Combine member info and average scores
+  const fetchAllPeople = async () => {
+    const members = await fetchMember();
+    const averages = await fetchStudentAverages();
+
+    // Merge average_score into members by name
+    const merged = members.map((member) => {
+      const avg = averages.find((a) => a.name === member.name);
+      return {
+        ...member,
+        average_score: avg ? avg.average_score : null,
+      };
+    });
+
+    setPeople(merged);
   };
 
   useEffect(() => {
     fetchQuizzes();
-    fetchMember();
+    fetchAllPeople();
 
     supabase
       .channel("custom-filter-channel")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "tbl_class_members" },
-        (payload) => {
-          fetchMember();
+        () => {
+          fetchAllPeople();
         }
       )
       .subscribe();
@@ -85,7 +134,7 @@ const ClassPage = () => {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "tbl_class_exam" },
-        (payload) => {
+        () => {
           fetchQuizzes();
         }
       )
@@ -106,77 +155,11 @@ const ClassPage = () => {
     );
   };
 
-  const dateFormat = (dateTime) => {
-    const formatted = dayjs(dateTime).format("MMM DD, YYYY hh:mm A");
-    return formatted;
-  };
-
-  const statusChip = (openTime, closeTime) => {
-    const now = dayjs();
-
-    if (!openTime) {
-      if (closeTime && now.isAfter(dayjs(closeTime))) {
-        return (
-          <span
-            className={
-              "bg-red-200 text-red-600 py-1 rounded-full text-xs font-semibold text-center"
-            }
-          >
-            Closed
-          </span>
-        );
-      }
-      return (
-        <span
-          className={
-            "bg-green-200 text-green-600 py-1 rounded-full text-xs font-semibold text-center"
-          }
-        >
-          Open
-        </span>
-      );
-    }
-
-    if (now.isBefore(dayjs(openTime))) {
-      return (
-        <span
-          className={
-            "bg-gray-200 text-gray-600 py-1 rounded-full text-xs font-semibold text-center"
-          }
-        >
-          Scheduled
-        </span>
-      );
-    }
-
-    if (closeTime && now.isAfter(dayjs(closeTime))) {
-      return (
-        <span
-          className={
-            "bg-red-200 text-red-600 py-1 rounded-full text-xs font-semibold text-center"
-          }
-        >
-          Closed
-        </span>
-      );
-    }
-
-    return (
-      <span
-        className={
-          "bg-green-200 text-green-600 py-1 rounded-full text-xs font-semibold text-center"
-        }
-      >
-        Open
-      </span>
-    );
-  };
-
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen bg-[#f8f9fb] overflow-y-auto">
       {/* Header Section */}
       <div
-        className="w-full h-20 p-6 relative h-60 flex justify-between items-center"
+        className="w-full p-6 relative h-40 flex justify-between items-center"
         style={{
           background: "linear-gradient(to right, #1E3A8A, #000000)",
         }}
@@ -188,93 +171,76 @@ const ClassPage = () => {
           >
             <ArrowBackIosNewRoundedIcon fontSize="big" /> Back to Classes{" "}
           </Button>
-          <h1 className="text-7xl font-bold mt-30 text-white">
+          <h1 className="text-6xl font-bold text-white mt-10">
             {classData.class_name}
           </h1>
         </Stack>
       </div>
 
-      {/* Content Section */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Main Content Section */}
-        <div className="w-3/4 p-6 overflow-hidden">
-          {/* Fixed Quizzes Header */}
-          <div className="sticky top-0 bg-white z-10 p-4 shadow-md">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Quizzes</h2>
-              <Button
-                variant="contained"
-                disableElevation
-                disabled={classData.is_active === false}
-                onClick={() => setAssignQuiz(true)}
-              >
-                Assign Quiz
-              </Button>
-            </div>
-          </div>
-
-          {/* Scrollable Quizzes List */}
-          <div className="mt-4 overflow-y-auto h-[calc(100%-4rem)]">
-            {quizzes.map((quiz, index) => (
-              <div
-                key={index}
-                className="p-4 bg-gray-100 rounded-md shadow-md flex justify-between items-center mb-4"
-                onClick={() => {
-                  navigate("/quiz", {
-                    state: {
-                      class_exam_id: quiz.class_exam_id,
-                      class_id: classData.id,
-                    },
-                  });
+      {/* Tabs and Main Layout */}
+      <div className="flex flex-row flex-1 overflow-hidden mt-6">
+        {/* Main Section */}
+        <div className="flex flex-col flex-1">
+          {/* Tabs */}
+          <div className="flex flex-row px-6 pt-2 border-b border-gray-200 ">
+            {tabList.map((tab) => (
+              <button
+                key={tab.key}
+                className={`flex items-center gap-2 px-4 py-2 font-medium text-sm
+                  ${activeTab === tab.key
+                    ? "text-[#23286b] border-b-2 border-[#23286b] bg-white"
+                    : "text-gray-400 bg-white"}
+                  transition-colors`}
+                style={{
+                  outline: "none",
+                  border: "none",
+                  background: "none",
+                  cursor: "pointer",
+                  marginRight: "8px",
                 }}
+                onClick={() => setActiveTab(tab.key)}
               >
-                <div>
-                  <h3>
-                    <b>{quiz.name}</b> | {quiz.total_items} Items
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Opens on:{" "}
-                    {quiz.open_time
-                      ? dateFormat(quiz.open_time)
-                      : "No date set"}{" "}
-                    | Closes on:{" "}
-                    {quiz.close_time
-                      ? dateFormat(quiz.close_time)
-                      : "No date set"}
-                  </p>
-                </div>
-                <Stack>
-                  <p className="text-sm text-gray-500">
-                    {quiz.answered}
-                    {quiz.total} turned in
-                  </p>
-                  {statusChip(quiz.open_time, quiz.close_time)}
-                </Stack>
-              </div>
+                {tab.icon}
+                {tab.label}
+              </button>
             ))}
           </div>
+          {/* Content Section */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            {activeTab === "quiz" && (
+              <QuizTab
+                quizzes={quizzes}
+                classData={classData}
+                navigate={navigate}
+              />
+            )}
+            {activeTab === "people" && (
+              <PeopleTab
+                people={people}
+                setAddMemDia={setAddMemDia}
+              />
+            )}
+            {activeTab === "announcement" && (
+              <AnnouncementTab />
+            )}
+            {activeTab === "grade" && <GradeTab classData={classData} />}
+          </div>
         </div>
-
         {/* Sidebar Section */}
         <SidebarSection
           classData={classData}
           people={people}
+          quizzes={quizzes}
           copyToolTip={copyToolTip}
           copy={copy}
           setAddMemDia={setAddMemDia}
           dropdownVisible={dropdownVisible}
           setDropdownVisible={setDropdownVisible}
-          handleRemove={handleRemove}
         />
       </div>
       <AddMemberDialog
         open={addMembDia}
         setOpen={setAddMemDia}
-        classId={classData.id}
-      />
-      <AssignQuizDialog
-        open={assignQuiz}
-        setOpen={setAssignQuiz}
         classId={classData.id}
       />
     </div>

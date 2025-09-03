@@ -296,21 +296,33 @@ const FilterAnalytics = ({ filter, setFilter, generalData, analyticsData }) => {
           <MenuItem value="" disabled>
             Export as
           </MenuItem>
-          <MenuItem onClick={handleCSVDownload} value="csv">
+          <MenuItem
+            onClick={handleCSVDownload}
+            value="csv"
+            sx={{ justifyContent: "center", gap: 1 }}
+          >
             <CalendarViewMonthRoundedIcon
               style={{ fontSize: 16 }}
               color="success"
             />
             .csv
           </MenuItem>
-          <MenuItem onClick={handleWordDownload} value="docx">
+          <MenuItem
+            onClick={handleWordDownload}
+            value="docx"
+            sx={{ justifyContent: "center", gap: 1 }}
+          >
             <InsertDriveFileRoundedIcon
               style={{ fontSize: 16 }}
               color="primary"
             />
             .docx
           </MenuItem>
-          <MenuItem onClick={openQuickSummaryPDF} value="docx">
+          <MenuItem
+            onClick={openQuickSummaryPDF}
+            value="pdf"
+            sx={{ justifyContent: "center", gap: 1 }}
+          >
             <PictureAsPdfRoundedIcon style={{ fontSize: 16 }} color="error" />
             .pdf
           </MenuItem>

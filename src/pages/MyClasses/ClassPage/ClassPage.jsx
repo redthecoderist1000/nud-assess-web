@@ -17,7 +17,11 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 const tabList = [
   { key: "quiz", label: "Quizzes", icon: <QuizIcon fontSize="small" /> },
   { key: "people", label: "People", icon: <GroupIcon fontSize="small" /> },
-  { key: "announcement", label: "Announcements", icon: <AnnouncementIcon fontSize="small" /> },
+  {
+    key: "announcement",
+    label: "Announcements",
+    icon: <AnnouncementIcon fontSize="small" />,
+  },
   { key: "grade", label: "Grades", icon: <BarChartIcon fontSize="small" /> },
 ];
 
@@ -119,7 +123,7 @@ const ClassPage = () => {
     fetchAllPeople();
 
     supabase
-      .channel("custom-filter-channel")
+      .channel("class_member_channel")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "tbl_class_members" },
@@ -130,7 +134,7 @@ const ClassPage = () => {
       .subscribe();
 
     supabase
-      .channel("custom-filter-channel")
+      .channel("class_exam_channel")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "tbl_class_exam" },
@@ -187,9 +191,11 @@ const ClassPage = () => {
               <button
                 key={tab.key}
                 className={`flex items-center gap-2 px-4 py-2 font-medium text-sm
-                  ${activeTab === tab.key
-                    ? "text-[#23286b] border-b-2 border-[#23286b] bg-white"
-                    : "text-gray-400 bg-white"}
+                  ${
+                    activeTab === tab.key
+                      ? "text-[#23286b] border-b-2 border-[#23286b] bg-white"
+                      : "text-gray-400 bg-white"
+                  }
                   transition-colors`}
                 style={{
                   outline: "none",
@@ -206,7 +212,7 @@ const ClassPage = () => {
             ))}
           </div>
           {/* Content Section */}
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div className="flex-1 p-6">
             {activeTab === "quiz" && (
               <QuizTab
                 quizzes={quizzes}
@@ -215,14 +221,11 @@ const ClassPage = () => {
               />
             )}
             {activeTab === "people" && (
-              <PeopleTab
-                people={people}
-                setAddMemDia={setAddMemDia}
-              />
+              <div className=" overflow-y-auto">
+                <PeopleTab people={people} setAddMemDia={setAddMemDia} />
+              </div>
             )}
-            {activeTab === "announcement" && (
-              <AnnouncementTab />
-            )}
+            {activeTab === "announcement" && <AnnouncementTab />}
             {activeTab === "grade" && <GradeTab classData={classData} />}
           </div>
         </div>

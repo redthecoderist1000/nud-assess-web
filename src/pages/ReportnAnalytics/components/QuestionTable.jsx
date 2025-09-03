@@ -71,21 +71,25 @@ const QuestionTable = ({ detailed_que_analysis }) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-  var visibleQuestions = useMemo(
-    () =>
-      [...questions]
-        .filter((q) => {
-          const matchesSearch = q.question
-            .toLowerCase()
-            .includes(filter.search.toLowerCase());
-          const matchesType = filter.type === "All" || q.type === filter.type;
-          const matchesLevel =
-            filter.level === "All" || q.bloom === filter.level;
-          return matchesSearch && matchesType && matchesLevel;
-        })
-        .slice(page * rowsPerPage, (page + 1) * rowsPerPage),
-    [questions, filter, page, rowsPerPage]
-  );
+  var visibleQuestions =
+    questions == null
+      ? []
+      : useMemo(
+          () =>
+            [...questions]
+              .filter((q) => {
+                const matchesSearch = q.question
+                  .toLowerCase()
+                  .includes(filter.search.toLowerCase());
+                const matchesType =
+                  filter.type === "All" || q.type === filter.type;
+                const matchesLevel =
+                  filter.level === "All" || q.bloom === filter.level;
+                return matchesSearch && matchesType && matchesLevel;
+              })
+              .slice(page * rowsPerPage, (page + 1) * rowsPerPage),
+          [questions, filter, page, rowsPerPage]
+        );
 
   return (
     <div
@@ -183,7 +187,7 @@ const QuestionTable = ({ detailed_que_analysis }) => {
                       key={idx}
                       className="border-t border-gray-100 text-[15px]"
                     >
-                      <td className="py-2 px-4">
+                      <td className="py-2 px-4 max-w-[650px]">
                         <div className="font-medium text-gray-900">
                           {q.question}
                         </div>

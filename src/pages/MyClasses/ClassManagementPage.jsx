@@ -140,7 +140,8 @@ const ClassManagementPage = () => {
   };
 
   const handleClassClick = (cls) => {
-    setSelectedAnalyticsClass(cls);
+    // setSelectedAnalyticsClass(cls);
+    navigate("/class", { state: cls });
   };
 
   return (
@@ -152,10 +153,11 @@ const ClassManagementPage = () => {
         exit={{ opacity: 0, y: -50 }}
         transition={{ duration: 0.5 }}
       >
-
         <div className="w-full bg-white border-b border-gray-200 py-3 mb-3 flex items-center justify-between mt-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-0">My Classes</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-0">
+              My Classes
+            </h1>
             <p className="text-sm text-gray-500 mt-1 mb-0">
               Organize class schedules, assignments, and analytics in one place.
             </p>
@@ -168,72 +170,85 @@ const ClassManagementPage = () => {
           </button>
         </div>
 
-          <div className="flex gap-5">
-            <div className="w-7/10 rounded-lg">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex bg-[#f3f4f6] rounded-full p-1" style={{ minWidth: 260, maxWidth: 300 }}>
-            <button
-              className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
+        <div className="flex gap-5">
+          <div className="w-7/10 rounded-lg">
+            <div className="flex items-center justify-between mb-4">
+              <div
+                className="flex bg-[#f3f4f6] rounded-full p-1"
+                style={{ minWidth: 260, maxWidth: 300 }}
+              >
+                <button
+                  className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
                 ${activeTab === "active" ? "bg-white text-black shadow-sm" : "text-gray-700"}
               `}
-              style={{
-                border: "none",
-                background: activeTab === "active" ? "#fff" : "transparent",
-                boxShadow: activeTab === "active" ? "0 1px 4px rgba(0,0,0,0.03)" : "none",
-              }}
-              onClick={() => setActiveTab("active")}
-            >
-              Active
-            </button>
-            <button
-              className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
+                  style={{
+                    border: "none",
+                    background: activeTab === "active" ? "#fff" : "transparent",
+                    boxShadow:
+                      activeTab === "active"
+                        ? "0 1px 4px rgba(0,0,0,0.03)"
+                        : "none",
+                  }}
+                  onClick={() => setActiveTab("active")}
+                >
+                  Active
+                </button>
+                <button
+                  className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
                 ${activeTab === "archived" ? "bg-white text-black shadow-sm" : "text-gray-700"}
               `}
-              style={{
-                border: "none",
-                background: activeTab === "archived" ? "#fff" : "transparent",
-                boxShadow: activeTab === "archived" ? "0 1px 4px rgba(0,0,0,0.03)" : "none",
-              }}
-              onClick={() => setActiveTab("archived")}
-            >
-              Archive
-            </button>
-                </div>
+                  style={{
+                    border: "none",
+                    background:
+                      activeTab === "archived" ? "#fff" : "transparent",
+                    boxShadow:
+                      activeTab === "archived"
+                        ? "0 1px 4px rgba(0,0,0,0.03)"
+                        : "none",
+                  }}
+                  onClick={() => setActiveTab("archived")}
+                >
+                  Archive
+                </button>
               </div>
-
-              {activeTab === "archived" && filteredClasses.length === 0 ? (
-                <div className="text-center text-gray-500 py-10">
-            No Archive Class
-                </div>
-              ) : (
-                <ClassGrid
-            classes={filteredClasses}
-            open={open}
-            selectedClass={selectedClass}
-            anchorEl={anchorEl}
-            handleOpenPopover={handleOpenPopover}
-            handleClosePopover={handleClosePopover}
-            handleArchiveDialog={() => setArchiveDialog(true)}
-            handleActivate={handleActivate}
-            handleDeleteDialog={() => setDeleteDialog(true)}
-            handleSelectAnalyticsClass={handleClassClick}
-            onDoubleClick={handleClassDoubleClick}
-                />
-              )}
             </div>
 
-            <div className="w-1/3 mt-15">
-              <ClassAnalyticsChart classes={classes} selectedClass={selectedAnalyticsClass} />
-            </div>
+            {activeTab === "archived" && filteredClasses.length === 0 ? (
+              <div className="text-center text-gray-500 py-10">
+                No Archive Class
+              </div>
+            ) : (
+              <ClassGrid
+                classes={filteredClasses}
+                open={open}
+                selectedClass={selectedClass}
+                anchorEl={anchorEl}
+                handleOpenPopover={handleOpenPopover}
+                handleClosePopover={handleClosePopover}
+                handleArchiveDialog={() => setArchiveDialog(true)}
+                handleActivate={handleActivate}
+                handleDeleteDialog={() => setDeleteDialog(true)}
+                handleSelectAnalyticsClass={handleClassClick}
+                onDoubleClick={handleClassDoubleClick}
+              />
+            )}
           </div>
 
-          {createModalVisible && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
-                <CreateClass onCancel={() => setCreateModalVisible(false)} />
-              </div>
+          <div className="w-1/3 mt-15">
+            <ClassAnalyticsChart
+              classes={classes}
+              selectedClass={selectedAnalyticsClass}
+            />
+          </div>
+        </div>
+
+        {createModalVisible && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
+              <CreateClass onCancel={() => setCreateModalVisible(false)} />
             </div>
-          )}
+          </div>
+        )}
 
         <Dialog open={archiveDialog} onClose={() => setArchiveDialog(false)}>
           <DialogTitle>Archive Class: {selectedClass.class_name}</DialogTitle>

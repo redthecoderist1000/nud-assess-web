@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Button, Menu, MenuItem, ListItemIcon, ListItemText, Typography } from "@mui/material";
+import {
+  Button,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+} from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import TableChartIcon from "@mui/icons-material/TableChart";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -28,7 +35,8 @@ const GradeTab = ({ classData }) => {
         <div>
           <h2 className="font-bold text-xl">Gradebook</h2>
           <div className="text-gray-500 text-sm">
-            Click on quiz column headers to view detailed results and export data
+            Click on quiz column headers to view detailed results and export
+            data
           </div>
         </div>
         <div>
@@ -52,19 +60,13 @@ const GradeTab = ({ classData }) => {
             }}
             onClick={handleExportClick}
           >
-            Export All
+            Export
           </Button>
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleClose}
-            PaperProps={{
-              sx: { minWidth: 180, paddingY: 1 }
-            }}
           >
-            <Typography sx={{ px: 2, py: 1, fontWeight: 500, color: "#23286b" }}>
-              Export as
-            </Typography>
             <MenuItem onClick={() => handleExport("csv")}>
               <ListItemIcon>
                 <TableChartIcon sx={{ color: "#43a047" }} />

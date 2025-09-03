@@ -139,52 +139,53 @@ const AnimatedRoutes = () => {
   }, [lastActivity]);
 
   useEffect(() => {
-    // supabase.auth.signOut();
-    supabase.auth.onAuthStateChange((event, session) => {
-      // console.log(event, session);
-      // console.log("is_verified: ", session.user.user_metadata.email_verified);
-      if (session == null) {
-        navigate("/login");
-        return;
-      }
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session == null) {
+          navigate("/login");
+          return;
+        }
 
-      if (event === "SIGNED_IN") {
-        if (!user.email && !user.user_id) {
-          // setUser({ email: session.user.email, user_id: session.user.id });
+        if (event === "SIGNED_IN") {
+          if (!user.email && !user.user_id) {
+            (async () => {
+              let { data, error } = await supabase
+                .from("tbl_users")
+                .select("*")
+                .eq("id", session.user.id)
+                .single();
 
-          (async () => {
-            let { data, error } = await supabase
-              .from("tbl_users")
-              .select("*")
-              .eq("id", session.user.id)
-              .single();
+              if (error) {
+                navigate("setup", {
+                  state: {
+                    email: session.user.email,
+                    user_id: session.user.id,
+                  },
+                });
+                return;
+              }
 
-            if (error) {
-              // console.log("error ewan", error);
-              // navigate to set up
-              navigate("setup", {
-                state: { email: session.user.email, user_id: session.user.id },
+              setUser({
+                ...user.user,
+                email: session.user.email,
+                user_id: session.user.id,
+                suffix: data.suffix,
+                role: data.role,
+                f_name: data.f_name,
+                m_name: data.m_name,
+                l_name: data.l_name,
+                department_id: data.department_id,
+                allow_ai: data.allow_ai,
               });
-              return;
-            }
-
-            // console.log("setup done:", data);
-            setUser({
-              ...user.user,
-              email: session.user.email,
-              user_id: session.user.id,
-              suffix: data.suffix,
-              role: data.role,
-              f_name: data.f_name,
-              m_name: data.m_name,
-              l_name: data.l_name,
-              department_id: data.department_id,
-              allow_ai: data.allow_ai,
-            });
-          })();
+            })();
+          }
         }
       }
-    });
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [user]);
 
   // setInterval(checkSession, 10000);

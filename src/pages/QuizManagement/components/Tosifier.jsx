@@ -1,16 +1,13 @@
 import {
   Button,
   Card,
-  Checkbox,
   CircularProgress,
   Container,
   Divider,
   FormControl,
-  FormControlLabel,
-  FormHelperText,
   Grid,
-  Input,
   InputLabel,
+  LinearProgress,
   MenuItem,
   OutlinedInput,
   Paper,
@@ -25,16 +22,59 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { styled } from "@mui/material/styles";
 import { useContext, useEffect, useState } from "react";
-import { model } from "../../../helper/GeminiModel";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
 import Error from "./tosifierErrorDialogs/Error";
+import FileUpload from "../../../components/elements/FileUpload";
+import { aiRun } from "../../../helper/Gemini";
+import AiError from "./tosifierErrorDialogs/AiError";
+
+// Styled components for design
+const SectionCard = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(4),
+  borderRadius: 16,
+  background: "#fff",
+  marginBottom: theme.spacing(4),
+  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+}));
+
+const TosTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
+  background: bgcolor || "inherit",
+  fontWeight: 500,
+  textAlign: "center",
+  borderRight: "1px solid #eee",
+  fontSize: "15px",
+  padding: "12px 8px",
+}));
+
+const LegendBox = styled("div")({
+  display: "flex",
+  gap: "24px",
+  marginTop: "16px",
+  alignItems: "center",
+  fontSize: "15px",
+});
+
+const LegendItem = styled("span")(({ color }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  fontWeight: 500,
+  color: "#333",
+  "&:before": {
+    content: '""',
+    display: "inline-block",
+    width: "18px",
+    height: "18px",
+    borderRadius: "4px",
+    background: color,
+    marginRight: "6px",
+    border: "1px solid #ccc",
+  },
+}));
 
 function Tosifier(props) {
   //   const { quizDetail } = props;\
@@ -62,10 +102,8 @@ function Tosifier(props) {
       totalItems: 0,
     },
   ]);
-  const [sourceMaterial, setSourceMaterial] = useState("");
-  const [materialList, setMaterialList] = useState([]);
 
-  const [response, setResponse] = useState([]);
+  const [response, setResponse] = useState("");
   const [quiz, setQuiz] = useState([]);
   const [total, setTotal] = useState({
     items: 0,
@@ -83,6 +121,8 @@ function Tosifier(props) {
   const [lessonOption, setLessonOption] = useState([]);
 
   const [error, setError] = useState(false);
+
+  const [files, setFiles] = useState([]);
 
   // calculate total hours when rows change
   useEffect(() => {
@@ -251,7 +291,7 @@ function Tosifier(props) {
     // If subject_id is changed, also update subject_name
 
     if (name == "open_time") {
-      console.log(e);
+      // console.log(e);
       return;
     }
 
@@ -269,17 +309,6 @@ function Tosifier(props) {
     }
 
     // console.log("Quiz Detail:", quizDetail);
-  };
-
-  const handleFileChange = (e) => {
-    setSourceMaterial(e.target.files[0]);
-
-    const path = URL.createObjectURL(e.target.files[0]);
-    setMaterialList([
-      ...materialList,
-      { filename: e.target.files[0].name, path: path },
-    ]);
-    console.log(materialList);
   };
 
   const addRow = () => {
@@ -383,7 +412,7 @@ function Tosifier(props) {
     );
 
     if (isValid) {
-      console.log(quizDetail);
+      // console.log(quizDetail);
 
       navigate("/quizsummary", {
         state: {
@@ -403,41 +432,46 @@ function Tosifier(props) {
   };
 
   const generateQuestion = async () => {
-    // e.preventDefault();
+    if (files.length <= 0) {
+      setResponse("Upload atleast 1 pdf file as reference.");
+      return;
+    }
+
     setLoading(true);
-    setResponse("Generating...");
     setQuiz([]);
-    // console.log("Generating...");
 
-    var reqs =
-      "The total number of questions are " +
-      total.items +
-      ". The Lessons are: ";
+    // gawa ng array of texts
+    const texts = rows.flatMap((data) => {
+      const r_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.remembering} question/s at the 'Remembering' level.`,
+      };
+      const u_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.understanding} question/s at the 'Understanding' level.`,
+      };
+      const ap_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.applying} question/s at the 'Applying' level.`,
+      };
+      const an_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.analyzing} question/s at the 'Analyzing' level.`,
+      };
+      const c_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.creating} question/s at the 'Creating' level.`,
+      };
+      const e_text = {
+        text: `In the topic of ${data.topic} with a lesson_id of ${data.lesson_id}, generate ${data.evaluating} question/s at the 'Evaluating' level.`,
+      };
 
-    rows.forEach((row, index) => {
-      reqs +=
-        "Lesson no. " +
-        (index + 1) +
-        ". Lesson_id: " +
-        row.lesson_id +
-        ". " +
-        row.topic +
-        " with " +
-        row.remembering +
-        " question on Remembering, " +
-        row.understanding +
-        " question on Understanding, " +
-        row.applying +
-        " question on Applying, " +
-        row.analyzing +
-        " question on Analyzing, " +
-        row.creating +
-        " question on Creating, and " +
-        row.evaluating +
-        " question on Evaluating. ";
+      const compiled = [
+        data.remembering > 0 && r_text,
+        data.understanding > 0 && u_text,
+        data.applying > 0 && ap_text,
+        data.analyzing > 0 && an_text,
+        data.creating > 0 && c_text,
+        data.evaluating > 0 && e_text,
+      ].filter(Boolean);
+
+      return compiled;
     });
-
-    const prompt = reqs;
 
     if (rows.length === 0) {
       setResponse("There must be atleast 1 topic");
@@ -449,48 +483,40 @@ function Tosifier(props) {
       return;
     }
 
-    const file = sourceMaterial;
-    const reader = new FileReader();
+    try {
+      const result = await aiRun(files, texts);
 
-    reader.onload = async (e) => {
-      const base64Data = e.target.result.split(",")[1];
-
-      try {
-        const result = await model.generateContent([
-          {
-            inlineData: {
-              data: base64Data,
-              mimeType: "application/pdf",
-            },
-          },
-          prompt,
-        ]);
-        // setQuiz(JSON.parse(result.response.text()));
-        setResponse("Questions generated");
+      if (result.status == "Success") {
+        // console.log("sakses response:", result);
+        setQuiz(result.questions);
         navigate("/quizsummary", {
           state: {
             quizDetail: quizDetail,
             rows: rows,
             total: total,
-            quiz: JSON.parse(result.response.text()),
+            quiz: result.questions,
           },
         });
-        setLoading(false);
-        props.onCancel();
-      } catch (error) {
-        console.error(error);
-        setLoading(false);
+      } else {
+        // success ai pero irrelevant ung pdf files
         setResponse(
-          "There seems to be a problem on our side. Please try again. "
+          "The files you uploaded may have been irrelevant to the subject and topics."
         );
       }
-    };
-
-    reader.readAsDataURL(file);
+      setLoading(false);
+      // props.onCancel();
+    } catch (error) {
+      // ai error
+      // console.error(error);
+      setLoading(false);
+      setResponse(
+        "There seems to be a problem on our side. Please try again. "
+      );
+    }
   };
 
   useEffect(() => {
-    console.log(quizDetail);
+    // console.log(quizDetail);
     if (quizDetail.subject_id == "") {
       setLessonOption([]);
       return;
@@ -530,118 +556,109 @@ function Tosifier(props) {
   };
 
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth="xl" className="my-5">
+      <div className="bg-white border-b border-gray-200 pt-6 pb-2 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-0">Quiz Details</h1>
+        <p className="text-sm text-gray-500 mt-1 mb-0">
+          Enter details about the quiz and create Table of Specification
+        </p>
+      </div>
+
       <form onSubmit={submitForm}>
-        <h1 className="text-3xl font-bold mb-2 mt-10">Quiz Details</h1>
-        <p className="mb-6 text-gray-600">Enter details about the quiz.</p>
-        <Stack mb={10} rowGap={3}>
-          <Stack direction="row" columnGap={3}>
-            <TextField
-              fullWidth
-              required
-              label="Quiz Name"
-              size="small"
-              type="text"
-              name="name"
-              onChange={handleQuizDetail}
-            />
-            <FormControl size="small" fullWidth>
-              <InputLabel id="subjectSelectLabel" required>
-                Subject
-              </InputLabel>
-              <Select
-                label="Subject"
-                labelId="subjectSelectLabel"
-                value={quizDetail.subject_id}
-                onChange={handleQuizDetail}
-                name="subject_id"
-                required
-              >
-                <MenuItem value={0} disabled dense>
-                  <em>
-                    {subjectOptions.length == 0
-                      ? "You are not assigned to any subject"
-                      : "-- Select Subject --"}
-                  </em>
-                </MenuItem>
-                {subjectOptions.map((data, index) => {
-                  return (
-                    <MenuItem key={index} value={data.subject_id}>
-                      {data.subject_name}
-                    </MenuItem>
-                  );
-                })}
-              </Select>
-            </FormControl>
-          </Stack>
-          <Stack direction="row" columnGap={3}>
-            <TextField
-              size="small"
-              label="Description"
-              fullWidth
-              multiline
-              rows={4}
-              name="desc"
-              onChange={handleQuizDetail}
-            />
-            <TextField
-              label="Objective"
-              size="small"
-              fullWidth
-              multiline
-              rows={4}
-              name="objective"
-              onChange={handleQuizDetail}
-            />
-          </Stack>
-          <Divider>
-            <Typography variant="caption" color="textDisabled">
-              Advanced Options
+          <SectionCard elevation={0} sx={{ border: "1px solid #e0e0e0" }}>
+            <Typography variant="h5" fontWeight={700} mb={1}>
+              Quiz Information
             </Typography>
-          </Divider>
+            <Typography mb={3} color="text.secondary">
+              Basic information about your quiz
+            </Typography>
+            <Stack mb={2} rowGap={3}>
+              <Stack direction="row" columnGap={3}>
+                <TextField
+            fullWidth
+            required
+            label="Quiz Name"
+            size="small"
+            type="text"
+            name="name"
+            onChange={handleQuizDetail}
+            sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
+                />
+                <FormControl size="small" fullWidth>
+            <InputLabel id="subjectSelectLabel" required>
+              Subject
+            </InputLabel>
+            <Select
+              label="Subject"
+              labelId="subjectSelectLabel"
+              value={quizDetail.subject_id}
+              onChange={handleQuizDetail}
+              name="subject_id"
+              required
+              sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
+            >
+              <MenuItem value={0} disabled dense>
+                <em>
+                  {subjectOptions.length == 0
+              ? "You are not assigned to any subject"
+              : "-- Select Subject --"}
+                </em>
+              </MenuItem>
+              {subjectOptions.map((data, index) => {
+                    return (
+                      <MenuItem key={index} value={data.subject_id}>
+                        {data.subject_name}
+                      </MenuItem>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+            </Stack>
+            <Stack direction="row" columnGap={3}>
+              <TextField
+                size="small"
+                label="Description"
+                fullWidth
+                multiline
+                rows={2}
+                name="desc"
+                onChange={handleQuizDetail}
+                sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
+              />
+              <TextField
+                label="Objective"
+                size="small"
+                fullWidth
+                multiline
+                rows={2}
+                name="objective"
+                onChange={handleQuizDetail}
+                sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
+              />
+            </Stack>
+          </Stack>
+        </SectionCard>
+
+        {/* Advanced Options Section */}
+        <SectionCard elevation={0} sx={{ border: "1px solid #e0e0e0" }}>
+          <Typography variant="h6" fontWeight={700} mb={1}>
+            Advanced Options
+          </Typography>
+          <Typography mb={3} color="text.secondary">
+            Configure advanced quiz settings
+          </Typography>
           <Grid container columnGap={3}>
             <Grid flex={1}>
               <TextField
                 size="small"
                 fullWidth
                 type="number"
-                label="Time Limit (mins.)"
+                label="Time Limit (minutes)"
                 name="time_limit"
                 onChange={handleQuizDetail}
+                sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
               />
             </Grid>
-            {/* <Grid flex={1}>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateTimePicker
-                  label="Open quiz at:"
-                  name="open_time"
-                  value={quizDetail.open_time}
-                  slotProps={{
-                    textField: {
-                      sx: { width: "100%" },
-                      size: "small",
-                    },
-                  }}
-                  onChange={handleQuizDetail}
-                />
-              </LocalizationProvider>
-            </Grid>
-            <Grid flex={1}>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateTimePicker
-                  label="Close quiz at:"
-                  name="close_time"
-                  value={quizDetail.close_time}
-                  slotProps={{
-                    textField: {
-                      sx: { width: "100%" },
-                      size: "small",
-                    },
-                  }}
-                  onChange={handleQuizDetail}
-                />
-              </LocalizationProvider>
-            </Grid> */}
             <Grid flex={1}>
               <FormControl size="small" fullWidth>
                 <InputLabel id="shuffleLabel">Shuffle Items</InputLabel>
@@ -651,282 +668,249 @@ function Tosifier(props) {
                   value={quizDetail.is_random}
                   onChange={handleQuizDetail}
                   name="is_random"
+                  sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
                 >
                   <MenuItem value={true} dense>
-                    true
+                    Yes
                   </MenuItem>
                   <MenuItem value={false} dense>
-                    false
+                    No
                   </MenuItem>
                 </Select>
               </FormControl>
             </Grid>
           </Grid>
-        </Stack>
-        <Divider />
-        <h1 className="text-3xl font-bold mb-2 mt-10">
-          Table of Specification
-        </h1>
-        <p className="mb-6 text-gray-600">
-          Create Table of Specification to create a quiz.
-        </p>
-        {/* <form onSubmit={generateQuestion}> */}
-        <Stack rowGap={4}>
-          <Stack
-            width="80%"
-            m="auto"
-            direction="row"
-            justifyContent="space-around"
-          >
-            {quizDetail.mode == "AI-Generated" && (
+        </SectionCard>
+
+        {/* Table of Specification Section */}
+        <SectionCard elevation={0} sx={{ border: "1px solid #e0e0e0" }}>
+          <Typography variant="h5" fontWeight={700} mb={1}>
+            Table of Specification
+          </Typography>
+          <Typography mb={3} color="text.secondary">
+            Create Table of Specification to generate quiz questions based on Bloom's Taxonomy
+          </Typography>
+          <Stack rowGap={2}>
+            <Stack direction="row" justifyContent="flex-end" alignItems="center" mb={2}>
+              <Typography fontWeight={500} mr={2}>
+                Total Items:
+              </Typography>
               <OutlinedInput
                 size="small"
                 required
-                name="materialInput"
-                className="materialInput"
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
+                className="itemInput"
+                type="number"
+                placeholder="Total Items"
+                onChange={changeTotalItems}
+                sx={{ width: "80px", mr: 2, bgcolor: "#fafafa", borderRadius: 2 }}
               />
-            )}
-
-            <OutlinedInput
-              size="small"
-              required
-              className="itemInput"
-              type="number"
-              placeholder="Total Items"
-              onChange={changeTotalItems}
-            />
-
-            <div className="tosInputBtn flex gap-10">
               <Button
                 variant="contained"
                 size="small"
                 onClick={addRow}
                 disableElevation
+                sx={{
+                  bgcolor: "#1976d2",
+                  color: "#fff",
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  px: 2,
+                  mr: 2,
+                }}
               >
-                Add Topic
+                ADD TOPIC
               </Button>
-
               <Button
                 variant="contained"
                 size="small"
                 onClick={removeRow}
                 disabled={rows.length === 0}
                 disableElevation
+                sx={{
+                  bgcolor: "#e0e0e0",
+                  color: "#333",
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  px: 2,
+                }}
               >
-                Remove Topic
+                REMOVE TOPIC
               </Button>
-            </div>
-          </Stack>
-          <Card>
-            <TableContainer component={Paper} variant="outlined">
-              {/* <div>
-            {materialList.map((data, index) => {
-              return (
-                <p key={index} style={{ color: "white" }}>
-                  {" "}
-                  {data.filename}{" "}
-                </p>
-              );
-            })}
-          </div> */}
-
-              <Table
-              //   className="glassCard w-full m-auto p-10"
-              >
-                <TableHead>
-                  <TableRow>
-                    {/* <th rowSpan={2}>Source Material</th> */}
-                    <TableCell align="center" rowSpan={2}>
-                      <b>Lesson</b>
-                    </TableCell>
-                    <TableCell align="center" rowSpan={2}>
-                      <b>Hours</b>
-                    </TableCell>
-                    <TableCell align="center" rowSpan={2}>
-                      <b>Percentage</b>
-                    </TableCell>
-                    <TableCell align="center" colSpan={2}>
-                      <b>EASY</b>
-                    </TableCell>
-                    <TableCell align="center" colSpan={2}>
-                      <b>MEDIUM</b>
-                    </TableCell>
-                    <TableCell align="center" colSpan={2}>
-                      <b>HARD</b>
-                    </TableCell>
-                    <TableCell align="center" rowSpan={2}>
-                      <b>Total Items</b>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell align="center">
-                      <b>Remembering (30%)</b>
-                    </TableCell>
-                    <TableCell align="center">
-                      <b>Understanding (20%)</b>
-                    </TableCell>
-                    <TableCell align="center">
-                      <b>Applying (20%)</b>
-                    </TableCell>
-                    <TableCell align="center">
-                      <b>Analyzing (10%)</b>
-                    </TableCell>
-                    <TableCell align="center">
-                      <b>Creating (10%)</b>
-                    </TableCell>
-                    <TableCell align="center">
-                      <b>Evaluating (10%)</b>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row, index) => (
-                    <TableRow key={index}>
-                      {/* <td>
-                    <input
-                      required
-                      name="matInput"
-                      className="matInput"
-                      type="file"
-                      placeholder="insert file"
-                      accept="application/pdf"
-                      style={{ width: "200px" }}
-                    />
-                  </td> */}
-                      <TableCell align="center">
-                        {/* <OutlinedInput
-                          size="small"
-                          required
-                          name="topicInput"
-                          className="topicInput"
-                          type="text"
-                          placeholder="enter topic"
-                          onChange={(e) =>
-                            handleInputChange(index, "topic", e.target.value)
-                          }
-                        /> */}
-                        <FormControl size="small" sx={{ width: "250px" }}>
-                          <InputLabel id="lessonLabel" required>
-                            Lesson
-                          </InputLabel>
-                          <Select
-                            fullWidth
-                            labelId="lessonLabel"
-                            label="Lesson"
-                            value={row.lesson_id || ""}
+            </Stack>
+            {quizDetail.mode == "AI-Generated" && (
+              <FileUpload files={files} setFiles={setFiles} />
+            )}
+            <Card sx={{ borderRadius: 3, boxShadow: "none" }}>
+              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 3 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TosTableCell rowSpan={2}><b>Lesson</b></TosTableCell>
+                      <TosTableCell rowSpan={2}><b>Hours</b></TosTableCell>
+                      <TosTableCell rowSpan={2}><b>Percentage</b></TosTableCell>
+                      <TosTableCell colSpan={2} bgcolor="#e3f2fd"><b>EASY</b></TosTableCell>
+                      <TosTableCell colSpan={2} bgcolor="#fffde7"><b>MEDIUM</b></TosTableCell>
+                      <TosTableCell colSpan={2} bgcolor="#ffebee"><b>HARD</b></TosTableCell>
+                      <TosTableCell rowSpan={2}><b>Total Items</b></TosTableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TosTableCell bgcolor="#e3f2fd"><b>Remembering (30%)</b></TosTableCell>
+                      <TosTableCell bgcolor="#e3f2fd"><b>Understanding (20%)</b></TosTableCell>
+                      <TosTableCell bgcolor="#fffde7"><b>Applying (20%)</b></TosTableCell>
+                      <TosTableCell bgcolor="#fffde7"><b>Analyzing (10%)</b></TosTableCell>
+                      <TosTableCell bgcolor="#ffebee"><b>Creating (10%)</b></TosTableCell>
+                      <TosTableCell bgcolor="#ffebee"><b>Evaluating (10%)</b></TosTableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {rows.map((row, index) => (
+                      <TableRow key={index}>
+                        <TosTableCell>
+                          <FormControl size="small" sx={{ width: "180px" }}>
+                            <InputLabel id="lessonLabel" required>
+                              Lesson
+                            </InputLabel>
+                            <Select
+                              fullWidth
+                              labelId="lessonLabel"
+                              label="Lesson"
+                              value={row.lesson_id || ""}
+                              size="small"
+                              required
+                              name="lessonId"
+                              disabled={lessonOption.length === 0}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  index,
+                                  "lesson_id",
+                                  e.target.value
+                                )
+                              }
+                            >
+                              {lessonOption.map((data, i) => {
+                                return (
+                                  <MenuItem
+                                    key={i}
+                                    value={data.id}
+                                    onClick={() =>
+                                      handleInputChange(
+                                        index,
+                                        "topic",
+                                        data.title
+                                      )
+                                    }
+                                  >
+                                    {data.title}
+                                  </MenuItem>
+                                );
+                              })}
+                            </Select>
+                          </FormControl>
+                        </TosTableCell>
+                        <TosTableCell>
+                          <TextField
+                            sx={{ width: "80px", bgcolor: "#fafafa", borderRadius: 2 }}
+                            label="Hours"
                             size="small"
                             required
-                            name="lessonId"
-                            // defaultValue=""
-                            disabled={lessonOption.length === 0}
+                            index={index}
+                            type="number"
+                            name="hoursInput"
+                            value={row.hours || ""}
+                            min={0}
+                            placeholder="Hours"
                             onChange={(e) =>
-                              handleInputChange(
-                                index,
-                                "lesson_id",
-                                e.target.value
-                              )
+                              handleInputChange(index, "hours", e.target.value)
                             }
-                          >
-                            {lessonOption.map((data, i) => {
-                              return (
-                                <MenuItem
-                                  key={i}
-                                  value={data.id}
-                                  onClick={() =>
-                                    handleInputChange(
-                                      index,
-                                      "topic",
-                                      data.title
-                                    )
-                                  }
-                                >
-                                  {data.title}
-                                </MenuItem>
-                              );
-                            })}
-                          </Select>
-                        </FormControl>
-                      </TableCell>
-                      <TableCell align="center">
-                        <TextField
-                          sx={{ width: "100px" }}
-                          label="Hours"
-                          size="small"
-                          required
-                          index={index}
-                          type="number"
-                          name="hoursInput"
-                          value={row.hours || ""}
-                          min={0}
-                          placeholder="enter hours"
-                          onChange={(e) =>
-                            handleInputChange(index, "hours", e.target.value)
-                          }
-                        />
-                      </TableCell>
-
-                      <TableCell align="center">{row.percentage} %</TableCell>
-                      <TableCell align="center">{row.remembering}</TableCell>
-                      <TableCell align="center">{row.understanding}</TableCell>
-                      <TableCell align="center">{row.applying}</TableCell>
-                      <TableCell align="center">{row.analyzing}</TableCell>
-                      <TableCell align="center">{row.creating}</TableCell>
-                      <TableCell align="center">{row.evaluating}</TableCell>
-                      <TableCell align="center">{row.totalItems}</TableCell>
+                          />
+                        </TosTableCell>
+                        <TosTableCell>{row.percentage} %</TosTableCell>
+                        <TosTableCell bgcolor="#e3f2fd">{row.remembering}</TosTableCell>
+                        <TosTableCell bgcolor="#e3f2fd">{row.understanding}</TosTableCell>
+                        <TosTableCell bgcolor="#fffde7">{row.applying}</TosTableCell>
+                        <TosTableCell bgcolor="#fffde7">{row.analyzing}</TosTableCell>
+                        <TosTableCell bgcolor="#ffebee">{row.creating}</TosTableCell>
+                        <TosTableCell bgcolor="#ffebee">{row.evaluating}</TosTableCell>
+                        <TosTableCell>{row.totalItems}</TosTableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow>
+                      <TosTableCell><b>Total</b></TosTableCell>
+                      <TosTableCell>{total.hours}</TosTableCell>
+                      <TosTableCell>100%</TosTableCell>
+                      <TosTableCell bgcolor="#e3f2fd">{total.remembering}</TosTableCell>
+                      <TosTableCell bgcolor="#e3f2fd">{total.understanding}</TosTableCell>
+                      <TosTableCell bgcolor="#fffde7">{total.applying}</TosTableCell>
+                      <TosTableCell bgcolor="#fffde7">{total.analyzing}</TosTableCell>
+                      <TosTableCell bgcolor="#ffebee">{total.creating}</TosTableCell>
+                      <TosTableCell bgcolor="#ffebee">{total.evaluating}</TosTableCell>
+                      <TosTableCell bgcolor="#e0e0e0">{total.totalItems}</TosTableCell>
                     </TableRow>
-                  ))}
-                  <TableRow>
-                    {/* <td></td> */}
-                    <TableCell align="center">
-                      <b>Total</b>
-                    </TableCell>
-                    <TableCell align="center">{total.hours}</TableCell>
-                    <TableCell align="center">{total.percentage} %</TableCell>
-                    <TableCell align="center">{total.remembering}</TableCell>
-                    <TableCell align="center">{total.understanding}</TableCell>
-                    <TableCell align="center">{total.applying}</TableCell>
-                    <TableCell align="center">{total.analyzing}</TableCell>
-                    <TableCell align="center">{total.creating}</TableCell>
-                    <TableCell align="center">{total.evaluating}</TableCell>
-                    <TableCell align="center">{total.totalItems}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
-          <Stack direction="row" width="100%" justifyContent="space-between">
-            <Button
-              disabled={loading}
-              variant="contained"
-              size="large"
-              color="error"
-              onClick={props.onCancel}
-              sx={{ maxWidth: "100px" }}
-              disableElevation
-            >
-              Cancel
-            </Button>
-            {loading ? <CircularProgress /> : <></>}
-            <Button
-              disableElevation
-              disabled={loading}
-              variant="contained"
-              size="large"
-              type="submit"
-              color="success"
-              sx={{ maxWidth: "100px" }}
-            >
-              Continue
-            </Button>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Card>
+            <LegendBox>
+              <LegendItem color="#e3f2fd">Easy (50%) - Remembering & Understanding</LegendItem>
+              <LegendItem color="#fffde7">Medium (30%) - Applying & Analyzing</LegendItem>
+              <LegendItem color="#ffebee">Hard (20%) - Creating & Evaluating</LegendItem>
+            </LegendBox>
+            {loading ? (
+              <LinearProgress />
+            ) : (
+              <Stack direction="row" width="100%" justifyContent="space-between" mt={4}>
+                <Button
+                  disabled={loading}
+                  variant="contained"
+                  size="small"
+                  color="error"
+                  onClick={props.onCancel}
+                  sx={{
+                    maxWidth: "180px",
+                    borderRadius: 2,
+                    fontWeight: 700,
+                    bgcolor: "#d32f2f",
+                    color: "#fff",
+                    px: 1.5,
+                    py: 1.5,
+                  }}
+                  disableElevation
+                >
+                  CANCEL
+                </Button>
+                {loading ? <CircularProgress /> : <></>}
+                <Button
+                  disableElevation
+                  disabled={loading}
+                  variant="contained"
+                  size="small"
+                  type="submit"
+                  color="success"
+                  sx={{
+                    maxWidth: "280px",
+                    borderRadius: 2,
+                    fontWeight: 700,
+                    bgcolor: "#2e7d32",
+                    color: "#fff",
+                    px: 1.5,
+                    py: 1.5,
+                  }}
+                >
+                  CONTINUE TO QUIZ GENERATION
+                </Button>
+              </Stack>
+            )}
           </Stack>
-          <p className="response">{response}</p>
-        </Stack>
+        </SectionCard>
       </form>
 
       <Error open={error} setOpen={setError} />
+
+      <AiError
+        open={response.length != 0}
+        setOpen={setResponse}
+        message={response}
+      />
     </Container>
   );
 }

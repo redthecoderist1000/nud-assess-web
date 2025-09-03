@@ -24,6 +24,7 @@ import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
 import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import QuestionBuilder from "./components/resultPage/QuestionBuilder";
 
 const QUESTION_TYPES = ["Multiple Choice", "True or False", "Identification"];
 
@@ -184,48 +185,64 @@ const QuizResultPage = () => {
         });
 
         quiz.map(async (data, index) => {
-          // create questions
-          await supabase
-            .from("tbl_question")
-            .insert({
-              lesson_id: data.lesson_id,
-              question: data.question,
-              type: "Multiple Choice",
-              blooms_category: data.specification,
-              repository: quizDetails.repository,
-            })
-            .select("id")
-            .single()
-            .then((qures) => {
-              // create exam_questions
-              const addExamQuestion = async () => {
-                await supabase
-                  .from("tbl_exam_question")
-                  .insert({
-                    exam_id: exres.data.id,
-                    question_id: qures.data.id,
-                  })
-                  .select("*")
-                  .then((data) => {})
-                  .catch((eqerr) => {
-                    console.log("fail to add to exam_question", eqerr.error);
-                  });
-              };
-              addExamQuestion();
-              // create answers
-              data.answers.map(async (ans) => {
-                await supabase.from("tbl_answer").insert({
-                  question_id: qures.data.id,
-                  answer: ans.answer,
-                  is_correct: ans.is_correct,
-                });
+          // if has id => nag recycle ng question
+          // no need to create new question
+          if (data.id) {
+            await supabase
+              .from("tbl_exam_question")
+              .insert({
+                exam_id: exres.data.id,
+                question_id: data.id,
+              })
+              .select("*")
+              .then((data) => {})
+              .catch((eqerr) => {
+                console.log("fail to add to exam_question", eqerr.error);
               });
-            })
-            .catch((querr) => {
-              console.log("failed to make question", querr);
-              setLoading(false);
-              return;
-            });
+          } else {
+            // create questions
+            await supabase
+              .from("tbl_question")
+              .insert({
+                lesson_id: data.lesson_id,
+                question: data.question,
+                type: "Multiple Choice",
+                blooms_category: data.specification,
+                repository: quizDetails.repository,
+              })
+              .select("id")
+              .single()
+              .then((qures) => {
+                // create exam_questions
+                const addExamQuestion = async () => {
+                  await supabase
+                    .from("tbl_exam_question")
+                    .insert({
+                      exam_id: exres.data.id,
+                      question_id: qures.data.id,
+                    })
+                    .select("*")
+                    .then((data) => {})
+                    .catch((eqerr) => {
+                      console.log("fail to add to exam_question", eqerr.error);
+                    });
+                };
+                addExamQuestion();
+                // create answers
+                data.answers.map(async (ans) => {
+                  await supabase.from("tbl_answer").insert({
+                    question_id: qures.data.id,
+                    answer: ans.answer,
+                    is_correct: ans.is_correct,
+                  });
+                });
+              })
+              .catch((querr) => {
+                console.log("failed to make question", querr);
+                setLoading(false);
+                return;
+              });
+          }
         });
       })
       .catch((exerr) => {
@@ -348,13 +365,12 @@ const QuizResultPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 5 }}>
-      <div className="mb-6">
-        <h1 className="text-5xl font-bold mb-2">Quiz Summary</h1>
-        <p className="text-gray-600">
+      <div className="bg-white border-b border-gray-200 pt-6 pb-2 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-0">Quiz Summary</h1>
+        <p className="text-sm text-gray-500 mt-1 mb-0">
           Here are the details and generated questions for your quiz.
         </p>
       </div>
-
       {/* Quiz Details */}
       <Card sx={{ padding: 3, mb: 3 }} variant="outlined">
         <Stack
@@ -533,206 +549,46 @@ const QuizResultPage = () => {
 
       {/* Questions List */}
       {quizResult.length != 0 && (
-        <Card ref={questionRef} sx={{ padding: 3 }} variant="outlined">
-          <div className="flex justify-between items-center mb-4">
-            <Stack
-              width="100%"
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <h2 className="text-2xl font-bold">Generated Questions</h2>
-              <Stack direction="row" spacing={2}>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => handlePrint("question")}
-                >
-                  Print <PrintRoundedIcon />
-                </Button>
-                <Button
-                  size="small"
-                  variant={editQuestion ? "contained" : "outlined"}
-                  color="warning"
-                  onClick={() => setEditQuestion(!editQuestion)}
-                >
-                  Edit <ModeEditRoundedIcon />
-                </Button>
-              </Stack>
+        <>
+          <Stack
+            width="100%"
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            my={2}
+          >
+            <h2 className="text-2xl font-bold">Generated Questions</h2>
+            <Stack direction="row" spacing={2}>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => handlePrint("question")}
+              >
+                Print <PrintRoundedIcon />
+              </Button>
+              <Button
+                size="small"
+                variant={editQuestion ? "contained" : "outlined"}
+                color="warning"
+                onClick={() => setEditQuestion(!editQuestion)}
+              >
+                Edit <ModeEditRoundedIcon />
+              </Button>
             </Stack>
-          </div>
+          </Stack>
           {/* mismong questions */}
-          {quizResult.map((data, index) => (
-            <div
-              key={index}
-              className="mb-6  pb-4  flex justify-between items-start"
-            >
-              <div className="flex-1">
-                {/* question */}
-                {editQuestion ? (
-                  <Stack direction="row" alignItems="center" gap={2} mr={3}>
-                    <p className="text-lg font-bold">{index + 1}).</p>
-                    <TextField
-                      size="small"
-                      fullWidth
-                      value={data.question}
-                      onChange={(e) =>
-                        handleEditQuestion(index, "question", e.target.value)
-                      }
-                    />
-                  </Stack>
-                ) : (
-                  <p className="text-lg font-bold">
-                    {index + 1}). {data.question}
-                  </p>
-                )}
-
-                {/* options */}
-                <Grid container columns={2} spacing={3} mt={1}>
-                  {data.answers.map((ans, ind) => {
-                    return (
-                      <Grid key={ind} size={1}>
-                        {editQuestion ? (
-                          <Stack direction="row" alignItems="center">
-                            <TextField
-                              size="small"
-                              fullWidth
-                              value={ans.answer}
-                              onChange={(e) =>
-                                handleEditAnswer(index, ind, e.target.value)
-                              }
-                            />
-                            {ans.is_correct ? (
-                              <CheckRoundedIcon className="text-green-600" />
-                            ) : (
-                              <CloseRoundedIcon className="text-red-600" />
-                            )}
-                          </Stack>
-                        ) : (
-                          <Stack direction="row">
-                            {ans.is_correct ? (
-                              <u>
-                                <p>{ans.answer}</p>
-                              </u>
-                            ) : (
-                              <p>{ans.answer}</p>
-                            )}
-                          </Stack>
-                        )}
-                      </Grid>
-                    );
-                  })}
-                </Grid>
-              </div>
-              <Stack maxWidth={250} rowGap={2}>
-                <div className="text-right text-[#35408E] text-sm font-semibold">
-                  "{data.topic}"
-                </div>
-                <div className="min-w-[120px] text-right text-[#35408E] text-sm">
-                  "{data.specification}"
-                </div>
-              </Stack>
-            </div>
-          ))}
-
-          {/* Add Question Modal */}
-          {showAddQuestion && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
-              <div className="bg-blue-200 p-6 rounded-lg shadow-lg w-full max-w-lg">
-                <h3 className="text-xl font-bold mb-4">Add New Question</h3>
-                <div className="mb-2">
-                  <label className="block text-sm font-medium mb-1">Type</label>
-                  <select
-                    value={newQuestion.type}
-                    onChange={(e) =>
-                      handleNewQuestionChange("type", e.target.value)
-                    }
-                    className="border rounded px-2 py-1 w-full"
-                  >
-                    {QUESTION_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-2">
-                  <label className="block text-sm font-medium mb-1">
-                    Question
-                  </label>
-                  <input
-                    type="text"
-                    value={newQuestion.question}
-                    onChange={(e) =>
-                      handleNewQuestionChange("question", e.target.value)
-                    }
-                    className="border rounded px-2 py-1 w-full"
-                  />
-                </div>
-                {newQuestion.type === "Multiple Choice" && (
-                  <div className="mb-2">
-                    <label className="block text-sm font-medium mb-1">
-                      Choices
-                    </label>
-                    {newQuestion.options.map((opt, i) => (
-                      <input
-                        key={i}
-                        type="text"
-                        placeholder={`Choice ${String.fromCharCode(65 + i)}`}
-                        value={opt}
-                        onChange={(e) =>
-                          handleNewOptionChange(i, e.target.value)
-                        }
-                        className="border rounded px-2 py-1 w-full mb-1"
-                      />
-                    ))}
-                  </div>
-                )}
-                <div className="mb-2">
-                  <label className="block text-sm font-medium mb-1">
-                    Answer
-                  </label>
-                  <input
-                    type="text"
-                    value={newQuestion.answer}
-                    onChange={(e) =>
-                      handleNewQuestionChange("answer", e.target.value)
-                    }
-                    className="border rounded px-2 py-1 w-full"
-                  />
-                </div>
-                <div className="mb-2">
-                  <label className="block text-sm font-medium mb-1">
-                    Table of Specification Placement
-                  </label>
-                  <input
-                    type="text"
-                    value={newQuestion.tosPlacement}
-                    onChange={(e) =>
-                      handleNewQuestionChange("tosPlacement", e.target.value)
-                    }
-                    className="border rounded px-2 py-1 w-full"
-                    placeholder="e.g. Applying"
-                  />
-                </div>
-                <div className="flex justify-end gap-2 mt-4">
-                  <button
-                    className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-                    onClick={() => setShowAddQuestion(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-800"
-                    onClick={handleAddQuestion}
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </Card>
+          {quizResult.map((data, index) => {
+            return (
+              <QuestionBuilder
+                key={index}
+                index={index}
+                items={quizResult}
+                setItems={setQuizResult}
+                repository={quizDetail.repository}
+              />
+            );
+          })}
+        </>
       )}
 
       {/* action buttons sa baba */}
@@ -748,18 +604,7 @@ const QuizResultPage = () => {
           >
             Cancel
           </Button>
-          {/* <button
-            onClick={() => alert("Questions saved successfully!")}
-            className="bg-[#35408E] text-white w-48 px-6 py-2 rounded-md hover:opacity-80 transition text-center shadow"
-          >
-            Save Questions in Repository
-          </button>
-          <button
-            onClick={handlePrint}
-            className="bg-[#35408E] text-white w-48 px-6 py-2 rounded-md hover:opacity-80 transition text-center shadow"
-          >
-            Print
-          </button> */}
+
           <Button
             variant="contained"
             size="large"

@@ -160,6 +160,7 @@ function CustomTab(props) {
                 index={index}
                 handleChangeItem={handleChangeItem}
                 handleChangeQuestion={handleChangeQuestion}
+                lesson_id={lesson}
               />
             </questionContext.Provider>
           );

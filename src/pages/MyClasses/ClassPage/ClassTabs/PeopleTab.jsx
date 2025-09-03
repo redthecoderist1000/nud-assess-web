@@ -4,8 +4,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 
 const getInitials = (person) => {
-  const name =
-    person.name || `${person.f_name || ""} ${person.l_name || ""}`.trim();
+  const name = `${person.f_name || ""} ${person.l_name || ""}`.trim();
   if (!name) return "";
   const parts = name.split(" ");
   return parts
@@ -18,7 +17,7 @@ const PeopleTab = ({ people = [], setAddMemDia, canAdd }) => {
   const instructors = people.filter((p) => p.role === "instructor");
   const students = people.filter((p) => p.role !== "instructor");
 
-  const PersonRow = ({ person, canDelete }) => (
+  const PersonRow = ({ person }) => (
     <div className="flex items-center justify-between bg-white rounded-2xl border border-l-4 border-gray-200 border-l-blue-800 p-4">
       <div className="flex items-center gap-4 min-w-0 ">
         <div className="w-10 h-10 rounded-full bg-yellow-100  flex items-center justify-center text-md font-semibold text-[blue-600]">
@@ -27,8 +26,7 @@ const PeopleTab = ({ people = [], setAddMemDia, canAdd }) => {
         <div className="min-w-0 ">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-md truncate">
-              {person.name ||
-                `${person.f_name || ""} ${person.l_name || ""}`.trim()}
+              {`${person.f_name || ""} ${person.l_name || ""}`.trim()}
             </span>
           </div>
           <div className="text-sm text-gray-500 truncate">{person.email}</div>

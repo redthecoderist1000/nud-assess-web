@@ -1,95 +1,147 @@
 import React, { useContext } from "react";
-import { motion } from "framer-motion";
 import { userContext } from "../../../App";
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   Stack,
   Typography,
+  Box,
+  Divider,
+  Avatar,
 } from "@mui/material";
+import DescriptionIcon from "@mui/icons-material/Description";
+import ShuffleIcon from "@mui/icons-material/Shuffle";
+import PsychologyIcon from "@mui/icons-material/Psychology";
 
 const QuizModal = (props) => {
   const { isOpen, onClose, onSelectOption } = props;
   const { user } = useContext(userContext);
 
-  // console.log(user);
-
   return (
-    <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        sx: {
+          m: { xs: 1, sm: "auto" },
+          borderRadius: { xs: 2, sm: 3 },
+          width: { xs: "100%", sm: "auto" },
+        },
+      }}
+    >
       <DialogTitle
-        align="center"
-        component={Typography}
-        fontWeight="bold"
-        variant="h5"
+        align="left"
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          pb: 0,
+          px: { xs: 2, sm: 3 },
+          pt: { xs: 2, sm: 3 },
+        }}
       >
-        Create Quiz
+        <Avatar sx={{ bgcolor: "#3b82f6", width: 32, height: 32 }}>
+          <DescriptionIcon />
+        </Avatar>
+        <Typography fontWeight="bold" variant="h6">
+          Create Quiz
+        </Typography>
       </DialogTitle>
-      <DialogContent>
-        <DialogContentText align="center" mb={1}>
-          Choose how your quiz will be created.
-        </DialogContentText>
-        <ul className="space-y-4 w-full">
-          <li>
-            <button
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-              onClick={() => onSelectOption("Random")}
-            >
-              <b>Random Bank</b>
-              <p className="text-sm text-gray-200">
-                Use random questions from the bank
-              </p>
-            </button>
-          </li>
-          <li>
-            {user.allow_ai ? (
-              <button
-                className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-800"
-                onClick={() => onSelectOption("AI-Generated")}
+      <DialogContent
+        sx={{
+          pt: { xs: 1, sm: 2 },
+          px: { xs: 2, sm: 3 },
+        }}
+      >
+        <Stack spacing={{ xs: 1, sm: 2 }} sx={{ mt: { xs: 1, sm: 3 } }}>
+          <Box
+            component="button"
+            onClick={() => onSelectOption("Random")}
+            sx={{
+              width: "100%",
+              textAlign: "left",
+              bgcolor: "#f8fafc",
+              border: "2px solid #e5e7eb",
+              borderRadius: 2,
+              p: { xs: 1.5, sm: 2 },
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              cursor: "pointer",
+              transition: "border-color 0.2s",
+              "&:hover": { borderColor: "#3b82f6", bgcolor: "#eff6ff" },
+              boxShadow: 0,
+            }}
+          >
+            <Avatar sx={{ bgcolor: "#3b82f6", width: 40, height: 40 }}>
+              <ShuffleIcon />
+            </Avatar>
+            <Box>
+              <Typography variant="subtitle1" fontWeight="bold" color="#2563eb">
+                Random Bank
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Use random questions from the bank to create a comprehensive quiz
+              </Typography>
+            </Box>
+          </Box>
+          <Box
+            component="button"
+            onClick={() => user.allow_ai && onSelectOption("AI-Generated")}
+            disabled={!user.allow_ai}
+            sx={{
+              width: "100%",
+              textAlign: "left",
+              bgcolor: "#f8fafc",
+              border: "2px solid #e5e7eb",
+              borderRadius: 2,
+              p: { xs: 1.5, sm: 2 },
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              cursor: user.allow_ai ? "pointer" : "not-allowed",
+              opacity: user.allow_ai ? 1 : 0.6,
+              transition: "border-color 0.2s",
+              "&:hover": user.allow_ai
+                ? { borderColor: "#059669", bgcolor: "#ecfdf5" }
+                : {},
+              boxShadow: 0,
+            }}
+          >
+            <Avatar sx={{ bgcolor: "#059669", width: 40, height: 40 }}>
+              <PsychologyIcon />
+            </Avatar>
+            <Box>
+              <Typography
+                variant="subtitle1"
+                fontWeight="bold"
+                color={user.allow_ai ? "#059669" : "text.disabled"}
               >
-                <b>AI-Generated</b>
-                <p className="text-sm text-gray-200">
-                  Use AI to create a set of questions
-                </p>
-              </button>
-            ) : (
-              <button
-                className="w-full bg-gray-200 text-gray-400 py-2 px-4 rounded-lg"
-                disabled
-              >
-                <b>AI-Generated</b>
-                <p className="text-sm text-gray-400">
-                  Use AI to create a set of questions
-                </p>
-                <p className="text-xs text-gray-400">
+                AI-Generated
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Use AI to create a customized set of questions based on your requirements
+              </Typography>
+              {!user.allow_ai && (
+                <Typography variant="caption" color="text.disabled">
                   [Disabled by your admin]
-                </p>
-              </button>
-            )}
-          </li>
-          {/* <li>
-            <button
-              className="w-full bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600"
-              onClick={() => onSelectOption("Premade Exam")}
-            >
-              Premade Exam
-              <p className="text-sm text-gray-200">Use a premade exam</p>
-            </button>
-          </li> */}
-        </ul>
-      </DialogContent>
-
-      <DialogActions>
-        <Stack direction="row" justifyContent="left" width="100%">
-          <Button onClick={onClose} color="error" size="small">
-            Cancel
-          </Button>
+                </Typography>
+              )}
+            </Box>
+          </Box>
         </Stack>
+        <Divider sx={{ my: 0}} />
+      </DialogContent>
+      <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: 2, mt: "-8px"}}>
+        <Button onClick={onClose} color="error" size="medium" variant="outlined">
+          Cancel
+        </Button>
       </DialogActions>
-      {/* </motion.div> */}
     </Dialog>
   );
 };

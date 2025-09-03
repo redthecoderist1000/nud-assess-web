@@ -32,7 +32,7 @@ import QuestionSummary from "./pages/QuestionManagement/QuestionSummary.jsx.jsx"
 // import Program from "./pages/Admin/Program.js";
 // import Educator from "./pages/Admin/Educator.js";
 
-import ClassPage from "./pages/MyClasses/ClassPage.jsx";
+import ClassPage from "./pages/MyClasses/ClassPage/ClassPage.jsx";
 
 import ProtectedRoutes from "./helper/ProtectedRoute.jsx";
 import SignupOtp from "./pages/Auth/SignupOtp.jsx";

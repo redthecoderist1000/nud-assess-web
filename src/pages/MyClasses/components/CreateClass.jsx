@@ -36,7 +36,7 @@ const CreateClass = ({ onCancel }) => {
     }
 
     const baseName = classData.class_name;
-    const pattern = new RegExp(`^${baseName}(?: \\(\\d+\\))?$`);
+    const pattern = new RegExp(`^${baseName}(?:\\(\\d+\\))?$`);
 
     const filtered = nameCheck
       .map((item) => item.class_name)
@@ -45,9 +45,11 @@ const CreateClass = ({ onCancel }) => {
     const name =
       filtered.length > 0 ? getNextAvailableName(baseName, filtered) : baseName;
 
+    const join_code = generateCode();
+
     const { data, error } = await supabase
       .from("tbl_class")
-      .insert([{ ...classData, class_name: name }]);
+      .insert([{ ...classData, class_name: name, join_code: join_code }]);
 
     if (error) {
       console.log("Failed to create class");
@@ -78,6 +80,17 @@ const CreateClass = ({ onCancel }) => {
 
     return nextNum === 0 ? baseName : `${baseName}(${nextNum})`;
   }
+
+  const generateCode = () => {
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let code = "";
+    for (let i = 0; i < 7; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
+
   return (
     <>
       <h2 className="text-2xl font-bold mb-4">Create Class</h2>

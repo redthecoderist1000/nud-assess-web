@@ -222,7 +222,11 @@ const ClassPage = () => {
             )}
             {activeTab === "people" && (
               <div className=" overflow-y-auto">
-                <PeopleTab people={people} setAddMemDia={setAddMemDia} />
+                <PeopleTab
+                  people={people}
+                  setAddMemDia={setAddMemDia}
+                  canAdd={classData.is_active}
+                />
               </div>
             )}
             {activeTab === "announcement" && <AnnouncementTab />}

@@ -15,17 +15,22 @@ const SidebarSection = ({
   copy,
   setAddMemDia,
 }) => (
-  <div className="w-1/4 p-6 m-5 rounded-xl text-white flex flex-col gap-2 h-[90vh]">
+  <div className="p-6 m-5 rounded-xl text-white flex flex-col gap-2 h-[90vh]">
     {/* Class Information */}
     <div className="bg-[#23286b] rounded-xl p-5 mb-2">
       <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
-        <span role="img" aria-label="book">📖</span> Class Information
+        <span role="img" aria-label="book">
+          📖
+        </span>{" "}
+        Class Information
       </h2>
       <p className="text-sm text-gray-300 mb-1">Description</p>
       <p className="text-base font-semibold mb-3">{classData.desc}</p>
       <p className="text-sm text-gray-300 mb-1">Class join code</p>
       <div className="flex items-center gap-2 mb-2">
-        <span className="bg-[#23286b] px-2 py-1 rounded text-base font-semibold border border-gray-400">{classData.join_code}</span>
+        <span className="bg-[#23286b] px-2 py-1 rounded text-base font-semibold border border-gray-400">
+          {classData.join_code}
+        </span>
         <Tooltip
           open={copyToolTip}
           arrow
@@ -42,7 +47,9 @@ const SidebarSection = ({
           </IconButton>
         </Tooltip>
       </div>
-      <p className="text-xs text-gray-400 mb-3">Share this code with students</p>
+      <p className="text-xs text-gray-400 mb-3">
+        Share this code with students
+      </p>
       <div className="flex gap-6 mt-3">
         <div>
           <p className="text-xs text-gray-300">Students</p>
@@ -58,7 +65,10 @@ const SidebarSection = ({
     {/* Quick Actions */}
     {/* <div className="bg-white rounded-xl border border-gray-200 p-5">
       <h3 className="font-semibold text-md mb-4 flex items-center gap-2 text-[#23286b]">
-        <span role="img" aria-label="bolt">⚡</span> Quick Actions
+        <span role="img" aria-label="bolt">
+          ⚡
+        </span>{" "}
+        Quick Actions
       </h3>
       <Stack spacing={2}>
         <Button

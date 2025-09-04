@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../../helper/Supabase";
-import { Button, Stack } from "@mui/material";
+import { Button, Grid, Stack } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import AddMemberDialog from "../components/AddMemberDialog";
 import SidebarSection from "./component/SidebarSection";
@@ -182,69 +182,73 @@ const ClassPage = () => {
       </div>
 
       {/* Tabs and Main Layout */}
-      <div className="flex flex-row flex-1 overflow-hidden mt-6">
-        {/* Main Section */}
-        <div className="flex flex-col flex-1">
-          {/* Tabs */}
-          <div className="flex flex-row px-6 pt-2 border-b border-gray-200 ">
-            {tabList.map((tab) => (
-              <button
-                key={tab.key}
-                className={`flex items-center gap-2 px-4 py-2 font-medium text-sm
+      <Grid container direction="row">
+        {/* Main Section (right) */}
+        <Grid flex={3}>
+          <Stack px={4} pt={4} spacing={4}>
+            {/* Tabs */}
+            <div className="flex flex-row border-b border-gray-200 ">
+              {/* tabs */}
+              {tabList.map((tab) => (
+                <button
+                  key={tab.key}
+                  className={`flex items-center gap-2 px-4 py-2 font-medium text-sm
                   ${
                     activeTab === tab.key
                       ? "text-[#23286b] border-b-2 border-[#23286b] bg-white"
                       : "text-gray-400 bg-white"
                   }
                   transition-colors`}
-                style={{
-                  outline: "none",
-                  border: "none",
-                  background: "none",
-                  cursor: "pointer",
-                  marginRight: "8px",
-                }}
-                onClick={() => setActiveTab(tab.key)}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          {/* Content Section */}
-          <div className="flex-1 p-6">
-            {activeTab === "quiz" && (
-              <QuizTab
-                quizzes={quizzes}
-                classData={classData}
-                navigate={navigate}
-              />
-            )}
-            {activeTab === "people" && (
-              <div className=" overflow-y-auto">
+                  style={{
+                    outline: "none",
+                    border: "none",
+                    background: "none",
+                    cursor: "pointer",
+                    marginRight: "8px",
+                  }}
+                  onClick={() => setActiveTab(tab.key)}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            {/* Content Section */}
+            <div>
+              {activeTab === "quiz" && (
+                <QuizTab
+                  quizzes={quizzes}
+                  classData={classData}
+                  navigate={navigate}
+                />
+              )}
+              {activeTab === "people" && (
                 <PeopleTab
                   people={people}
                   setAddMemDia={setAddMemDia}
                   canAdd={classData.is_active}
                 />
-              </div>
-            )}
-            {activeTab === "announcement" && <AnnouncementTab />}
-            {activeTab === "grade" && <GradeTab classData={classData} />}
-          </div>
-        </div>
+              )}
+              {activeTab === "announcement" && <AnnouncementTab />}
+              {activeTab === "grade" && <GradeTab classData={classData} />}
+            </div>
+          </Stack>
+        </Grid>
+
         {/* Sidebar Section */}
-        <SidebarSection
-          classData={classData}
-          people={people}
-          quizzes={quizzes}
-          copyToolTip={copyToolTip}
-          copy={copy}
-          setAddMemDia={setAddMemDia}
-          dropdownVisible={dropdownVisible}
-          setDropdownVisible={setDropdownVisible}
-        />
-      </div>
+        <Grid flex={1}>
+          <SidebarSection
+            classData={classData}
+            people={people}
+            quizzes={quizzes}
+            copyToolTip={copyToolTip}
+            copy={copy}
+            setAddMemDia={setAddMemDia}
+            dropdownVisible={dropdownVisible}
+            setDropdownVisible={setDropdownVisible}
+          />
+        </Grid>
+      </Grid>
       <AddMemberDialog
         open={addMembDia}
         setOpen={setAddMemDia}

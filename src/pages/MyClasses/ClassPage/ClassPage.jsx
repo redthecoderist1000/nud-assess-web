@@ -30,8 +30,6 @@ const ClassPage = () => {
   const navigate = useNavigate();
   const classData = location.state;
 
-  const [addMembDia, setAddMemDia] = useState(false);
-  const [copyToolTip, setCopyToolTip] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(null);
   const [people, setPeople] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
@@ -116,6 +114,7 @@ const ClassPage = () => {
     });
 
     setPeople(merged);
+    // console.log("Fetched people:", merged);
   };
 
   useEffect(() => {
@@ -129,6 +128,7 @@ const ClassPage = () => {
         { event: "*", schema: "public", table: "tbl_class_members" },
         () => {
           fetchAllPeople();
+          console.log("Class members updated, refetching...");
         }
       )
       .subscribe();
@@ -144,20 +144,6 @@ const ClassPage = () => {
       )
       .subscribe();
   }, []);
-
-  const copy = (text) => {
-    navigator.clipboard.writeText(text).then(
-      () => {
-        setCopyToolTip(true);
-        setTimeout(() => {
-          setCopyToolTip(false);
-        }, 2000);
-      },
-      (err) => {
-        console.error("Could not copy text: ", err);
-      }
-    );
-  };
 
   return (
     <div className="flex flex-col h-screen bg-[#f8f9fb] overflow-y-auto">
@@ -182,10 +168,10 @@ const ClassPage = () => {
       </div>
 
       {/* Tabs and Main Layout */}
-      <Grid container direction="row">
+      <Grid container direction="row" p={4} spacing={4}>
         {/* Main Section (right) */}
         <Grid flex={3}>
-          <Stack px={4} pt={4} spacing={4}>
+          <Stack spacing={4}>
             {/* Tabs */}
             <div className="flex flex-row border-b border-gray-200 ">
               {/* tabs */}
@@ -214,24 +200,14 @@ const ClassPage = () => {
               ))}
             </div>
             {/* Content Section */}
-            <div>
-              {activeTab === "quiz" && (
-                <QuizTab
-                  quizzes={quizzes}
-                  classData={classData}
-                  navigate={navigate}
-                />
-              )}
-              {activeTab === "people" && (
-                <PeopleTab
-                  people={people}
-                  setAddMemDia={setAddMemDia}
-                  canAdd={classData.is_active}
-                />
-              )}
-              {activeTab === "announcement" && <AnnouncementTab />}
-              {activeTab === "grade" && <GradeTab classData={classData} />}
-            </div>
+            {activeTab === "quiz" && (
+              <QuizTab quizzes={quizzes} classData={classData} />
+            )}
+            {activeTab === "people" && (
+              <PeopleTab people={people} classData={classData} />
+            )}
+            {activeTab === "announcement" && <AnnouncementTab />}
+            {activeTab === "grade" && <GradeTab classData={classData} />}
           </Stack>
         </Grid>
 
@@ -241,19 +217,9 @@ const ClassPage = () => {
             classData={classData}
             people={people}
             quizzes={quizzes}
-            copyToolTip={copyToolTip}
-            copy={copy}
-            setAddMemDia={setAddMemDia}
-            dropdownVisible={dropdownVisible}
-            setDropdownVisible={setDropdownVisible}
           />
         </Grid>
       </Grid>
-      <AddMemberDialog
-        open={addMembDia}
-        setOpen={setAddMemDia}
-        classId={classData.id}
-      />
     </div>
   );
 };

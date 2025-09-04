@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Chip, IconButton, Stack } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import AddMemberDialog from "../../components/AddMemberDialog";
 
 const getInitials = (person) => {
   const name = `${person.f_name || ""} ${person.l_name || ""}`.trim();
@@ -13,7 +14,9 @@ const getInitials = (person) => {
     .toUpperCase();
 };
 
-const PeopleTab = ({ people = [], setAddMemDia, canAdd }) => {
+const PeopleTab = ({ people = [], classData }) => {
+  const [addMembDia, setAddMemDia] = useState(false);
+
   const instructors = people.filter((p) => p.role === "instructor");
   const students = people.filter((p) => p.role !== "instructor");
 
@@ -71,7 +74,7 @@ const PeopleTab = ({ people = [], setAddMemDia, canAdd }) => {
             minWidth: "140px",
             padding: "6px 16px",
           }}
-          disabled={!canAdd}
+          disabled={!classData.is_active}
           onClick={() => setAddMemDia(true)}
         >
           Add Member
@@ -84,6 +87,12 @@ const PeopleTab = ({ people = [], setAddMemDia, canAdd }) => {
           students.map((person, idx) => <PersonRow key={idx} person={person} />)
         )}
       </Stack>
+
+      <AddMemberDialog
+        open={addMembDia}
+        setOpen={setAddMemDia}
+        classId={classData.id}
+      />
     </div>
   );
 };

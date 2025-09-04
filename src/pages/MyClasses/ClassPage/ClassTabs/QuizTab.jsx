@@ -8,12 +8,15 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AssignQuizDialog from "../../components/AssignQuizDialog";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
 const dateFormat = (dateTime) => {
   return dayjs(dateTime).format("MMM DD, YYYY");
 };
 
-const QuizTab = ({ quizzes, classData, navigate }) => {
+const QuizTab = ({ quizzes, classData }) => {
+  const navigate = useNavigate();
+
   const [assignQuiz, setAssignQuiz] = useState(false);
 
   return (

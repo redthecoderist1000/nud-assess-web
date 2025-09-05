@@ -166,7 +166,8 @@ const QuizResultPage = () => {
         subject_id: quizDetails.subject_id,
         total_items: total.totalItems,
         is_random: quizDetails.is_random,
-        time_limit: quizDetails.time_limit,
+        time_limit:
+          quizDetails.time_limit == "none" ? null : quizDetails.time_limit,
       })
       .select("id")
       .single()
@@ -277,7 +278,8 @@ const QuizResultPage = () => {
         subject_id: quizDetails.subject_id,
         total_items: total.totalItems,
         is_random: quizDetails.is_random,
-        time_limit: quizDetails.time_limit,
+        time_limit:
+          quizDetails.time_limit == "none" ? null : quizDetails.time_limit,
       })
       .select("id")
       .single();

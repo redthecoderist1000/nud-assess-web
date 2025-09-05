@@ -138,8 +138,8 @@ const QuizModal = (props) => {
           </Box>
           <Box
             component="button"
-            onClick={() => {}}
-            // onClick={() => onSelectOption("Manual")}
+            // onClick={() => {}}
+            onClick={() => onSelectOption("Manual")}
             sx={{
               width: "100%",
               textAlign: "left",

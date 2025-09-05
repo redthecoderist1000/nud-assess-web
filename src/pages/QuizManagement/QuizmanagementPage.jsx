@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import QuizModal from "./components/QuizModal";
 import QuestionRepoModal from "../QuestionManagement/components/QuestionRepoModal";
 import TetraBox from "./components/TetraBox";
-import Tosifier from "./components/Tosifier";
+import Tosifier from "./tosPage/Tosifier";
 import { Box, Card, Container, Tab, Tabs, Typography } from "@mui/material";
 import MyQuizTab from "./quizmanagementTabs/MyQuizTab";
 
@@ -46,14 +46,18 @@ const QuizmanagementPage = () => {
   const handleRepoModalSelect = (repo) => {
     setQuizDetail({ ...quizDetail, repository: repo });
     setIsRepoModalOpen(false);
-    setShowTOS(true);
+    // setShowTOS(true);
+    // navigate tos
+    navigate("/quiz-detail", {
+      state: { quizDetail: { ...quizDetail, repository: repo } },
+    });
   };
 
-  if (showTOS) {
-    return (
-      <Tosifier quizDetail={quizDetail} onCancel={() => setShowTOS(false)} />
-    );
-  }
+  // if (showTOS) {
+  //   return (
+  //     <Tosifier quizDetail={quizDetail} onCancel={() => setShowTOS(false)} />
+  //   );
+  // }
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -80,11 +84,45 @@ const QuizmanagementPage = () => {
               onClick={() => setIsQuizModalOpen(true)}
               className="flex items-center gap-2 bg-[#4854a3] hover:bg-[#2C388F] text-white font-medium py-1.5 px-3 rounded-lg text-sm"
             >
-              <svg className="w-4 h-4" fill="none" stroke="white" strokeWidth="2" viewBox="0 0 24 24">
-                <rect x="4" y="4" width="16" height="16" rx="3" stroke="white" />
-                <line x1="8" y1="8" x2="16" y2="8" stroke="white" strokeLinecap="round" />
-                <line x1="8" y1="12" x2="16" y2="12" stroke="white" strokeLinecap="round" />
-                <line x1="8" y1="16" x2="12" y2="16" stroke="white" strokeLinecap="round" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <rect
+                  x="4"
+                  y="4"
+                  width="16"
+                  height="16"
+                  rx="3"
+                  stroke="white"
+                />
+                <line
+                  x1="8"
+                  y1="8"
+                  x2="16"
+                  y2="8"
+                  stroke="white"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1="8"
+                  y1="12"
+                  x2="16"
+                  y2="12"
+                  stroke="white"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1="8"
+                  y1="16"
+                  x2="12"
+                  y2="16"
+                  stroke="white"
+                  strokeLinecap="round"
+                />
               </svg>
               Create Quiz
             </button>
@@ -102,12 +140,35 @@ const QuizmanagementPage = () => {
                 >
                   <Tab
                     label={
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                          <rect x="4" y="6" width="16" height="12" rx="2" stroke="#2C388F" strokeWidth="2" />
-                          <path d="M8 10h8M8 14h5" stroke="#2C388F" strokeWidth="2" strokeLinecap="round" />
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <rect
+                            x="4"
+                            y="6"
+                            width="16"
+                            height="12"
+                            rx="2"
+                            stroke="#2C388F"
+                            strokeWidth="2"
+                          />
+                          <path
+                            d="M8 10h8M8 14h5"
+                            stroke="#2C388F"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
                         </svg>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "#222" }}>
+                        <Typography
+                          variant="subtitle1"
+                          sx={{ fontWeight: 600, color: "#222" }}
+                        >
                           My Exams
                         </Typography>
                       </Box>

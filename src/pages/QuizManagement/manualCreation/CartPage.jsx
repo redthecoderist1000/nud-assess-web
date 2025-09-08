@@ -91,86 +91,46 @@ function CartPage() {
     fetchQuestions();
   }, []);
 
-  const transformTosItem = (item) => {
-    const content = [
-      item.remembering > 0 && {
-        cognitive_level: "Remembering",
-        required: item.remembering,
-        selected: 0,
-      },
-      item.understanding > 0 && {
-        cognitive_level: "Understanding",
-        required: item.understanding,
-        selected: 0,
-      },
-      item.applying > 0 && {
-        cognitive_level: "Applying",
-        required: item.applying,
-        selected: 0,
-      },
-      item.analyzing > 0 && {
-        cognitive_level: "Analyzing",
-        required: item.analyzing,
-        selected: 0,
-      },
-      item.creating > 0 && {
-        cognitive_level: "Creating",
-        required: item.creating,
-        selected: 0,
-      },
-      item.evaluating > 0 && {
-        cognitive_level: "Evaluating",
-        required: item.evaluating,
-        selected: 0,
-      },
-    ].filter(Boolean);
+  useEffect(() => {
+    const cognitiveLevels = [
+      "remembering",
+      "understanding",
+      "applying",
+      "analyzing",
+      "creating",
+      "evaluating",
+    ];
 
-    return {
-      topic: (item.topic || "").trim(),
-      lesson_id: item.lesson_id,
-      content: content,
+    const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
+    const transformTosItem = (item, examData) => {
+      const content = cognitiveLevels
+        .filter((level) => item[level] > 0)
+        .map((level) => {
+          const selectedCount = examData.filter(
+            (q) =>
+              q.lesson_id === item.lesson_id &&
+              q.cognitive_level.toLowerCase() === level
+          ).length;
+
+          return {
+            cognitive_level: capitalize(level),
+            required: item[level],
+            selected: selectedCount,
+          };
+        });
+
+      return {
+        topic: (item.topic || "").trim(),
+        lesson_id: item.lesson_id,
+        content,
+      };
     };
-  };
-
-  const require = useMemo(
-    () => (Array.isArray(tosDetail) ? tosDetail.map(transformTosItem) : []),
-    [tosDetail]
-  );
-
-  useEffect(() => {
-    setRequirements(require);
-  }, [require]);
-
-  // helper to read question's cognitive level (tolerant of different prop names)
-  const getQuestionLevel = (q) =>
-    (
-      (q.blooms_category || q.cognitive_level || q.specification || "") + ""
-    ).trim();
-
-  // update selected counts whenever yourExam changes
-  useEffect(() => {
-    if (!Array.isArray(requirements)) return;
-
-    // build new requirements with updated `selected` counts
-    const next = requirements.map((req) => {
-      const content = req.content.map((c) => {
-        const requiredLevel = (c.cognitive_level + "").trim();
-        const selectedCount = yourExam.filter(
-          (q) =>
-            // match by lesson_id and cognitive level (case-sensitive as stored)
-            (q.lesson_id === req.lesson_id ||
-              q.lessonId === req.lesson_id || // tolerate alternate prop
-              q.lesson === req.lesson_id) &&
-            getQuestionLevel(q) === requiredLevel
-        ).length;
-
-        return { ...c, selected: selectedCount };
-      });
-      return { ...req, content };
-    });
-
-    setRequirements(next);
-  }, [yourExam, require]);
+    const transformed = tosDetail.map((item) =>
+      transformTosItem(item, yourExam || [])
+    );
+    setRequirements(transformed);
+  }, [tosDetail, yourExam]);
 
   const addToExam = (question) => {
     console.log("Add to exam", question);
@@ -180,6 +140,12 @@ function CartPage() {
       return;
     }
     setYourExam((prev) => [...prev, question]);
+  };
+
+  const removeFromExam = (index) => {
+    console.log("Remove from exam", index);
+    setYourExam((prev) => prev.filter((q, i) => i !== index));
+    // setTabVal(0);
   };
 
   function CustomTabPanel(props) {
@@ -306,7 +272,10 @@ function CartPage() {
             </Box>
             {yourExam.map((data, index) => (
               <CustomTabPanel key={index} value={tabVal} index={index}>
-                <YourExamItem data={data} />
+                <YourExamItem
+                  data={data}
+                  onRemove={() => removeFromExam(index)}
+                />
               </CustomTabPanel>
             ))}
             <CustomTabPanel value={tabVal} index={yourExam.length}>

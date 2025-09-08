@@ -1,7 +1,15 @@
-import { Card, CardContent, Stack, Typography } from "@mui/material";
+import {
+  Button,
+  Card,
+  CardContent,
+  IconButton,
+  Stack,
+  Typography,
+} from "@mui/material";
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import React from "react";
 
-function YourExamItem({ data }) {
+function YourExamItem({ data, onRemove }) {
   const answer = () => {
     if (data.question_type === "Multiple Choice") {
       return data.answer.map((choice, index) => (
@@ -27,9 +35,23 @@ function YourExamItem({ data }) {
 
   return (
     <Stack spacing={1}>
-      <Typography variant="body1" fontWeight={600} color="textDisabled">
-        {data.lesson_name}
-      </Typography>
+      <Stack
+        direction="row"
+        justifyContent={"space-between"}
+        alignContent={"center"}
+      >
+        <Typography variant="body1" fontWeight={600} color="textDisabled">
+          {data.lesson_name}
+        </Typography>
+        <IconButton
+          size="small"
+          color="error"
+          onClick={onRemove}
+          sx={{ zIndex: 10 }}
+        >
+          <DeleteRoundedIcon fontSize="small" />
+        </IconButton>
+      </Stack>
       <Stack direction="row" justifyContent={"space-between"}>
         <Typography variant="body1" fontWeight={600} color="textDisabled">
           {data.cognitive_level}

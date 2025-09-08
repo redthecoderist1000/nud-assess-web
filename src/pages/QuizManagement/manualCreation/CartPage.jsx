@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CircularProgress,
@@ -27,6 +28,7 @@ import { supabase } from "../../../helper/Supabase";
 import QuestionDetailItem from "./QuestionDetailItem";
 import QuestionBankItem from "./QuestionBankItem";
 import YourExamItem from "./YourExamItem";
+import NewQuestionTab from "./NewQuestionTab";
 
 function CartPage() {
   const location = useLocation();
@@ -148,22 +150,6 @@ function CartPage() {
     // setTabVal(0);
   };
 
-  function CustomTabPanel(props) {
-    const { children, value, index, ...other } = props;
-
-    return (
-      <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`simple-tabpanel-${index}`}
-        aria-labelledby={`simple-tab-${index}`}
-        {...other}
-      >
-        {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-      </div>
-    );
-  }
-
   return (
     <Stack p={2} spacing={2}>
       {/* title */}
@@ -271,16 +257,14 @@ function CartPage() {
               </Tabs>
             </Box>
             {yourExam.map((data, index) => (
-              <CustomTabPanel key={index} value={tabVal} index={index}>
-                <YourExamItem
-                  data={data}
-                  onRemove={() => removeFromExam(index)}
-                />
-              </CustomTabPanel>
+              <YourExamItem
+                key={index}
+                data={data}
+                hidden={tabVal !== index}
+                onRemove={() => removeFromExam(index)}
+              />
             ))}
-            <CustomTabPanel value={tabVal} index={yourExam.length}>
-              create new question
-            </CustomTabPanel>
+            <NewQuestionTab hidden={tabVal !== yourExam.length} />
           </Card>
         </Grid>
         {/* right side  (question option)*/}

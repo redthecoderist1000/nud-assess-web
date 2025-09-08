@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -135,19 +136,38 @@ function CartPage() {
   }, [tosDetail, yourExam]);
 
   const addToExam = (question) => {
-    console.log("Add to exam", question);
+    // console.log("Add to exam", question);
+
+    // check if reached required count
+    const currentCount = yourExam.reduce((count, q) => {
+      return q.lesson_id === question.lesson_id &&
+        q.cognitive_level === question.cognitive_level
+        ? count + 1
+        : count;
+    }, 0);
+
+    const reqItem = requirements.find(
+      (req) => req.lesson_id === question.lesson_id
+    );
+    const required = reqItem?.content.find(
+      (c) => c.cognitive_level === question.cognitive_level
+    )?.required;
+
+    if (required !== undefined && currentCount >= required) {
+      console.log("Reached required count for this category");
+      return;
+    }
 
     // check if question already in exam
     if (yourExam.find((q) => q.id === question.id)) {
+      console.log("Question already in exam");
       return;
     }
     setYourExam((prev) => [...prev, question]);
   };
 
   const removeFromExam = (index) => {
-    console.log("Remove from exam", index);
     setYourExam((prev) => prev.filter((q, i) => i !== index));
-    // setTabVal(0);
   };
 
   return (
@@ -156,49 +176,6 @@ function CartPage() {
       <div className="bg-white border-b border-gray-200  pb-2 ">
         <h1 className="text-2xl font-bold text-gray-900">Quiz Creation</h1>
       </div>
-
-      {/* quiz details */}
-      {/* <Card elevation={0} variant="outlined">
-        <Stack
-          direction="row"
-          columnGap={1}
-          justifyContent={"space-between"}
-          p={2}
-        >
-          <Stack direction="row" columnGap={1}>
-            <Typography variant="body2" fontWeight={600} color="textDisabled">
-              Name:
-            </Typography>
-            <Typography variant="body2" color="textDisabled">
-              {quizDetail.name}
-            </Typography>
-          </Stack>
-          <Stack direction="row" columnGap={1}>
-            <Typography variant="body2" fontWeight={600} color="textDisabled">
-              Subject:
-            </Typography>
-            <Typography variant="body2" color="textDisabled">
-              {quizDetail.subject_name}
-            </Typography>
-          </Stack>
-          <Stack direction="row" columnGap={1}>
-            <Typography variant="body2" fontWeight={600} color="textDisabled">
-              Time limit:
-            </Typography>
-            <Typography variant="body2" color="textDisabled">
-              {quizDetail.time_limit}
-            </Typography>
-          </Stack>
-          <Stack direction="row" columnGap={1}>
-            <Typography variant="body2" fontWeight={600} color="textDisabled">
-              Is random:
-            </Typography>
-            <Typography variant="body2" color="textDisabled">
-              {quizDetail.is_random ? "True" : "False"}
-            </Typography>
-          </Stack>
-        </Stack>
-      </Card> */}
 
       {/* grid */}
       <Grid container spacing={2}>
@@ -269,6 +246,8 @@ function CartPage() {
         </Grid>
         {/* right side  (question option)*/}
         <Grid flex={2}>
+          {/* <Alert severity="error">This is an error Alert.</Alert> */}
+
           <Card elevation={0} variant="outlined" sx={{ p: 2 }}>
             <Typography fontWeight={600}>Question Bank</Typography>
             <Divider sx={{ my: 1 }} />

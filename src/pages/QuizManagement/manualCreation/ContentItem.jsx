@@ -8,11 +8,24 @@ import ExpandLessRoundedIcon from "@mui/icons-material/ExpandLessRounded";
 function ContentItem({ item }) {
   const [collapse, setCollapse] = useState(true);
 
+  // check if all required content are selected
+  const allSelected = item.content.every(
+    (content) => content.selected == content.required
+  );
+
   return (
     <Stack>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Stack direction="row" alignItems="center" columnGap={1}>
-          <CheckCircleRoundedIcon fontSize="small" color="success" />
+          {allSelected ? (
+            <CheckCircleRoundedIcon
+              fontSize="small"
+              color="success"
+              sx={{ fontSize: 15 }}
+            />
+          ) : (
+            <CancelRoundedIcon color="error" sx={{ fontSize: 15 }} />
+          )}
           <Typography variant="body2" fontWeight="600" lineHeight={1.2}>
             {item.topic}
           </Typography>

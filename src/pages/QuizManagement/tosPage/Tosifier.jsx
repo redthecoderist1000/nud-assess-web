@@ -24,13 +24,14 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../../../helper/Supabase";
+import { useLocation, useNavigate } from "react-router-dom";
 import { userContext } from "../../../App";
-import Error from "./tosifierErrorDialogs/Error";
+import Error from "../components/tosifierErrorDialogs/Error";
 import FileUpload from "../../../components/elements/FileUpload";
 import { aiRun } from "../../../helper/Gemini";
-import AiError from "./tosifierErrorDialogs/AiError";
+import AiError from "../components/tosifierErrorDialogs/AiError";
+import { supabase } from "../../../helper/Supabase";
+import { time } from "framer-motion";
 
 // Styled components for design
 const SectionCard = styled(Paper)(({ theme }) => ({
@@ -76,16 +77,20 @@ const LegendItem = styled("span")(({ color }) => ({
   },
 }));
 
-function Tosifier(props) {
-  //   const { quizDetail } = props;\
+function Tosifier() {
+  const location = useLocation();
+  const { quizDetail: quizDetailState } = location.state;
+  // console.log(quizDetailState);
+
   const { user } = useContext(userContext);
   const navigate = useNavigate();
   const [subjectOptions, setSubjectOptions] = useState([]);
   const [quizDetail, setQuizDetail] = useState({
-    ...props.quizDetail,
+    ...quizDetailState,
     subject_id: "",
     subject_name: "",
     is_random: false,
+    time_limit: "none",
   });
   const [rows, setRows] = useState([
     {
@@ -104,7 +109,6 @@ function Tosifier(props) {
   ]);
 
   const [response, setResponse] = useState("");
-  const [quiz, setQuiz] = useState([]);
   const [total, setTotal] = useState({
     items: 0,
     hours: 0,
@@ -253,7 +257,7 @@ function Tosifier(props) {
   const fetchSubjects = async () => {
     // console.log(props.quizDetail);
 
-    if (props.quizDetail.repository == "Final Exam") {
+    if (quizDetail.repository == "Final Exam") {
       // only get subject incharge
       // console.log(user);
       const { data: inchargeData, error: inchargeErr } = await supabase
@@ -288,13 +292,6 @@ function Tosifier(props) {
     let value = e.target.value;
     let name = e.target.name;
 
-    // If subject_id is changed, also update subject_name
-
-    if (name == "open_time") {
-      // console.log(e);
-      return;
-    }
-
     if (name === "subject_id") {
       const selected = subjectOptions.find(
         (option) => option.subject_id === value
@@ -307,8 +304,6 @@ function Tosifier(props) {
     } else {
       setQuizDetail({ ...quizDetail, [name]: value });
     }
-
-    // console.log("Quiz Detail:", quizDetail);
   };
 
   const addRow = () => {
@@ -334,10 +329,8 @@ function Tosifier(props) {
   const handleInputChange = (index, field, value) => {
     const updatedRows = [...rows];
     updatedRows[index][field] = value;
-    //
 
     setRows(updatedRows);
-    // console.log("Updated Rows:", updatedRows);
   };
 
   const removeRow = () => {
@@ -355,6 +348,10 @@ function Tosifier(props) {
 
       case "Random":
         randomQuiz();
+        break;
+
+      case "Manual":
+        manualQuiz();
         break;
 
       default:
@@ -412,8 +409,6 @@ function Tosifier(props) {
     );
 
     if (isValid) {
-      // console.log(quizDetail);
-
       navigate("/quizsummary", {
         state: {
           quizDetail: quizDetail,
@@ -423,8 +418,6 @@ function Tosifier(props) {
         },
       });
     } else {
-      // console.log("There seems to be not enough quetions");
-      // display errro
       setError(true);
     }
 
@@ -438,7 +431,6 @@ function Tosifier(props) {
     }
 
     setLoading(true);
-    setQuiz([]);
 
     // gawa ng array of texts
     const texts = rows.flatMap((data) => {
@@ -515,6 +507,12 @@ function Tosifier(props) {
     }
   };
 
+  const manualQuiz = () => {
+    navigate("/manual-quiz", {
+      state: { quizDetail: quizDetail, tosDetail: rows },
+    });
+  };
+
   useEffect(() => {
     // console.log(quizDetail);
     if (quizDetail.subject_id == "") {
@@ -565,46 +563,46 @@ function Tosifier(props) {
       </div>
 
       <form onSubmit={submitForm}>
-          <SectionCard elevation={0} sx={{ border: "1px solid #e0e0e0" }}>
-            <Typography variant="h5" fontWeight={700} mb={1}>
-              Quiz Information
-            </Typography>
-            <Typography mb={3} color="text.secondary">
-              Basic information about your quiz
-            </Typography>
-            <Stack mb={2} rowGap={3}>
-              <Stack direction="row" columnGap={3}>
-                <TextField
-            fullWidth
-            required
-            label="Quiz Name"
-            size="small"
-            type="text"
-            name="name"
-            onChange={handleQuizDetail}
-            sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
-                />
-                <FormControl size="small" fullWidth>
-            <InputLabel id="subjectSelectLabel" required>
-              Subject
-            </InputLabel>
-            <Select
-              label="Subject"
-              labelId="subjectSelectLabel"
-              value={quizDetail.subject_id}
-              onChange={handleQuizDetail}
-              name="subject_id"
-              required
-              sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
-            >
-              <MenuItem value={0} disabled dense>
-                <em>
-                  {subjectOptions.length == 0
-              ? "You are not assigned to any subject"
-              : "-- Select Subject --"}
-                </em>
-              </MenuItem>
-              {subjectOptions.map((data, index) => {
+        <SectionCard elevation={0} sx={{ border: "1px solid #e0e0e0" }}>
+          <Typography variant="h5" fontWeight={700} mb={1}>
+            Quiz Information
+          </Typography>
+          <Typography mb={3} color="text.secondary">
+            Basic information about your quiz
+          </Typography>
+          <Stack mb={2} rowGap={3}>
+            <Stack direction="row" columnGap={3}>
+              <TextField
+                fullWidth
+                required
+                label="Quiz Name"
+                size="small"
+                type="text"
+                name="name"
+                onChange={handleQuizDetail}
+                sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
+              />
+              <FormControl size="small" fullWidth>
+                <InputLabel id="subjectSelectLabel" required>
+                  Subject
+                </InputLabel>
+                <Select
+                  label="Subject"
+                  labelId="subjectSelectLabel"
+                  value={quizDetail.subject_id}
+                  onChange={handleQuizDetail}
+                  name="subject_id"
+                  required
+                  sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
+                >
+                  <MenuItem value={0} disabled dense>
+                    <em>
+                      {subjectOptions.length == 0
+                        ? "You are not assigned to any subject"
+                        : "-- Select Subject --"}
+                    </em>
+                  </MenuItem>
+                  {subjectOptions.map((data, index) => {
                     return (
                       <MenuItem key={index} value={data.subject_id}>
                         {data.subject_name}
@@ -641,7 +639,7 @@ function Tosifier(props) {
 
         {/* Advanced Options Section */}
         <SectionCard elevation={0} sx={{ border: "1px solid #e0e0e0" }}>
-          <Typography variant="h6" fontWeight={700} mb={1}>
+          <Typography variant="h5" fontWeight={700} mb={1}>
             Advanced Options
           </Typography>
           <Typography mb={3} color="text.secondary">
@@ -649,15 +647,33 @@ function Tosifier(props) {
           </Typography>
           <Grid container columnGap={3}>
             <Grid flex={1}>
-              <TextField
-                size="small"
-                fullWidth
-                type="number"
-                label="Time Limit (minutes)"
-                name="time_limit"
-                onChange={handleQuizDetail}
-                sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
-              />
+              <FormControl size="small" fullWidth>
+                <InputLabel id="timeLimitLabel">Time Limit</InputLabel>
+                <Select
+                  label="Time Limit"
+                  labelId="timeLimitLabel"
+                  value={quizDetail.time_limit}
+                  onChange={handleQuizDetail}
+                  name="time_limit"
+                  sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
+                >
+                  <MenuItem value={"none"} dense>
+                    No time limit
+                  </MenuItem>
+                  <MenuItem value={30} dense>
+                    30 minutes
+                  </MenuItem>
+                  <MenuItem value={60} dense>
+                    1 hour
+                  </MenuItem>
+                  <MenuItem value={90} dense>
+                    1 hour 30 minutes
+                  </MenuItem>
+                  <MenuItem value={120} dense>
+                    2 hours
+                  </MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
             <Grid flex={1}>
               <FormControl size="small" fullWidth>
@@ -688,13 +704,20 @@ function Tosifier(props) {
             Table of Specification
           </Typography>
           <Typography mb={3} color="text.secondary">
-            Create Table of Specification to generate quiz questions based on Bloom's Taxonomy
+            Create Table of Specification to generate quiz questions based on
+            Bloom's Taxonomy
           </Typography>
           <Stack rowGap={2}>
-            <Stack direction="row" justifyContent="flex-end" alignItems="center" mb={2}>
-              <Typography fontWeight={500} mr={2}>
+            <Stack
+              direction="row"
+              justifyContent="flex-end"
+              alignItems="center"
+              mb={2}
+              columnGap={2}
+            >
+              {/* <Typography fontWeight={500} mr={2}>
                 Total Items:
-              </Typography>
+              </Typography> */}
               <OutlinedInput
                 size="small"
                 required
@@ -702,7 +725,10 @@ function Tosifier(props) {
                 type="number"
                 placeholder="Total Items"
                 onChange={changeTotalItems}
-                sx={{ width: "80px", mr: 2, bgcolor: "#fafafa", borderRadius: 2 }}
+                sx={{
+                  // width: "80px",
+                  bgcolor: "#fafafa",
+                }}
               />
               <Button
                 variant="contained"
@@ -712,10 +738,6 @@ function Tosifier(props) {
                 sx={{
                   bgcolor: "#1976d2",
                   color: "#fff",
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  px: 2,
-                  mr: 2,
                 }}
               >
                 ADD TOPIC
@@ -729,37 +751,65 @@ function Tosifier(props) {
                 sx={{
                   bgcolor: "#e0e0e0",
                   color: "#333",
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  px: 2,
                 }}
               >
                 REMOVE TOPIC
               </Button>
             </Stack>
+            {/* file upload */}
             {quizDetail.mode == "AI-Generated" && (
               <FileUpload files={files} setFiles={setFiles} />
             )}
             <Card sx={{ borderRadius: 3, boxShadow: "none" }}>
-              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 3 }}>
+              <TableContainer
+                component={Paper}
+                variant="outlined"
+                sx={{ borderRadius: 3 }}
+              >
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TosTableCell rowSpan={2}><b>Lesson</b></TosTableCell>
-                      <TosTableCell rowSpan={2}><b>Hours</b></TosTableCell>
-                      <TosTableCell rowSpan={2}><b>Percentage</b></TosTableCell>
-                      <TosTableCell colSpan={2} bgcolor="#e3f2fd"><b>EASY</b></TosTableCell>
-                      <TosTableCell colSpan={2} bgcolor="#fffde7"><b>MEDIUM</b></TosTableCell>
-                      <TosTableCell colSpan={2} bgcolor="#ffebee"><b>HARD</b></TosTableCell>
-                      <TosTableCell rowSpan={2}><b>Total Items</b></TosTableCell>
+                      <TosTableCell rowSpan={2}>
+                        <b>Lesson</b>
+                      </TosTableCell>
+                      <TosTableCell rowSpan={2}>
+                        <b>Hours</b>
+                      </TosTableCell>
+                      <TosTableCell rowSpan={2}>
+                        <b>Percentage</b>
+                      </TosTableCell>
+                      <TosTableCell colSpan={2} bgcolor="#e3f2fd">
+                        <b>EASY</b>
+                      </TosTableCell>
+                      <TosTableCell colSpan={2} bgcolor="#fffde7">
+                        <b>MEDIUM</b>
+                      </TosTableCell>
+                      <TosTableCell colSpan={2} bgcolor="#ffebee">
+                        <b>HARD</b>
+                      </TosTableCell>
+                      <TosTableCell rowSpan={2}>
+                        <b>Total Items</b>
+                      </TosTableCell>
                     </TableRow>
                     <TableRow>
-                      <TosTableCell bgcolor="#e3f2fd"><b>Remembering (30%)</b></TosTableCell>
-                      <TosTableCell bgcolor="#e3f2fd"><b>Understanding (20%)</b></TosTableCell>
-                      <TosTableCell bgcolor="#fffde7"><b>Applying (20%)</b></TosTableCell>
-                      <TosTableCell bgcolor="#fffde7"><b>Analyzing (10%)</b></TosTableCell>
-                      <TosTableCell bgcolor="#ffebee"><b>Creating (10%)</b></TosTableCell>
-                      <TosTableCell bgcolor="#ffebee"><b>Evaluating (10%)</b></TosTableCell>
+                      <TosTableCell bgcolor="#e3f2fd">
+                        <b>Remembering (30%)</b>
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#e3f2fd">
+                        <b>Understanding (20%)</b>
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#fffde7">
+                        <b>Applying (20%)</b>
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#fffde7">
+                        <b>Analyzing (10%)</b>
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#ffebee">
+                        <b>Creating (10%)</b>
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#ffebee">
+                        <b>Evaluating (10%)</b>
+                      </TosTableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -809,7 +859,11 @@ function Tosifier(props) {
                         </TosTableCell>
                         <TosTableCell>
                           <TextField
-                            sx={{ width: "80px", bgcolor: "#fafafa", borderRadius: 2 }}
+                            sx={{
+                              width: "80px",
+                              bgcolor: "#fafafa",
+                              borderRadius: 2,
+                            }}
                             label="Hours"
                             size="small"
                             required
@@ -825,78 +879,96 @@ function Tosifier(props) {
                           />
                         </TosTableCell>
                         <TosTableCell>{row.percentage} %</TosTableCell>
-                        <TosTableCell bgcolor="#e3f2fd">{row.remembering}</TosTableCell>
-                        <TosTableCell bgcolor="#e3f2fd">{row.understanding}</TosTableCell>
-                        <TosTableCell bgcolor="#fffde7">{row.applying}</TosTableCell>
-                        <TosTableCell bgcolor="#fffde7">{row.analyzing}</TosTableCell>
-                        <TosTableCell bgcolor="#ffebee">{row.creating}</TosTableCell>
-                        <TosTableCell bgcolor="#ffebee">{row.evaluating}</TosTableCell>
+                        <TosTableCell bgcolor="#e3f2fd">
+                          {row.remembering}
+                        </TosTableCell>
+                        <TosTableCell bgcolor="#e3f2fd">
+                          {row.understanding}
+                        </TosTableCell>
+                        <TosTableCell bgcolor="#fffde7">
+                          {row.applying}
+                        </TosTableCell>
+                        <TosTableCell bgcolor="#fffde7">
+                          {row.analyzing}
+                        </TosTableCell>
+                        <TosTableCell bgcolor="#ffebee">
+                          {row.creating}
+                        </TosTableCell>
+                        <TosTableCell bgcolor="#ffebee">
+                          {row.evaluating}
+                        </TosTableCell>
                         <TosTableCell>{row.totalItems}</TosTableCell>
                       </TableRow>
                     ))}
                     <TableRow>
-                      <TosTableCell><b>Total</b></TosTableCell>
+                      <TosTableCell>
+                        <b>Total</b>
+                      </TosTableCell>
                       <TosTableCell>{total.hours}</TosTableCell>
                       <TosTableCell>100%</TosTableCell>
-                      <TosTableCell bgcolor="#e3f2fd">{total.remembering}</TosTableCell>
-                      <TosTableCell bgcolor="#e3f2fd">{total.understanding}</TosTableCell>
-                      <TosTableCell bgcolor="#fffde7">{total.applying}</TosTableCell>
-                      <TosTableCell bgcolor="#fffde7">{total.analyzing}</TosTableCell>
-                      <TosTableCell bgcolor="#ffebee">{total.creating}</TosTableCell>
-                      <TosTableCell bgcolor="#ffebee">{total.evaluating}</TosTableCell>
-                      <TosTableCell bgcolor="#e0e0e0">{total.totalItems}</TosTableCell>
+                      <TosTableCell bgcolor="#e3f2fd">
+                        {total.remembering}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#e3f2fd">
+                        {total.understanding}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#fffde7">
+                        {total.applying}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#fffde7">
+                        {total.analyzing}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#ffebee">
+                        {total.creating}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#ffebee">
+                        {total.evaluating}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#e0e0e0">
+                        {total.totalItems}
+                      </TosTableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
               </TableContainer>
             </Card>
-            <LegendBox>
-              <LegendItem color="#e3f2fd">Easy (50%) - Remembering & Understanding</LegendItem>
-              <LegendItem color="#fffde7">Medium (30%) - Applying & Analyzing</LegendItem>
-              <LegendItem color="#ffebee">Hard (20%) - Creating & Evaluating</LegendItem>
-            </LegendBox>
+            {/* <LegendBox>
+              <LegendItem color="#e3f2fd">
+                Easy (50%) - Remembering & Understanding
+              </LegendItem>
+              <LegendItem color="#fffde7">
+                Medium (30%) - Applying & Analyzing
+              </LegendItem>
+              <LegendItem color="#ffebee">
+                Hard (20%) - Creating & Evaluating
+              </LegendItem>
+            </LegendBox> */}
             {loading ? (
               <LinearProgress />
             ) : (
-              <Stack direction="row" width="100%" justifyContent="space-between" mt={4}>
+              <Stack
+                direction="row"
+                width="100%"
+                justifyContent="space-between"
+                mt={4}
+              >
                 <Button
                   disabled={loading}
                   variant="contained"
-                  size="small"
                   color="error"
-                  onClick={props.onCancel}
-                  sx={{
-                    maxWidth: "180px",
-                    borderRadius: 2,
-                    fontWeight: 700,
-                    bgcolor: "#d32f2f",
-                    color: "#fff",
-                    px: 1.5,
-                    py: 1.5,
-                  }}
+                  onClick={() => navigate(-1)}
                   disableElevation
                 >
                   CANCEL
                 </Button>
-                {loading ? <CircularProgress /> : <></>}
                 <Button
                   disableElevation
                   disabled={loading}
                   variant="contained"
-                  size="small"
                   type="submit"
                   color="success"
-                  sx={{
-                    maxWidth: "280px",
-                    borderRadius: 2,
-                    fontWeight: 700,
-                    bgcolor: "#2e7d32",
-                    color: "#fff",
-                    px: 1.5,
-                    py: 1.5,
-                  }}
                 >
-                  CONTINUE TO QUIZ GENERATION
+                  CONTINUE
                 </Button>
               </Stack>
             )}

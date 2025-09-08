@@ -45,6 +45,8 @@ import SetUpAccount from "./pages/Auth/SetUpAccount.jsx";
 import QuizInfoPage from "./pages/MyClasses/QuizInfoPage.jsx";
 import FacultyInfo from "./pages/Admin/pages/FacultyInfoPage.jsx";
 import SubjectInfoPage from "./pages/Admin/pages/SubjectInfoPage.jsx";
+import CartPage from "./pages/QuizManagement/manualCreation/CartPage.jsx";
+import Tosifier from "./pages/QuizManagement/tosPage/Tosifier.jsx";
 
 export const userContext = createContext();
 export const signupContext = createContext();
@@ -247,6 +249,8 @@ const AnimatedRoutes = () => {
                   path="GenerateQuestion"
                   element={<CreateQuestionAutomatically />}
                 />
+                <Route path="quiz-detail" element={<Tosifier />} />
+                <Route path="manual-quiz" element={<CartPage />} />
                 <Route path="quizsummary" element={<QuizResultPage />} />
 
                 <Route element={<ProtectedAdmin />}>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../../helper/Supabase";
-import { Button, Stack } from "@mui/material";
+import { Button, Grid, Stack } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import AddMemberDialog from "../components/AddMemberDialog";
 import SidebarSection from "./component/SidebarSection";
@@ -30,8 +30,6 @@ const ClassPage = () => {
   const navigate = useNavigate();
   const classData = location.state;
 
-  const [addMembDia, setAddMemDia] = useState(false);
-  const [copyToolTip, setCopyToolTip] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(null);
   const [people, setPeople] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
@@ -116,6 +114,7 @@ const ClassPage = () => {
     });
 
     setPeople(merged);
+    // console.log("Fetched people:", merged);
   };
 
   useEffect(() => {
@@ -129,6 +128,7 @@ const ClassPage = () => {
         { event: "*", schema: "public", table: "tbl_class_members" },
         () => {
           fetchAllPeople();
+          console.log("Class members updated, refetching...");
         }
       )
       .subscribe();
@@ -144,20 +144,6 @@ const ClassPage = () => {
       )
       .subscribe();
   }, []);
-
-  const copy = (text) => {
-    navigator.clipboard.writeText(text).then(
-      () => {
-        setCopyToolTip(true);
-        setTimeout(() => {
-          setCopyToolTip(false);
-        }, 2000);
-      },
-      (err) => {
-        console.error("Could not copy text: ", err);
-      }
-    );
-  };
 
   return (
     <div className="flex flex-col h-screen bg-[#f8f9fb] overflow-y-auto">
@@ -182,74 +168,58 @@ const ClassPage = () => {
       </div>
 
       {/* Tabs and Main Layout */}
-      <div className="flex flex-row flex-1 overflow-hidden mt-6">
-        {/* Main Section */}
-        <div className="flex flex-col flex-1">
-          {/* Tabs */}
-          <div className="flex flex-row px-6 pt-2 border-b border-gray-200 ">
-            {tabList.map((tab) => (
-              <button
-                key={tab.key}
-                className={`flex items-center gap-2 px-4 py-2 font-medium text-sm
+      <Grid container direction="row" p={4} spacing={4}>
+        {/* Main Section (right) */}
+        <Grid flex={3}>
+          <Stack spacing={4}>
+            {/* Tabs */}
+            <div className="flex flex-row border-b border-gray-200 ">
+              {/* tabs */}
+              {tabList.map((tab) => (
+                <button
+                  key={tab.key}
+                  className={`flex items-center gap-2 px-4 py-2 font-medium text-sm
                   ${
                     activeTab === tab.key
                       ? "text-[#23286b] border-b-2 border-[#23286b] bg-white"
                       : "text-gray-400 bg-white"
                   }
                   transition-colors`}
-                style={{
-                  outline: "none",
-                  border: "none",
-                  background: "none",
-                  cursor: "pointer",
-                  marginRight: "8px",
-                }}
-                onClick={() => setActiveTab(tab.key)}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          {/* Content Section */}
-          <div className="flex-1 p-6">
+                  style={{
+                    outline: "none",
+                    border: "none",
+                    background: "none",
+                    cursor: "pointer",
+                    marginRight: "8px",
+                  }}
+                  onClick={() => setActiveTab(tab.key)}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            {/* Content Section */}
             {activeTab === "quiz" && (
-              <QuizTab
-                quizzes={quizzes}
-                classData={classData}
-                navigate={navigate}
-              />
+              <QuizTab quizzes={quizzes} classData={classData} />
             )}
             {activeTab === "people" && (
-              <div className=" overflow-y-auto">
-                <PeopleTab
-                  people={people}
-                  setAddMemDia={setAddMemDia}
-                  canAdd={classData.is_active}
-                />
-              </div>
+              <PeopleTab people={people} classData={classData} />
             )}
             {activeTab === "announcement" && <AnnouncementTab />}
             {activeTab === "grade" && <GradeTab classData={classData} />}
-          </div>
-        </div>
+          </Stack>
+        </Grid>
+
         {/* Sidebar Section */}
-        <SidebarSection
-          classData={classData}
-          people={people}
-          quizzes={quizzes}
-          copyToolTip={copyToolTip}
-          copy={copy}
-          setAddMemDia={setAddMemDia}
-          dropdownVisible={dropdownVisible}
-          setDropdownVisible={setDropdownVisible}
-        />
-      </div>
-      <AddMemberDialog
-        open={addMembDia}
-        setOpen={setAddMemDia}
-        classId={classData.id}
-      />
+        <Grid flex={1}>
+          <SidebarSection
+            classData={classData}
+            people={people}
+            quizzes={quizzes}
+          />
+        </Grid>
+      </Grid>
     </div>
   );
 };

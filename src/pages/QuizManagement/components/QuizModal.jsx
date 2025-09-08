@@ -86,7 +86,8 @@ const QuizModal = (props) => {
                 Random Bank
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Use random questions from the bank to create a comprehensive quiz
+                Use random questions from the bank to create a comprehensive
+                quiz
               </Typography>
             </Box>
           </Box>
@@ -125,7 +126,8 @@ const QuizModal = (props) => {
                 AI-Generated
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Use AI to create a customized set of questions based on your requirements
+                Use AI to create a customized set of questions based on your
+                requirements
               </Typography>
               {!user.allow_ai && (
                 <Typography variant="caption" color="text.disabled">
@@ -134,11 +136,54 @@ const QuizModal = (props) => {
               )}
             </Box>
           </Box>
+          <Box
+            component="button"
+            // onClick={() => {}}
+            onClick={() => onSelectOption("Manual")}
+            sx={{
+              width: "100%",
+              textAlign: "left",
+              bgcolor: "#f8fafc",
+              border: "2px solid #e5e7eb",
+              borderRadius: 2,
+              p: { xs: 1.5, sm: 2 },
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              cursor: "pointer",
+              opacity: 1,
+              transition: "border-color 0.2s",
+              "&:hover": { borderColor: "#96057eff", bgcolor: "#ffebfcff" },
+              boxShadow: 0,
+            }}
+          >
+            <Avatar sx={{ bgcolor: "#96057eff", width: 40, height: 40 }}>
+              <PsychologyIcon />
+            </Avatar>
+            <Box>
+              <Typography
+                variant="subtitle1"
+                fontWeight="bold"
+                color={"#96057eff"}
+              >
+                Manual Creation
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Create your own quiz by selecting questions from the question
+                bank. (work in progress)
+              </Typography>
+            </Box>
+          </Box>
         </Stack>
-        <Divider sx={{ my: 0}} />
+        <Divider sx={{ my: 0 }} />
       </DialogContent>
-      <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: 2, mt: "-8px"}}>
-        <Button onClick={onClose} color="error" size="medium" variant="outlined">
+      <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: 2, mt: "-8px" }}>
+        <Button
+          onClick={onClose}
+          color="error"
+          size="medium"
+          variant="outlined"
+        >
           Cancel
         </Button>
       </DialogActions>

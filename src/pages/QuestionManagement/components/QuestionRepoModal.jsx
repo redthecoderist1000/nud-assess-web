@@ -111,7 +111,7 @@ const QuestionRepoModal = (props) => {
                 boxShadow: "none",
                 py: 1.5,
                 mb: 1,
-                opacity: isIncharge ? 1 : 0.6, 
+                opacity: isIncharge ? 1 : 0.6,
                 "&:hover": {
                   bgcolor: isIncharge ? "#2563eb" : "#e0edff",
                   color: isIncharge ? "#fff" : "#2563eb",
@@ -124,7 +124,11 @@ const QuestionRepoModal = (props) => {
               Contains questions available for final exams.
             </Typography>
             {!isIncharge && (
-              <Typography variant="caption" color="text.secondary" align="center">
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                align="center"
+              >
                 [Available for faculty incharge only.]
               </Typography>
             )}
@@ -167,10 +171,22 @@ const QuestionRepoModal = (props) => {
             </Typography>
           </Box>
         </Stack>
-        <Divider sx={{ my: 0}} />
+        {/* <Divider sx={{ my: 0 }} /> */}
       </DialogContent>
-      <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: 2, mt: "-8px"}}>
-        <Button onClick={onClose} color="error" size="medium" variant="outlined">
+      <DialogActions
+        sx={{
+          px: { xs: 2, sm: 3 },
+          pb: 2,
+          mt: "-8px",
+          justifyContent: "start",
+        }}
+      >
+        <Button
+          onClick={onClose}
+          color="error"
+          size="medium"
+          variant="outlined"
+        >
           Cancel
         </Button>
       </DialogActions>

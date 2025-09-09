@@ -509,6 +509,7 @@ function Tosifier() {
 
   const manualQuiz = () => {
     navigate("/manual-quiz", {
+      replace: true,
       state: { quizDetail: quizDetail, tosDetail: rows },
     });
   };

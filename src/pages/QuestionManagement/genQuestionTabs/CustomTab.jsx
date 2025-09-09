@@ -80,12 +80,6 @@ function CustomTab(props) {
     setItems(newItems);
   };
 
-  const handleChangeQuestion = (e, index) => {
-    setItems((prev) =>
-      prev.map((d, i) => (index == i ? { ...d, question: e } : d))
-    );
-  };
-
   const addItem = () => {
     setItems([
       ...items,
@@ -108,6 +102,8 @@ function CustomTab(props) {
     e.preventDefault();
     setLoading(true);
 
+    // console.log("items to upload:", items);
+
     if (!subject || !lesson) {
       console.error("select subject and lesson first");
       setLoading(false);
@@ -116,6 +112,21 @@ function CustomTab(props) {
     }
 
     items.map(async (d, i) => {
+      // check if it has image
+      const hasImage = d.image && d.image != null;
+      if (hasImage) {
+        // upload image to supabase storage
+        const fileName = `${Math.random()}-${d.image.name}`;
+        const { data: storageData, error: storageErr } = await supabase.storage
+          .from("question_image")
+          .upload(fileName, d.image);
+        if (storageErr) {
+          console.error("error uploading image:", storageErr);
+        } else {
+          d.image_url = storageData.path;
+        }
+      }
+
       const { data: question_id, error } = await supabase
         .from("tbl_question")
         .insert({
@@ -124,6 +135,7 @@ function CustomTab(props) {
           blooms_category: d.blooms_category,
           repository: d.repository,
           lesson_id: lesson,
+          image: d.image_url ?? null,
         })
         .select("id")
         .single();
@@ -159,7 +171,6 @@ function CustomTab(props) {
                 data={data}
                 index={index}
                 handleChangeItem={handleChangeItem}
-                handleChangeQuestion={handleChangeQuestion}
                 lesson_id={lesson}
               />
             </questionContext.Provider>

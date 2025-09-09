@@ -2,6 +2,7 @@ import {
   Alert,
   alpha,
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -16,6 +17,7 @@ import {
   MenuItem,
   Paper,
   Select,
+  Snackbar,
   Stack,
   TextField,
   Tooltip,
@@ -29,12 +31,13 @@ import TFArea from "./answerArea/TFArea";
 import JoditEditor from "jodit-react";
 import IndentificationArea from "./answerArea/IndentificationArea";
 import AcUnitRoundedIcon from "@mui/icons-material/AcUnitRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import axiosInstance from "../../../../helper/axios";
+import AddPhotoAlternateRoundedIcon from "@mui/icons-material/AddPhotoAlternateRounded";
 
 function AnswerCard(props) {
   const { items, setItems } = useContext(questionContext);
-  const { index, data, handleChangeItem, handleChangeQuestion, lesson_id } =
-    props;
+  const { index, data, handleChangeItem, lesson_id } = props;
   const editor = useRef(null);
   const config = useMemo(
     () => ({
@@ -66,21 +69,13 @@ function AnswerCard(props) {
     []
   );
   const [checkLoading, setCheckLoading] = useState(false);
-  const [checkerRes, setCheckerRes] = useState({
-    // status: "success",
-    // count: 2,
-    // results: [
-    //   {
-    //     id: "eadd683c-e52a-421e-a571-b26f4317d6d5",
-    //     question: "What is vulnerability assessment?",
-    //     similarity: 0.9507992267608643,
-    //   },
-    //   {
-    //     id: "664ad453-4be5-4cb8-b1fd-8b1b1e6a24fa",
-    //     question: "What is the primary goal of vulnerability assessment?",
-    //     similarity: 0.8923159837722778,
-    //   },
-    // ],
+  const [checkerRes, setCheckerRes] = useState({});
+  const [imgPreview, setImgPreview] = useState(data?.image || null);
+  const fileInputRef = useRef(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
   });
 
   let qType;
@@ -176,6 +171,51 @@ function AnswerCard(props) {
     // if wala
   };
 
+  const MAX_FILE_SIZE = 1024 * 1024; // 1MB in bytes
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      setSnackbar({
+        open: true,
+        message: "Image must be less than 1MB",
+        severity: "error",
+      });
+      e.target.value = null;
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result;
+      setItems((prev) => {
+        const updated = [...(Array.isArray(prev) ? prev : [])];
+        updated[index] = { ...updated[index], image: file };
+        return updated;
+      });
+
+      setImgPreview(base64);
+
+      e.target.value = null; // Reset input to allow re-selection
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setItems((prev) => {
+      const updated = [...(Array.isArray(prev) ? prev : [])];
+      updated[index] = { ...updated[index], image: null };
+      return updated;
+    });
+    setImgPreview(null);
+    fileInputRef.current.value = null;
+  };
+
   return (
     <Stack>
       <Collapse in={checkLoading || checkerRes.count == 0}>
@@ -202,20 +242,15 @@ function AnswerCard(props) {
                     name="question"
                     onChange={(e) => handleChangeItem(e, index)}
                   />
-                  {/* <JoditEditor
-              ref={editor}
-              value={data.question}
-              config={config}
-              onBlur={(e) => handleChangeQuestion(e, index)}
-            /> */}
                 </Grid>
-
                 <Grid flex={1}>
                   <FormControl fullWidth size="small" required>
-                    <InputLabel id="selectSpecLabel">Specification</InputLabel>
+                    <InputLabel id="selectSpecLabel">
+                      Cognitive Level
+                    </InputLabel>
                     <Select
                       labelId="selectSpecLabel"
-                      label="Specification"
+                      label="Cognitive Level"
                       value={data.blooms_category}
                       name="blooms_category"
                       onChange={(e) => handleChangeItem(e, index)}
@@ -224,6 +259,8 @@ function AnswerCard(props) {
                       <MenuItem value="Creating">Creating</MenuItem>
                       <MenuItem value="Analyzing">Analyzing</MenuItem>
                       <MenuItem value="Evaluating">Evaluating</MenuItem>
+                      <MenuItem value="Applying">Applying</MenuItem>
+                      <MenuItem value="Understanding">Understanding</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -247,7 +284,43 @@ function AnswerCard(props) {
                     </Select>
                   </FormControl>
                 </Grid>
+                {/* <Grid flex={1 / 2}> */}
+                {/* hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleImageChange}
+                />
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<AddPhotoAlternateRoundedIcon />}
+                  disableElevation
+                  sx={{ textTransform: "none" }}
+                  onClick={handleImageClick}
+                >
+                  {imgPreview ? "Change Image" : "Add Image"}
+                </Button>
+                {/* </Grid> */}
               </Grid>
+              {imgPreview && (
+                <Stack mb={2} direction={"row"} alignItems="flex-start" gap={1}>
+                  <img
+                    src={imgPreview}
+                    alt="Preview"
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "200px",
+                      borderRadius: 8,
+                    }}
+                  />
+                  <IconButton size="small" onClick={removeImage}>
+                    <CloseRoundedIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                </Stack>
+              )}
               {/* answer area */}
               {qType}
             </Box>
@@ -303,6 +376,21 @@ function AnswerCard(props) {
           </Grid>
         )}
       </Grid>
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }

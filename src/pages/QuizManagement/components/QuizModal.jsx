@@ -15,6 +15,7 @@ import {
 import DescriptionIcon from "@mui/icons-material/Description";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
 import PsychologyIcon from "@mui/icons-material/Psychology";
+import SettingsSuggestRoundedIcon from "@mui/icons-material/SettingsSuggestRounded";
 
 const QuizModal = (props) => {
   const { isOpen, onClose, onSelectOption } = props;
@@ -158,7 +159,7 @@ const QuizModal = (props) => {
             }}
           >
             <Avatar sx={{ bgcolor: "#96057eff", width: 40, height: 40 }}>
-              <PsychologyIcon />
+              <SettingsSuggestRoundedIcon />
             </Avatar>
             <Box>
               <Typography
@@ -170,14 +171,21 @@ const QuizModal = (props) => {
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Create your own quiz by selecting questions from the question
-                bank. (work in progress)
+                bank.
               </Typography>
             </Box>
           </Box>
         </Stack>
-        <Divider sx={{ my: 0 }} />
+        {/* <Divider sx={{ my: 0 }} /> */}
       </DialogContent>
-      <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: 2, mt: "-8px" }}>
+      <DialogActions
+        sx={{
+          px: { xs: 2, sm: 3 },
+          pb: 2,
+          mt: "-8px",
+          justifyContent: "start",
+        }}
+      >
         <Button
           onClick={onClose}
           color="error"

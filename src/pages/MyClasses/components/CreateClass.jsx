@@ -1,9 +1,26 @@
-import React, { useContext, useState } from "react";
-import { CircularProgress } from "@mui/material";
+import React, { useContext, useRef, useState } from "react";
+import {
+  Alert,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Divider,
+  LinearProgress,
+  Snackbar,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
+import * as XLSX from "xlsx";
+import CalendarViewMonthRoundedIcon from "@mui/icons-material/CalendarViewMonthRounded";
 
-const CreateClass = ({ onCancel }) => {
+const CreateClass = ({ open, setOpen }) => {
   // const { user } = useContext(userContext);
   const { user } = useContext(userContext);
 
@@ -13,6 +30,13 @@ const CreateClass = ({ onCancel }) => {
     created_by: user.user_id,
   });
   const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [memberList, setMemberList] = useState([]);
+  const importRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -30,7 +54,11 @@ const CreateClass = ({ onCancel }) => {
       .eq("created_by", user.user_id)
       .like("class_name", classData.class_name + "%");
     if (checkError) {
-      console.log("Failed to check name");
+      setSnackbar({
+        open: true,
+        message: "Failed to create class. Please try again.",
+        severity: "error",
+      });
       setLoading(false);
       return;
     }
@@ -52,13 +80,26 @@ const CreateClass = ({ onCancel }) => {
       .insert([{ ...classData, class_name: name, join_code: join_code }]);
 
     if (error) {
-      console.log("Failed to create class");
+      setSnackbar({
+        open: true,
+        message: "Failed to create class. Please try again.",
+        severity: "error",
+      });
       setLoading(false);
       return;
     }
 
+    setSnackbar({
+      open: true,
+      message: "Class created successfully!",
+      severity: "success",
+    });
     setLoading(false);
-    onCancel();
+
+    // timeout to show snackbar
+    setTimeout(() => {
+      setOpen(false);
+    }, 1000);
   };
 
   function getNextAvailableName(baseName, existingNames) {
@@ -91,85 +132,279 @@ const CreateClass = ({ onCancel }) => {
     return code;
   };
 
+  const handleInputClick = () => {
+    importRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const emails = await getEmailFromXLS(file);
+        const subjectName = await getValueFromCell(file, "Subject Name");
+        const section = await getValueFromCell(file, "Section");
+        const instructor = await getValueFromCell(file, "Instructor");
+        const classListData = {
+          subject: subjectName,
+          section: section,
+          instructor: instructor,
+          emails: emails,
+        };
+        const generatedClassName = generateClassName(classListData);
+        setClassData({
+          ...classData,
+          class_name: generatedClassName,
+        });
+        await fetchUsers(classListData);
+      } catch (error) {
+        setSnackbar({
+          open: true,
+          message: error,
+          severity: "error",
+        });
+      }
+    }
+  };
+
+  const generateClassName = ({ subject, section, instructor }) => {
+    // Extract subject code before the colon
+    const subjectCode = subject.split(":")[0].trim();
+
+    // Extract instructor name after the colon
+    const namePart = instructor.split(":")[1].trim();
+
+    // Get initials from instructor name
+    const initials = namePart
+      .split(" ")
+      .filter(
+        (word) =>
+          word.length > 0 && word !== "MR." && word !== "MS." && word !== "MRS."
+      )
+      .map((word) => word[0].toUpperCase())
+      .join("");
+
+    return `${initials}_${subjectCode}_${section}`;
+  };
+
+  const getEmailFromXLS = (file) => {
+    const columnName = "Official Email";
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const sheetData = XLSX.utils.sheet_to_json(worksheet, {
+          header: 1,
+          defval: "",
+        });
+
+        let columnIndex = -1;
+        let startRow = -1;
+
+        for (let i = 0; i < sheetData.length; i++) {
+          const row = sheetData[i];
+          columnIndex = row.indexOf(columnName);
+          if (columnIndex !== -1) {
+            startRow = i + 1;
+            break;
+          }
+        }
+
+        if (columnIndex === -1) {
+          return reject(`Column "${columnName}" not found`);
+        }
+
+        const filteredValues = [];
+
+        for (let i = startRow; i < sheetData.length; i++) {
+          const row = sheetData[i];
+          const value = row[columnIndex];
+          const nextValue = row[columnIndex + 2];
+
+          if (nextValue == "Enrolled") {
+            filteredValues.push(value);
+          }
+        }
+
+        resolve(filteredValues);
+      };
+
+      reader.onerror = () => reject("Failed to read file");
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const getValueFromCell = (file, targetValue) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+
+        const range = XLSX.utils.decode_range(worksheet["!ref"]);
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+          for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cellAddress = { r: R, c: C };
+            const cellRef = XLSX.utils.encode_cell(cellAddress);
+            const cell = worksheet[cellRef];
+
+            if (cell && cell.v === targetValue) {
+              const rightCellAddress = XLSX.utils.encode_cell({
+                r: R,
+                c: C + 1,
+              });
+              const rightCell = worksheet[rightCellAddress];
+              return resolve(rightCell ? rightCell.v : null);
+            }
+          }
+        }
+
+        resolve(null); // Target value not found
+      };
+
+      reader.onerror = () => reject("Failed to read file");
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const fetchUsers = async ({ emails }) => {
+    // console.log("Fetching users for emails:", emails);
+    const { data, error } = await supabase
+      .from("tbl_users")
+      .select("id, email, f_name, l_name")
+      .in("email", emails);
+
+    if (error) {
+      // console.error("Error fetching users:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch users from the database.",
+        severity: "error",
+      });
+      return;
+    }
+
+    setMemberList(data);
+    setSnackbar({
+      open: true,
+      message: "Users fetched successfully!",
+      severity: "success",
+    });
+  };
+
   return (
-    <>
-      <h2 className="text-2xl font-bold mb-4">Create Class</h2>
+    <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
       <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label
-            className="block text-sm font-medium text-gray-700"
-            htmlFor="name_input"
-          >
-            Class Name
-          </label>
-          <input
-            type="text"
-            id="name_input"
-            name="class_name"
-            value={classData.name}
-            onChange={handleInputChange}
-            placeholder="Enter class name (Introduction to Computing)"
-            className="mt-1 p-2 block w-full h-10 border-gray-300 rounded-md border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label
-            className="block text-sm font-medium text-gray-700"
-            htmlFor="desc_input"
-          >
-            Description <i>(optional)</i>
-          </label>
-          <input
-            id="desc_input"
-            type="text"
-            name="desc"
-            value={classData.desc}
-            onChange={handleInputChange}
-            placeholder="Enter description...."
-            className="mt-1 p-2 block w-full h-10 border-gray-300 rounded-md border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-        {/* <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700">
-          Display Picture (Optional)
-        </label>
-        <input
-          type="file"
-          onChange={handleImageUpload}
-          className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-        />
-        {classData.image && (
-          <p className="mt-2 text-sm text-gray-500">
-            Selected file: {classData.image.name}
-          </p>
-        )}
-      </div> */}
-        <div
-          className={loading ? "flex justify-center" : "flex justify-between"}
-        >
-          {loading ? (
-            <CircularProgress />
-          ) : (
-            <>
-              <button
-                onClick={onCancel}
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+        <DialogTitle>Create Class</DialogTitle>
+        <DialogContent>
+          <Stack rowGap={2}>
+            <TextField
+              autoFocus
+              id="name_input"
+              label="Class Name"
+              type="text"
+              name="class_name"
+              size="small"
+              fullWidth
+              variant="outlined"
+              value={classData.class_name}
+              onChange={handleInputChange}
+              required
+            />
+            <TextField
+              autoFocus
+              id="desc_input"
+              label="Description (optional)"
+              type="text"
+              size="small"
+              name="desc"
+              fullWidth
+              variant="outlined"
+              value={classData.desc}
+              onChange={handleInputChange}
+            />
+            <Divider>
+              <Typography variant="caption" color="textSecondary">
+                or
+              </Typography>
+            </Divider>
+            <Stack>
+              <Typography variant="caption" color="textSecondary">
+                Automatically create class by importing a Classlist from NUIS.
+              </Typography>
+              <input
+                type="file"
+                accept=".xls,.xlsx"
+                ref={importRef}
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
+              <Button
+                size="small"
+                variant="outlined"
+                color="success"
+                fullWidth={false}
+                onClick={handleInputClick}
+                startIcon={<CalendarViewMonthRoundedIcon />}
+              >
+                Import Classlist
+              </Button>
+            </Stack>
+          </Stack>
+        </DialogContent>
+        {loading ? (
+          <LinearProgress />
+        ) : (
+          <DialogActions>
+            <Stack direction="row" justifyContent="space-between" width="100%">
+              <Button
+                size="small"
+                onClick={() => setOpen(false)}
+                color="error"
+                variant="outlined"
               >
                 Cancel
-              </button>
-              <button
-                // onClick={handleSubmit}
+              </Button>
+              <Button
+                size="small"
+                autoFocus
+                disableElevation
+                variant="contained"
                 type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                disabled={loading}
+                color="success"
               >
-                Create
-              </button>
-            </>
-          )}
-        </div>
+                Continue
+              </Button>
+            </Stack>
+          </DialogActions>
+        )}
       </form>
-    </>
+      {/* snackbar */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Dialog>
   );
 };
 

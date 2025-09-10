@@ -242,13 +242,11 @@ const ClassManagementPage = () => {
           </div>
         </div>
 
-        {createModalVisible && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
-              <CreateClass onCancel={() => setCreateModalVisible(false)} />
-            </div>
-          </div>
-        )}
+        <CreateClass
+          onCancel={() => {}}
+          open={createModalVisible}
+          setOpen={setCreateModalVisible}
+        />
 
         <Dialog open={archiveDialog} onClose={() => setArchiveDialog(false)}>
           <DialogTitle>Archive Class: {selectedClass.class_name}</DialogTitle>

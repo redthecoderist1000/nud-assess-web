@@ -4,6 +4,7 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Typography,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
@@ -43,7 +44,10 @@ function PersonListItem({ person, setRemDialog }) {
           {getInitials()}
         </Avatar>
       </ListItemAvatar>
-      <ListItemText primary={name} secondary={person.email} />
+      <ListItemText
+        primary={<Typography fontWeight={600}>{name}</Typography>}
+        secondary={person.email}
+      />
     </ListItem>
   );
 }

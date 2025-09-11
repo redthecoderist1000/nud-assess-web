@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Alert, Button, List, Snackbar } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import AddMemberDialog from "../../components/AddMemberDialog";
-import PersonListItem from "./PersonListItem";
+import PersonListItem from "../../components/PersonListItem";
 import RemMemberDialog from "../../components/RemMemberDialog";
 
 const PeopleTab = ({ people = [], classData }) => {

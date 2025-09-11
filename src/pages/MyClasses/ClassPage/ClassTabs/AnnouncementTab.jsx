@@ -1,7 +1,16 @@
-import React, { useState } from "react";
-import { Button, Checkbox, FormControlLabel, Menu, MenuItem, IconButton } from "@mui/material";
+import React, { useMemo, useRef, useState } from "react";
+import {
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Menu,
+  MenuItem,
+  IconButton,
+  TextField,
+} from "@mui/material";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import JoditEditor from "jodit-react";
 
 const defaultAnnouncements = [
   {
@@ -19,6 +28,11 @@ const AnnouncementTab = () => {
   const [announcementContent, setAnnouncementContent] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [formData, setFormData] = useState({
+    content: "",
+    title: "",
+    // created_by: user.user_id,
+  });
 
   const handleMenuOpen = (event, announcement) => {
     setAnchorEl(event.currentTarget);
@@ -28,6 +42,23 @@ const AnnouncementTab = () => {
   const handleMenuClose = () => {
     setAnchorEl(null);
     setSelectedAnnouncement(null);
+  };
+
+  const editor = useRef(null);
+  const config = useMemo(
+    () => ({
+      readonly: false,
+      placeholder: "Start typing...",
+      toolbarAdaptive: false,
+      uploader: { insertImageAsBase64URI: true }, // configure image upalods
+      addNewLine: false,
+      statusbar: false,
+      buttons: ["bold", "italic", "underline"],
+    }),
+    []
+  );
+  const handleJodit = (e) => {
+    // setFormData({ ...formData, content: e });
   };
 
   return (
@@ -54,20 +85,21 @@ const AnnouncementTab = () => {
         />
         <div className="flex-1">
           <div className="font-semibold mb-1">Post Announcement</div>
-          <textarea
-            className="w-full bg-[#f4f5f7] rounded-md p-3 text-sm border-none outline-none resize-none mb-2"
-            rows={1}
+          <TextField
+            value={formData.title}
+            onChange={(e) =>
+              setFormData({ ...formData, title: e.target.value })
+            }
             placeholder="Title"
-            value={announcementTitle}
-            onChange={(e) => setAnnouncementTitle(e.target.value)}
-            style={{ fontWeight: 500 }}
+            variant="outlined"
+            fullWidth
+            margin="normal"
           />
-          <textarea
-            className="w-full bg-[#f4f5f7] rounded-md p-3 text-sm border-none outline-none resize-none mb-2"
-            rows={2}
-            placeholder="Share something with your class..."
-            value={announcementContent}
-            onChange={(e) => setAnnouncementContent(e.target.value)}
+          <JoditEditor
+            ref={editor}
+            value={formData.content}
+            config={config}
+            onBlur={handleJodit}
           />
           <Button
             variant="contained"

@@ -76,10 +76,7 @@ const ClassManagementPage = () => {
   }, []);
 
   const fetchData = async () => {
-    const { data, error } = await supabase
-      .from("tbl_class")
-      .select("*")
-      .eq("created_by", user.user_id);
+    const { data, error } = await supabase.from("vw_classesbyprof").select("*");
 
     if (error) {
       setSnackbar({
@@ -184,7 +181,6 @@ const ClassManagementPage = () => {
   };
 
   const handleClassClick = (cls) => {
-    // setSelectedAnalyticsClass(cls);
     navigate("/class", { state: cls });
   };
 
@@ -273,7 +269,6 @@ const ClassManagementPage = () => {
                 handleActivate={handleActivate}
                 handleDeleteDialog={() => setDeleteDialog(true)}
                 handleSelectAnalyticsClass={handleClassClick}
-                onDoubleClick={handleClassDoubleClick}
               />
             )}
           </div>
@@ -306,11 +301,7 @@ const ClassManagementPage = () => {
           </DialogContent>
           <DialogActions>
             <Stack direction="row" justifyContent="space-between" width="100%">
-              <Button
-                onClick={() => setArchiveDialog(false)}
-                color="error"
-                variant="outlined"
-              >
+              <Button onClick={() => setArchiveDialog(false)} color="error">
                 Cancel
               </Button>
               <Button

@@ -53,7 +53,6 @@ const ClassCard = ({
   handleActivate,
   handleDeleteDialog,
   onClick,
-  onDoubleClick,
 }) => (
   <>
     <div
@@ -64,7 +63,6 @@ const ClassCard = ({
       cursor-pointer
     "
       onClick={onClick}
-      onDoubleClick={onDoubleClick}
     >
       <div className="flex items-center mb-2">
         <div
@@ -77,9 +75,7 @@ const ClassCard = ({
           <div className="font-bold text-base text-gray-900">
             {cls.class_name}
           </div>
-          <div className="text-sm text-gray-500">
-            {cls.description || "Class description"}
-          </div>
+          <div className="text-sm text-gray-500">{cls.description}</div>
         </div>
         <IconButton
           size="small"
@@ -93,13 +89,13 @@ const ClassCard = ({
       </div>
       <div className="flex items-center mt-2">
         <div className="text-sm text-[#4854a3]">
-          {cls.students || 32} students
+          {cls.member_count} students
         </div>
         <div className="mx-4 text-sm text-[#4854a3]">
-          {cls.assignments || 8} quizzes
+          {cls.quiz_count} quizzes
         </div>
         <span className="ml-auto font-bold text-gray-800 text-sm">
-          {cls.avg_score || 82}% avg
+          {cls.ave_score.toFixed(2)}% avg
         </span>
       </div>
     </div>

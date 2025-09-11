@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Button,
@@ -9,7 +9,11 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
+  IconButton,
   LinearProgress,
+  List,
+  ListItem,
+  ListItemText,
   Snackbar,
   Stack,
   TextField,
@@ -19,6 +23,7 @@ import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
 import * as XLSX from "xlsx";
 import CalendarViewMonthRoundedIcon from "@mui/icons-material/CalendarViewMonthRounded";
+import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 
 const CreateClass = ({ open, setOpen }) => {
   // const { user } = useContext(userContext);
@@ -37,6 +42,18 @@ const CreateClass = ({ open, setOpen }) => {
   });
   const [memberList, setMemberList] = useState([]);
   const importRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) {
+      setClassData({
+        class_name: "",
+        desc: "",
+        created_by: user.user_id,
+      });
+      setMemberList([]);
+      setLoading(false);
+    }
+  }, [open]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -75,9 +92,11 @@ const CreateClass = ({ open, setOpen }) => {
 
     const join_code = generateCode();
 
-    const { data, error } = await supabase
+    const { data: class_id, error } = await supabase
       .from("tbl_class")
-      .insert([{ ...classData, class_name: name, join_code: join_code }]);
+      .insert([{ ...classData, class_name: name, join_code: join_code }])
+      .select("id")
+      .single();
 
     if (error) {
       setSnackbar({
@@ -89,12 +108,31 @@ const CreateClass = ({ open, setOpen }) => {
       return;
     }
 
+    if (memberList.length > 0) {
+      const membersToInsert = memberList.map((member) => ({
+        class_id: class_id.id,
+        student_id: member.id,
+      }));
+
+      const { error: memberError } = await supabase
+        .from("tbl_class_members")
+        .insert(membersToInsert);
+
+      if (memberError) {
+        setSnackbar({
+          open: true,
+          message: "Class created but failed to add members.",
+          severity: "warning",
+        });
+      }
+    }
+
     setSnackbar({
       open: true,
       message: "Class created successfully!",
       severity: "success",
     });
-    setLoading(false);
+    // setLoading(false);
 
     // timeout to show snackbar
     setTimeout(() => {
@@ -300,12 +338,17 @@ const CreateClass = ({ open, setOpen }) => {
     });
   };
 
+  const removeMember = (index) => {
+    const updatedList = memberList.filter((_, i) => i !== index);
+    setMemberList(updatedList);
+  };
+
   return (
     <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
       <form onSubmit={handleSubmit}>
         <DialogTitle>Create Class</DialogTitle>
         <DialogContent>
-          <Stack rowGap={2}>
+          <Stack rowGap={2} mt={1}>
             <TextField
               autoFocus
               id="name_input"
@@ -357,6 +400,36 @@ const CreateClass = ({ open, setOpen }) => {
               >
                 Import Classlist
               </Button>
+              {memberList.length > 0 && (
+                <>
+                  <Typography variant="caption" color="textSecondary">
+                    {memberList.length} members will be added to the class.
+                  </Typography>
+                  <List sx={{ maxHeight: 400, overflow: "auto" }}>
+                    {memberList.map((item, index) => (
+                      <ListItem
+                        key={index}
+                        disablePadding
+                        dense
+                        secondaryAction={
+                          <IconButton
+                            edge="end"
+                            size="small"
+                            onClick={() => removeMember(index)}
+                          >
+                            <HighlightOffRoundedIcon color="error" />
+                          </IconButton>
+                        }
+                      >
+                        <ListItemText
+                          primary={item.f_name + " " + item.l_name}
+                          secondary={item.email}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </>
+              )}
             </Stack>
           </Stack>
         </DialogContent>

@@ -28,10 +28,8 @@ import { styled } from "@mui/material/styles";
 import { useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { userContext } from "../../../App";
-import Error from "../components/tosifierErrorDialogs/Error";
 import FileUpload from "../../../components/elements/FileUpload";
 import { aiRun } from "../../../helper/Gemini";
-import AiError from "../components/tosifierErrorDialogs/AiError";
 import { supabase } from "../../../helper/Supabase";
 import { time } from "framer-motion";
 
@@ -108,7 +106,6 @@ function Tosifier() {
     },
   ]);
 
-  const [response, setResponse] = useState("");
   const [total, setTotal] = useState({
     items: 0,
     hours: 0,
@@ -123,8 +120,6 @@ function Tosifier() {
   });
   const [loading, setLoading] = useState(false);
   const [lessonOption, setLessonOption] = useState([]);
-
-  const [error, setError] = useState(false);
 
   const [files, setFiles] = useState([]);
 
@@ -493,28 +488,33 @@ function Tosifier() {
     });
 
     if (rows.length === 0) {
-      setResponse("There must be atleast 1 topic");
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "There must be atleast 1 topic",
+        severity: "error",
+      });
       return;
     }
 
     if (total.hours <= 0) {
-      setResponse("Hours cannot be equal or less than 0");
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "Hours cannot be equal or less than 0",
+        severity: "error",
+      });
       return;
     }
 
     try {
       const result = await aiRun(files, texts);
-      // console.log("AI result:", result);
       if (result.status == "Success") {
-        // console.log("sakses response:", result);
-        // setQuiz(result.questions);
         setSnackbar({
           open: true,
           message: "Questions generated successfully!",
           severity: "success",
         });
-
-        // timeout 2s
         setTimeout(() => {
           navigate("/quizsummary", {
             state: {
@@ -536,8 +536,6 @@ function Tosifier() {
       }
       setLoading(false);
     } catch (error) {
-      // ai error
-      // console.log(error);
       setLoading(false);
       setSnackbar({
         open: true,
@@ -1016,14 +1014,6 @@ function Tosifier() {
           </Stack>
         </SectionCard>
       </form>
-
-      <Error open={error} setOpen={setError} />
-
-      <AiError
-        open={response.length != 0}
-        setOpen={setResponse}
-        message={response}
-      />
 
       {/* snackbar */}
       <Snackbar

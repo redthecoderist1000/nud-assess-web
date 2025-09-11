@@ -113,37 +113,53 @@ const ClassPage = () => {
       };
     });
 
+    // console.log(merged);
+
     setPeople(merged);
-    // console.log("Fetched people:", merged);
   };
 
   useEffect(() => {
     fetchQuizzes();
     fetchAllPeople();
 
-    supabase
+    const classChannel = supabase
       .channel("class_member_channel")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "tbl_class_members" },
-        () => {
-          fetchAllPeople();
-          console.log("Class members updated, refetching...");
+        {
+          event: "*",
+          schema: "public",
+          table: "tbl_class_members",
+        },
+        (payload) => {
+          const row = payload.new || payload.old;
+          const event = payload.eventType;
+          if (row.class_id === classData.id || event === "DELETE") {
+            fetchAllPeople();
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tbl_class_exam",
+        },
+        (payload) => {
+          const event = payload.eventType;
+          const row = payload.new || payload.old;
+          if (row.class_id === classData.id || event === "DELETE") {
+            fetchQuizzes();
+          }
         }
       )
       .subscribe();
 
-    supabase
-      .channel("class_exam_channel")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "tbl_class_exam" },
-        () => {
-          fetchQuizzes();
-        }
-      )
-      .subscribe();
-  }, []);
+    return () => {
+      supabase.removeChannel(classChannel);
+    };
+  }, [classData.id]);
 
   return (
     <div className="flex flex-col h-screen bg-[#f8f9fb] overflow-y-auto">

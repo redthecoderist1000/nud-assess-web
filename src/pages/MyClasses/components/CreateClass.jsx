@@ -202,6 +202,7 @@ const CreateClass = ({ open, setOpen }) => {
         });
       }
     }
+    e.target.value = null; // Reset file input
   };
 
   const generateClassName = ({ subject, section, instructor }) => {
@@ -253,7 +254,7 @@ const CreateClass = ({ open, setOpen }) => {
         }
 
         if (columnIndex === -1) {
-          return reject(`Column "${columnName}" not found`);
+          return reject(`Use a valid NUIS classlist file.`); // Column not found
         }
 
         const filteredValues = [];
@@ -438,12 +439,7 @@ const CreateClass = ({ open, setOpen }) => {
         ) : (
           <DialogActions>
             <Stack direction="row" justifyContent="space-between" width="100%">
-              <Button
-                size="small"
-                onClick={() => setOpen(false)}
-                color="error"
-                variant="outlined"
-              >
+              <Button size="small" onClick={() => setOpen(false)} color="error">
                 Cancel
               </Button>
               <Button

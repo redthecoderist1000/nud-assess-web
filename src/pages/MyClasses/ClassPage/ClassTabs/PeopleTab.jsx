@@ -1,55 +1,18 @@
-import React, { useState } from "react";
-import { Button, Chip, IconButton, Stack } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { useState } from "react";
+import { Alert, Button, List, Snackbar } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import AddMemberDialog from "../../components/AddMemberDialog";
-
-const getInitials = (person) => {
-  const name = `${person.f_name || ""} ${person.l_name || ""}`.trim();
-  if (!name) return "";
-  const parts = name.split(" ");
-  return parts
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase();
-};
+import PersonListItem from "./PersonListItem";
+import RemMemberDialog from "../../components/RemMemberDialog";
 
 const PeopleTab = ({ people = [], classData }) => {
   const [addMembDia, setAddMemDia] = useState(false);
-
-  const instructors = people.filter((p) => p.role === "instructor");
-  const students = people.filter((p) => p.role !== "instructor");
-
-  const PersonRow = ({ person }) => (
-    <div className="flex items-center justify-between bg-white rounded-2xl border border-l-4 border-gray-200 border-l-blue-800 p-4">
-      <div className="flex items-center gap-4 min-w-0 ">
-        <div className="w-10 h-10 rounded-full bg-yellow-100  flex items-center justify-center text-md font-semibold text-[blue-600]">
-          {getInitials(person)}
-        </div>
-        <div className="min-w-0 ">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-md truncate">
-              {`${person.f_name || ""} ${person.l_name || ""}`.trim()}
-            </span>
-          </div>
-          <div className="text-sm text-gray-500 truncate">{person.email}</div>
-        </div>
-      </div>
-      {/* Right: Average score and Delete button */}
-      <div className="flex items-center gap-6">
-        {/* {canDelete && ( */}
-        <IconButton
-          size="small"
-          aria-label="delete"
-          color="error"
-          onClick={() => onDeletePerson(person.member_id || person.id)}
-        >
-          <DeleteIcon fontSize="small" />
-        </IconButton>
-        {/* )} */}
-      </div>
-    </div>
-  );
+  const [remMembDia, setRemMemDia] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   return (
     <div>
@@ -80,19 +43,54 @@ const PeopleTab = ({ people = [], classData }) => {
           Add Member
         </Button>
       </div>
-      <Stack spacing={2}>
-        {students.length === 0 ? (
-          <div className="text-gray-500">No students yet.</div>
-        ) : (
-          students.map((person, idx) => <PersonRow key={idx} person={person} />)
-        )}
-      </Stack>
+      {/* <Stack spacing={2}> */}
+      {people.length === 0 ? (
+        <div className="text-center text-gray-500 mt-10">No students yet.</div>
+      ) : (
+        <List
+          sx={{
+            maxHeight: "60vh",
+            overflowY: "auto",
+          }}
+        >
+          {people.map((person, idx) => (
+            <PersonListItem
+              key={idx}
+              person={person}
+              setRemDialog={setRemMemDia}
+            />
+          ))}
+        </List>
+      )}
+      {/* </Stack> */}
+
+      <RemMemberDialog
+        open={remMembDia !== null}
+        setId={setRemMemDia}
+        memberId={remMembDia}
+      />
 
       <AddMemberDialog
         open={addMembDia}
         setOpen={setAddMemDia}
         classId={classData.id}
       />
+      {/* snackbar */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

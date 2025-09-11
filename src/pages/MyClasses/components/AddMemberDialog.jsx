@@ -1,36 +1,42 @@
 import {
+  Alert,
   Button,
   Card,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   Divider,
-  Link,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
+  Snackbar,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { use, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
+import * as XLSX from "xlsx";
+
+import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
+import CalendarViewMonthRoundedIcon from "@mui/icons-material/CalendarViewMonthRounded";
 
 function AddMemberDialog({ open, setOpen, classId }) {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [studentList, setStudentList] = useState([]);
   const [studentToAdd, setStudentToAdd] = useState([]);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
 
   const fileRef = useRef(null);
-
-  const handleImportClick = () => {
-    fileRef.current && fileRef.current.click();
-  };
 
   const fetchStudents = async () => {
     const curMemRes = await supabase
@@ -70,10 +76,11 @@ function AddMemberDialog({ open, setOpen, classId }) {
   // for adding student to add list
   const addStudent = (data) => {
     // add student sa to add list
-    setStudentToAdd([...studentToAdd, data]);
+    setStudentToAdd((prev) => [...prev, data]);
     // remove sa options
-    const newList = studentList.filter((item) => item.id !== data.id);
-    setStudentList(newList);
+    setStudentList((prevList) =>
+      prevList.filter((item) => item.id !== data.id)
+    );
   };
 
   useEffect(() => {
@@ -128,42 +135,100 @@ function AddMemberDialog({ open, setOpen, classId }) {
     setOpen(false);
   };
 
-  const handleImportCsv = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    //  setLoading(true);
-    // try {
-    const text = await file.text();
-    const lines = text
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean);
+  // new import
+  const handleInputClick = () => {
+    fileRef.current?.click();
+  };
 
-    if (lines.length === 0) return;
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const emails = await getEmailFromXLS(file);
+        const found = studentList.filter((s) =>
+          emails.includes(s.email.trim())
+        );
+        if (found.length === 0) {
+          setSnackbar({
+            open: true,
+            message: "No students left to add.",
+            severity: "warning",
+          });
+          return;
+        }
 
-    // Parse header if present
-    const headerCols = lines[0].split(",").map((h) => h.trim().toLowerCase());
-    if (headerCols[0] != "student_email") return;
-    for (let i = 1; i < lines.length; i++) {
-      const element = lines[i];
+        // add students
+        setStudentToAdd((prev) => [...prev, ...found]);
+        setStudentList((prevList) =>
+          prevList.filter((item) => !found.some((f) => f.id === item.id))
+        );
 
-      // check if existing sa options
-      const raw = (element || "")
-        .replace(/^\uFEFF/, "") // strip BOM
-        .replace(/^"|"$/g, "") // strip surrounding quotes
-        .trim()
-        .toLowerCase();
-
-      const found = studentList.find(
-        (s) => s.email.trim().toLowerCase() === raw
-      );
-
-      if (found) {
-        addStudent(found);
+        setSnackbar({
+          open: true,
+          message: `Added ${found.length} student(s).`,
+          severity: "success",
+        });
+      } catch (error) {
+        setSnackbar({
+          open: true,
+          message: error,
+          severity: "error",
+        });
       }
     }
+    e.target.value = null; // Reset file input
+  };
 
-    if (e.target) e.target.value = null;
+  const getEmailFromXLS = (file) => {
+    const columnName = "Official Email";
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const sheetData = XLSX.utils.sheet_to_json(worksheet, {
+          header: 1,
+          defval: "",
+        });
+
+        let columnIndex = -1;
+        let startRow = -1;
+
+        for (let i = 0; i < sheetData.length; i++) {
+          const row = sheetData[i];
+          columnIndex = row.indexOf(columnName);
+          if (columnIndex !== -1) {
+            startRow = i + 1;
+            break;
+          }
+        }
+
+        if (columnIndex === -1) {
+          return reject(`Use a valid NUIS classlist file.`); // Column not found
+        }
+
+        const filteredValues = [];
+
+        for (let i = startRow; i < sheetData.length; i++) {
+          const row = sheetData[i];
+          const value = row[columnIndex];
+          const nextValue = row[columnIndex + 2];
+
+          if (nextValue == "Enrolled") {
+            filteredValues.push(value);
+          }
+        }
+
+        resolve(filteredValues);
+      };
+
+      reader.onerror = () => reject("Failed to read file");
+      reader.readAsArrayBuffer(file);
+    });
   };
 
   return (
@@ -172,9 +237,7 @@ function AddMemberDialog({ open, setOpen, classId }) {
       maxWidth="md"
       fullWidth
       open={open}
-      onClose={() => {}}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
+      onClose={() => setOpen(false)}
     >
       <DialogTitle>Add Member</DialogTitle>
       {/* <Divider /> */}
@@ -187,22 +250,32 @@ function AddMemberDialog({ open, setOpen, classId }) {
           <>
             {studentToAdd.length > 0 && (
               <Card sx={{ mb: 2, p: 2 }} variant="outlined">
-                <DialogContentText>Student/s to add:</DialogContentText>
-                <List sx={{ width: "100%" }} disablePadding>
+                <DialogContentText>
+                  {studentToAdd.length} student/s to add:
+                </DialogContentText>
+                <List
+                  sx={{ width: "100%", maxHeight: 200, overflow: "auto" }}
+                  disablePadding
+                >
                   {studentToAdd.map((data, index) => {
                     return (
-                      <ListItem key={index} disablePadding>
-                        <ListItemText>
-                          {data.suffix} {data.f_name} {data.l_name} (
-                          {data.email})
-                        </ListItemText>
-                        <Button
-                          size="small"
-                          color="error"
-                          onClick={() => removeAddStudent(index, data)}
-                        >
-                          remove
-                        </Button>
+                      <ListItem
+                        key={index}
+                        disablePadding
+                        secondaryAction={
+                          <IconButton
+                            edge="end"
+                            aria-label="remove"
+                            onClick={() => removeAddStudent(index, data)}
+                          >
+                            <HighlightOffRoundedIcon color="error" />
+                          </IconButton>
+                        }
+                      >
+                        <ListItemText
+                          primary={`${data.suffix} ${data.f_name} ${data.l_name}`}
+                          secondary={data.email}
+                        />
                       </ListItem>
                     );
                   })}
@@ -216,23 +289,48 @@ function AddMemberDialog({ open, setOpen, classId }) {
               fullWidth
               onChange={(e) => setSearch(e.target.value)}
             />
-            <List sx={{ width: "100%" }}>
+            <List sx={{ width: "100%", maxHeight: 300, overflow: "auto" }}>
               {filteredStudentList.map((data, index) => {
                 return (
                   <ListItemButton key={index} onClick={() => addStudent(data)}>
-                    <ListItemText>
-                      {data.suffix} {data.f_name} {data.l_name} ({data.email})
-                    </ListItemText>
+                    <ListItemText
+                      primary={`${data.f_name} ${data.l_name}`}
+                      secondary={data.email}
+                    />
                   </ListItemButton>
                 );
               })}
             </List>
           </>
         )}
-        <Typography variant="caption" color="textDisabled">
-          For bulk adding of members, download csv format{" "}
-        </Typography>
-        <Link
+        <Divider>
+          <Typography variant="caption" color="textDisabled">
+            or
+          </Typography>
+        </Divider>
+        <Stack>
+          <Typography variant="caption" color="textSecondary">
+            Automatically add students by importing a Classlist from NUIS.
+          </Typography>
+          <input
+            type="file"
+            accept=".xls,.xlsx"
+            ref={fileRef}
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+          />
+          <Button
+            size="small"
+            variant="outlined"
+            color="success"
+            fullWidth={false}
+            onClick={handleInputClick}
+            startIcon={<CalendarViewMonthRoundedIcon />}
+          >
+            Import Classlist
+          </Button>
+        </Stack>
+        {/* <Link
           component="a"
           href="/bulk_member_format.csv"
           download="bulk_member_format.csv"
@@ -243,7 +341,7 @@ function AddMemberDialog({ open, setOpen, classId }) {
           sx={{ cursor: "pointer" }}
         >
           here.
-        </Link>
+        </Link> */}
       </DialogContent>
       <DialogActions>
         <Stack direction="row" justifyContent="space-between" width="100%">
@@ -252,14 +350,14 @@ function AddMemberDialog({ open, setOpen, classId }) {
           </Button>
           <Stack direction="row" spacing={2}>
             {/* hidden file input */}
-            <input
+            {/* <input
               ref={fileRef}
               type="file"
               accept=".csv,text/csv"
               style={{ display: "none" }}
               onChange={handleImportCsv}
-            />
-            <Button
+            /> */}
+            {/* <Button
               variant="outlined"
               color="success"
               size="small"
@@ -267,10 +365,11 @@ function AddMemberDialog({ open, setOpen, classId }) {
               onClick={handleImportClick}
             >
               import csv
-            </Button>
+            </Button> */}
             <Button
               onClick={addConfirm}
               variant="contained"
+              color="success"
               disabled={studentToAdd.length == 0}
               disableElevation
             >
@@ -279,6 +378,22 @@ function AddMemberDialog({ open, setOpen, classId }) {
           </Stack>
         </Stack>
       </DialogActions>
+      {/* snackbar */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 }

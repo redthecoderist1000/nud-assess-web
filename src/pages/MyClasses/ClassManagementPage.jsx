@@ -7,6 +7,7 @@ import ClassGrid from "./components/ClassGrid";
 import { supabase } from "../../helper/Supabase";
 import { userContext } from "../../App";
 import {
+  Alert,
   Button,
   Container,
   Dialog,
@@ -15,6 +16,7 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
+  Snackbar,
   Stack,
 } from "@mui/material";
 
@@ -30,20 +32,47 @@ const ClassManagementPage = () => {
   const [archiveDialog, setArchiveDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedAnalyticsClass, setSelectedAnalyticsClass] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   useEffect(() => {
+    const user_id = user?.user_id;
     fetchData();
 
-    supabase
+    const channels = supabase
       .channel("custom-filter-channel")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "tbl_class" },
-        () => {
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "tbl_class",
+          filter: `created_by=eq.${user_id}`,
+        },
+        (payload) => {
+          fetchData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "tbl_class",
+          filter: `created_by=eq.${user_id}`,
+        },
+        (payload) => {
           fetchData();
         }
       )
       .subscribe();
+
+    return () => {
+      supabase.removeChannel(channels);
+    };
   }, []);
 
   const fetchData = async () => {
@@ -53,7 +82,11 @@ const ClassManagementPage = () => {
       .eq("created_by", user.user_id);
 
     if (error) {
-      console.log("Failed to fetch data:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch classes. Please try again.",
+        severity: "error",
+      });
       return;
     }
     setClasses(data);
@@ -75,13 +108,24 @@ const ClassManagementPage = () => {
       .eq("id", selectedClass.id);
 
     if (error) {
-      console.error("Error archiving class:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to archive class. Please try again.",
+        severity: "error",
+      });
       setLoading(false);
       return;
     }
 
+    setSnackbar({
+      open: true,
+      message: "Class archived successfully.",
+      severity: "success",
+    });
+
     setLoading(false);
     setArchiveDialog(false);
+
     setAnchorEl(null);
     setSelectedClass({});
   };
@@ -242,33 +286,39 @@ const ClassManagementPage = () => {
           </div>
         </div>
 
-        {createModalVisible && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
-              <CreateClass onCancel={() => setCreateModalVisible(false)} />
-            </div>
-          </div>
-        )}
+        <CreateClass
+          onCancel={() => {}}
+          open={createModalVisible}
+          setOpen={setCreateModalVisible}
+        />
 
-        <Dialog open={archiveDialog} onClose={() => setArchiveDialog(false)}>
+        <Dialog
+          open={archiveDialog}
+          onClose={() => setArchiveDialog(false)}
+          fullWidth
+          maxWidth="xs"
+        >
           <DialogTitle>Archive Class: {selectedClass.class_name}</DialogTitle>
-          <Divider />
           <DialogContent>
             <DialogContentText>
-              Are you sure you want to archive this class? This action cannot be
-              undone.
+              Are you sure you want to archive this class?
             </DialogContentText>
           </DialogContent>
-          <Divider />
           <DialogActions>
             <Stack direction="row" justifyContent="space-between" width="100%">
-              <Button onClick={() => setArchiveDialog(false)} color="error">
+              <Button
+                onClick={() => setArchiveDialog(false)}
+                color="error"
+                variant="outlined"
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleArchive}
                 variant="contained"
+                color="warning"
                 loading={loading}
+                disableElevation
               >
                 Archive
               </Button>
@@ -302,6 +352,23 @@ const ClassManagementPage = () => {
           </DialogActions>
         </Dialog>
       </motion.div>
+
+      {/* snackbar */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

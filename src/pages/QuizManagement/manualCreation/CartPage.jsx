@@ -8,6 +8,7 @@ import {
   FormControl,
   Grid,
   InputLabel,
+  LinearProgress,
   MenuItem,
   Select,
   Snackbar,
@@ -334,7 +335,7 @@ function CartPage() {
       });
       return;
     }
-    setLoading(false);
+    // setLoading(false);
     // console.log("Added questions to exam:", eqData);
     setSnackbar({
       open: true,
@@ -349,6 +350,21 @@ function CartPage() {
 
   return (
     <Stack p={2} spacing={2} height={"100%"}>
+      {/* {loading && (
+        <Box
+          sx={{
+            height: "100vh",
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "background.default",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      )} */}
+
       {/* title */}
       <div className="bg-white border-b border-gray-200  pb-2 ">
         <h1 className="text-2xl font-bold text-gray-900">Quiz Creation</h1>
@@ -528,19 +544,30 @@ function CartPage() {
         </Grid>
       </Grid>
       {/* action buttons */}
-      <Stack direction="row" justifyContent={"space-between"}>
-        <Button variant="outlined" color="error" onClick={() => navigate(-1)}>
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          color="success"
-          disableElevation
-          onClick={submit}
-        >
-          Continue
-        </Button>
-      </Stack>
+      {loading ? (
+        <LinearProgress />
+      ) : (
+        <Stack direction="row" justifyContent={"space-between"}>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={() => navigate(-1)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            disableElevation
+            onClick={submit}
+            disabled={!allRequirementsMet || loading}
+          >
+            Continue
+          </Button>
+        </Stack>
+      )}
+
       {/* snackbar */}
       <Snackbar
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}

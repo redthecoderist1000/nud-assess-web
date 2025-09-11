@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   Card,
   CircularProgress,
@@ -12,6 +13,7 @@ import {
   OutlinedInput,
   Paper,
   Select,
+  Snackbar,
   Stack,
   Table,
   TableBody,
@@ -26,10 +28,8 @@ import { styled } from "@mui/material/styles";
 import { useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { userContext } from "../../../App";
-import Error from "../components/tosifierErrorDialogs/Error";
 import FileUpload from "../../../components/elements/FileUpload";
 import { aiRun } from "../../../helper/Gemini";
-import AiError from "../components/tosifierErrorDialogs/AiError";
 import { supabase } from "../../../helper/Supabase";
 import { time } from "framer-motion";
 
@@ -80,8 +80,6 @@ const LegendItem = styled("span")(({ color }) => ({
 function Tosifier() {
   const location = useLocation();
   const { quizDetail: quizDetailState } = location.state;
-  // console.log(quizDetailState);
-
   const { user } = useContext(userContext);
   const navigate = useNavigate();
   const [subjectOptions, setSubjectOptions] = useState([]);
@@ -108,7 +106,6 @@ function Tosifier() {
     },
   ]);
 
-  const [response, setResponse] = useState("");
   const [total, setTotal] = useState({
     items: 0,
     hours: 0,
@@ -124,9 +121,13 @@ function Tosifier() {
   const [loading, setLoading] = useState(false);
   const [lessonOption, setLessonOption] = useState([]);
 
-  const [error, setError] = useState(false);
-
   const [files, setFiles] = useState([]);
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   // calculate total hours when rows change
   useEffect(() => {
@@ -363,7 +364,7 @@ function Tosifier() {
     const { data, error } = await supabase
       .from("tbl_question")
       .select("id")
-      .eq("repository", props.quizDetail.repository)
+      .eq("repository", quizDetail.repository)
       .eq("lesson_id", lesson_id)
       .eq("blooms_category", category)
       .limit(limit);
@@ -409,24 +410,45 @@ function Tosifier() {
     );
 
     if (isValid) {
-      navigate("/quizsummary", {
-        state: {
-          quizDetail: quizDetail,
-          rows: rows,
-          total: total,
-          quiz: [],
-        },
+      // proceed to summary
+      setSnackbar({
+        open: true,
+        message: "Generating quiz...",
+        severity: "success",
       });
+
+      // timeout 2s
+      setTimeout(() => {
+        navigate("/quizsummary", {
+          state: {
+            quizDetail: quizDetail,
+            rows: rows,
+            total: total,
+            quiz: [],
+          },
+        });
+      }, 2000);
     } else {
-      setError(true);
+      // setError(true);
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message:
+          "There seems to be insufficient number of questions to create a quiz with your specified items.",
+        severity: "error",
+      });
     }
 
-    setLoading(false);
+    // setLoading(false);
   };
 
   const generateQuestion = async () => {
     if (files.length <= 0) {
-      setResponse("Upload atleast 1 pdf file as reference.");
+      setSnackbar({
+        open: true,
+        message: "Upload atleast 1 pdf file as reference.",
+        severity: "error",
+      });
       return;
     }
 
@@ -466,44 +488,60 @@ function Tosifier() {
     });
 
     if (rows.length === 0) {
-      setResponse("There must be atleast 1 topic");
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "There must be atleast 1 topic",
+        severity: "error",
+      });
       return;
     }
 
     if (total.hours <= 0) {
-      setResponse("Hours cannot be equal or less than 0");
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "Hours cannot be equal or less than 0",
+        severity: "error",
+      });
       return;
     }
 
     try {
       const result = await aiRun(files, texts);
-
       if (result.status == "Success") {
-        // console.log("sakses response:", result);
-        setQuiz(result.questions);
-        navigate("/quizsummary", {
-          state: {
-            quizDetail: quizDetail,
-            rows: rows,
-            total: total,
-            quiz: result.questions,
-          },
+        setSnackbar({
+          open: true,
+          message: "Questions generated successfully!",
+          severity: "success",
         });
+        setTimeout(() => {
+          navigate("/quizsummary", {
+            state: {
+              quizDetail: quizDetail,
+              rows: rows,
+              total: total,
+              quiz: result.questions,
+            },
+          });
+        }, 2000);
       } else {
         // success ai pero irrelevant ung pdf files
-        setResponse(
-          "The files you uploaded may have been irrelevant to the subject and topics."
-        );
+        setSnackbar({
+          open: true,
+          message:
+            "The files you uploaded may have been irrelevant to the subject and topics.",
+          severity: "error",
+        });
       }
       setLoading(false);
-      // props.onCancel();
     } catch (error) {
-      // ai error
-      // console.error(error);
       setLoading(false);
-      setResponse(
-        "There seems to be a problem on our side. Please try again. "
-      );
+      setSnackbar({
+        open: true,
+        message: "There seems to be a problem on our side. Please try again.",
+        severity: "error",
+      });
     }
   };
 
@@ -977,13 +1015,22 @@ function Tosifier() {
         </SectionCard>
       </form>
 
-      <Error open={error} setOpen={setError} />
-
-      <AiError
-        open={response.length != 0}
-        setOpen={setResponse}
-        message={response}
-      />
+      {/* snackbar */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

@@ -215,7 +215,7 @@ const ClassManagementPage = () => {
         </div>
 
         <div className="flex gap-5">
-          <div className="w-7/10 rounded-lg">
+          <div className="w-full rounded-lg">
             <div className="flex items-center justify-between mb-4">
               <div
                 className="flex bg-[#f3f4f6] rounded-full p-1"
@@ -277,14 +277,14 @@ const ClassManagementPage = () => {
               />
             )}
           </div>
+        </div>
 
-          <div className="w-1/3 mt-15">
+          {/* <div className="w-1/3 mt-15">
             <ClassAnalyticsChart
               classes={classes}
               selectedClass={selectedAnalyticsClass}
             />
-          </div>
-        </div>
+          </div> */}
 
         <CreateClass
           onCancel={() => {}}

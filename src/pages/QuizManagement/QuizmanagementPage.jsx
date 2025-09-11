@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import QuizModal from "./components/QuizModal";
 import QuestionRepoModal from "../QuestionManagement/components/QuestionRepoModal";
-import TetraBox from "./components/TetraBox";
 import Tosifier from "./tosPage/Tosifier";
 import { Box, Card, Container, Tab, Tabs, Typography } from "@mui/material";
 import MyQuizTab from "./quizmanagementTabs/MyQuizTab";
@@ -127,8 +126,6 @@ const QuizmanagementPage = () => {
               Create Quiz
             </button>
           </div>
-
-          <TetraBox />
 
           <Card variant="outlined" sx={{ mt: 3 }}>
             <Box sx={{ width: "100%" }}>

@@ -6,7 +6,6 @@ import QuestionRepoModal from "./components/QuestionRepoModal";
 import { Box, Card, Container, Tab, Tabs } from "@mui/material";
 
 import MyQuestionTab from "./questionmanagementTabs/MyQuestionTab";
-import TetraBox from "./components/TetraBox";
 import { supabase } from "../../helper/Supabase";
 
 const QuestionManagementPage = () => {
@@ -148,7 +147,7 @@ const QuestionManagementPage = () => {
           <Box sx={{ borderBottom: "1px solid #e5e7eb", mx: 2, mb: 2 }} />
 
           {/* Pass backend stats to TetraBox */}
-          <TetraBox stats={tetraStats} />
+          {/* <TetraBox stats={tetraStats} /> */}
 
           {/* Custom Tabs (styled like ReportAndAnalytics) */}
           <div className="w-full flex justify-center mb-2 mt-5">

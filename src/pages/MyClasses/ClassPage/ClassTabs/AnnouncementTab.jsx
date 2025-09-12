@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, TextField, Snackbar, Alert, Stack, Grid } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Snackbar,
+  Alert,
+  Stack,
+  Grid,
+  CircularProgress,
+  LinearProgress,
+} from "@mui/material";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import JoditEditor from "jodit-react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -23,6 +32,7 @@ const AnnouncementTab = ({ classData }) => {
     severity: "success",
   });
   const [loading, setLoading] = useState(false);
+  const [loadingList, setLoadingList] = useState(true);
   const [announcementList, setAnnouncementList] = useState([]);
 
   const editor = useRef(null);
@@ -112,7 +122,9 @@ const AnnouncementTab = ({ classData }) => {
   };
 
   useEffect(() => {
+    setLoadingList(true);
     fetchAnnouncements();
+    // setLoadingList(false);
 
     const announcementChannel = supabase
       .channel("announcement_channel")
@@ -152,14 +164,7 @@ const AnnouncementTab = ({ classData }) => {
     }
 
     setAnnouncementList(data);
-  };
-
-  const editAnnouncement = (announcement) => {
-    console.log("edit", announcement);
-  };
-
-  const confirmDelete = (announcement) => {
-    console.log("delete", announcement);
+    setLoadingList(false);
   };
 
   return (
@@ -173,7 +178,7 @@ const AnnouncementTab = ({ classData }) => {
         </div>
       </div>
       {/* Quick Announcement Card */}
-      <div className="p-6 bg-[#f8f9fb] rounded-2xl border border-gray-200 shadow-sm mt-6 flex items-start gap-4">
+      <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm mt-6 flex items-start gap-4">
         <NotificationsActiveIcon
           sx={{
             background: "#23286b",
@@ -252,22 +257,28 @@ const AnnouncementTab = ({ classData }) => {
         </div>
       </div>
       {/* Announcement List */}
-      <div className="mt-4">
-        {announcementList.length === 0 ? (
-          <div className="text-gray-500">No announcements yet.</div>
-        ) : (
-          announcementList.map((a, index) => {
-            return (
-              <AnnouncementItem
-                key={index}
-                announcement={a}
-                onEdit={setToEdit}
-                onDelete={setToDelete}
-              />
-            );
-          })
-        )}
-      </div>
+      {loadingList ? (
+        <div className="mt-5">
+          <LinearProgress />
+        </div>
+      ) : (
+        <div className="mt-4">
+          {announcementList.length === 0 ? (
+            <div className="text-gray-500">No announcements yet.</div>
+          ) : (
+            announcementList.map((a, index) => {
+              return (
+                <AnnouncementItem
+                  key={index}
+                  announcement={a}
+                  onEdit={setToEdit}
+                  onDelete={setToDelete}
+                />
+              );
+            })
+          )}
+        </div>
+      )}
 
       <DeleteAnnounce
         open={!!toDelete}

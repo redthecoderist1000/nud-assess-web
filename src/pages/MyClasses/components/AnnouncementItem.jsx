@@ -1,6 +1,15 @@
-import { Avatar, IconButton, Menu, MenuItem } from "@mui/material";
+import {
+  Avatar,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+} from "@mui/material";
 import React, { useState } from "react";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
 
 function AnnouncementItem({ announcement, onEdit, onDelete }) {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -85,9 +94,19 @@ function AnnouncementItem({ announcement, onEdit, onDelete }) {
           anchorOrigin={{ vertical: "top", horizontal: "right" }}
         >
           {announcement.status !== "Posted" && (
-            <MenuItem onClick={handleEdit}>Edit</MenuItem>
+            <MenuItem onClick={handleEdit}>
+              <ListItemIcon>
+                <EditRoundedIcon color="warning" />
+              </ListItemIcon>
+              <ListItemText primary="Edit" />
+            </MenuItem>
           )}
-          <MenuItem onClick={handleDelete}>Delete</MenuItem>
+          <MenuItem onClick={handleDelete}>
+            <ListItemIcon>
+              <DeleteIcon color="error" />
+            </ListItemIcon>
+            <ListItemText primary="Delete" />
+          </MenuItem>
         </Menu>
       </div>
       <div

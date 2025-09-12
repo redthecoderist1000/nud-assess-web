@@ -7,6 +7,7 @@ import Personal from "./component/Personal";
 import Privacy from "./component/Privacy";
 import Container from "@mui/material/Container";
 import { supabase } from "../../helper/Supabase";
+import LogoutDialog from "./component/LogoutDialog";
 
 const ProfileSettingsPage = () => {
   const navigate = useNavigate();
@@ -70,22 +71,26 @@ const ProfileSettingsPage = () => {
     setIsModalOpen(true);
   };
 
-const handleLogout = () => {
-  setModalMessage("Are you sure you want to log out? Any unsaved changes will be lost.");
-  setIsModalOpen(true);
-  setOnConfirmAction(() => async () => {
-    await supabase.auth.signOut();
-    window.location.replace("/login");
-  });
-};
-
- //not yet working
-  const handleDeleteAccount = () => {
-    setModalMessage("Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data, settings, and history will be permanently removed.");
+  const handleLogout = () => {
+    setModalMessage(
+      "Are you sure you want to log out? Any unsaved changes will be lost."
+    );
     setIsModalOpen(true);
     setOnConfirmAction(() => async () => {
       await supabase.auth.signOut();
-      navigate("/goodbye");
+      window.location.replace("/login");
+    });
+  };
+
+  //not yet working
+  const handleDeleteAccount = () => {
+    setModalMessage(
+      "Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data, settings, and history will be permanently removed."
+    );
+    setIsModalOpen(true);
+    setOnConfirmAction(() => async () => {
+      await supabase.auth.signOut();
+      // navigate("/goodbye");
     });
   };
 
@@ -105,7 +110,9 @@ const handleLogout = () => {
     <>
       <Container maxWidth="xl" className="my-5">
         <div className="bg-white border-b border-gray-200 pt-6 pb-2 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-0">Profile Setting</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-0">
+            Profile Setting
+          </h1>
         </div>
         <Header avatarUrl={avatarUrl} userId={userId} />
         <div className="flex flex-col md:flex-row gap-5 mt-6">

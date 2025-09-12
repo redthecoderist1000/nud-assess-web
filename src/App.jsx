@@ -56,9 +56,10 @@ const AnimatedRoutes = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState({});
+  const [loading, setLoading] = useState(true);
   const [signupData, setSignupData] = useState({});
 
-  const userVal = { user, setUser };
+  const userVal = { user, setUser, loading };
   const signupVal = { signupData, setSignupData };
 
   const [lastActivity, setLastActivity] = useState(Date.now());
@@ -140,55 +141,96 @@ const AnimatedRoutes = () => {
     };
   }, [lastActivity]);
 
+  // useEffect(() => {
+  //   const { data: authListener } = supabase.auth.onAuthStateChange(
+  //     (event, session) => {
+  //       console.log("Auth event:", event);
+  //       console.log("Auth session:", session);
+
+  //       if (session == null) {
+  //         navigate("/login");
+  //         return;
+  //       }
+  //       if (event === "SIGNED_IN") {
+  //         if (!user.email && !user.user_id) {
+  //           (async () => {
+  //             let { data, error } = await supabase
+  //               .from("tbl_users")
+  //               .select("*")
+  //               .eq("id", session.user.id)
+  //               .single();
+
+  //             if (error) {
+  //               navigate("setup", {
+  //                 state: {
+  //                   email: session.user.email,
+  //                   user_id: session.user.id,
+  //                 },
+  //               });
+  //               return;
+  //             }
+
+  //             setUser({
+  //               ...user.user,
+  //               email: session.user.email,
+  //               user_id: session.user.id,
+  //               suffix: data.suffix,
+  //               role: data.role,
+  //               f_name: data.f_name,
+  //               m_name: data.m_name,
+  //               l_name: data.l_name,
+  //               department_id: data.department_id,
+  //               allow_ai: data.allow_ai,
+  //             });
+  //           })();
+  //         }
+  //       }
+  //     }
+  //   );
+
+  //   return () => {
+  //     authListener.subscription.unsubscribe();
+  //   };
+  // }, [user]);
+  const initAuth = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session) {
+      const { data, error } = await supabase
+        .from("tbl_users")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (!error && data) {
+        setUser({
+          email: session.user.email,
+          user_id: session.user.id,
+          ...data,
+        });
+      }
+    }
+
+    setLoading(false);
+  };
+
   useEffect(() => {
+    initAuth();
+
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session == null) {
-          navigate("/login");
-          return;
-        }
-
-        if (event === "SIGNED_IN") {
-          if (!user.email && !user.user_id) {
-            (async () => {
-              let { data, error } = await supabase
-                .from("tbl_users")
-                .select("*")
-                .eq("id", session.user.id)
-                .single();
-
-              if (error) {
-                navigate("setup", {
-                  state: {
-                    email: session.user.email,
-                    user_id: session.user.id,
-                  },
-                });
-                return;
-              }
-
-              setUser({
-                ...user.user,
-                email: session.user.email,
-                user_id: session.user.id,
-                suffix: data.suffix,
-                role: data.role,
-                f_name: data.f_name,
-                m_name: data.m_name,
-                l_name: data.l_name,
-                department_id: data.department_id,
-                allow_ai: data.allow_ai,
-              });
-            })();
-          }
+      (_event, session) => {
+        if (!session) {
+          setUser(null);
+        } else {
+          initAuth();
         }
       }
     );
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [user]);
+    return () => authListener.subscription.unsubscribe();
+  }, []);
 
   // setInterval(checkSession, 10000);
   return (

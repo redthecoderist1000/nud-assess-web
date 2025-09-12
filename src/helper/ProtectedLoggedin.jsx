@@ -3,12 +3,9 @@ import { Navigate, Outlet } from "react-router-dom";
 import { userContext } from "../App";
 
 function ProtectedLoggedin() {
-  const userCon = useContext(userContext);
-  let isLoggedIn = false;
+  const { user } = useContext(userContext);
 
-  if (userCon.user.email && userCon.user.user_id) {
-    isLoggedIn = true;
-  }
+  const isLoggedIn = user?.email && user?.user_id;
 
   return isLoggedIn ? <Navigate to="/" /> : <Outlet />;
 }

@@ -4,12 +4,11 @@ import { userContext } from "../App";
 import { supabase } from "./Supabase";
 
 const ProtectedRoutes = () => {
-  const userCon = useContext(userContext);
-  let isAuthenticated = false;
+  const { user, loading } = useContext(userContext);
 
-  if (userCon.user.email && userCon.user.user_id) {
-    isAuthenticated = true;
-  }
+  if (loading) return <div>Loading...</div>;
+
+  const isAuthenticated = user?.email && user?.user_id;
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };

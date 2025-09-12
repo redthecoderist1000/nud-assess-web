@@ -293,26 +293,27 @@ function AnswerCard(props) {
                   style={{ display: "none" }}
                   onChange={handleImageChange}
                 />
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={<AddPhotoAlternateRoundedIcon />}
-                  disableElevation
-                  sx={{ textTransform: "none" }}
-                  onClick={handleImageClick}
-                >
-                  {imgPreview ? "Change Image" : "Add Image"}
-                </Button>
+                <IconButton onClick={handleImageClick}>
+                  <AddPhotoAlternateRoundedIcon color="success" />
+                </IconButton>
+
                 {/* </Grid> */}
               </Grid>
               {imgPreview && (
-                <Stack mb={2} direction={"row"} alignItems="flex-start" gap={1}>
+                <Stack
+                  direction={"row"}
+                  alignItems="flex-start"
+                  gap={1}
+                  justifyContent={"center"}
+                  maxHeight={300}
+                  overflow={"auto"}
+                >
                   <img
                     src={imgPreview}
                     alt="Preview"
                     style={{
-                      maxWidth: "100%",
-                      maxHeight: "200px",
+                      maxWidth: "50%",
+                      height: "auto",
                       borderRadius: 8,
                     }}
                   />

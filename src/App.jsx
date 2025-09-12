@@ -64,10 +64,10 @@ const AnimatedRoutes = () => {
   const signupVal = { signupData, setSignupData };
 
   const [lastActivity, setLastActivity] = useState(Date.now());
-  const INACTIVITY_TIMEOUT = 60 * 1000; // 1 minutes in milliseconds
+  const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
   // const INACTIVITY_TIMEOUT = 60 * 10000; // 10 minutes in milliseconds
   const SESSION_CHECK_INTERVAL = 60 * 1000; // Check every minute
-  const [autoSignOut, setAutoSignOut] = useState(true);
+  const [autoSignOut, setAutoSignOut] = useState(false);
 
   const checkSessionAndActivity = async () => {
     try {

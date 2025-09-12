@@ -24,7 +24,7 @@ function QuizItem({ quiz, classId, setDeleteQuiz, setEditQuiz }) {
   const [menu, setMenu] = useState(false);
 
   const dateFormat = (dateTime) => {
-    return dayjs(dateTime).format("MMM DD, YYYY");
+    return dayjs(dateTime).format("MMM DD, YYYY hh:mm A");
   };
   const openMenu = (event) => {
     setAnchorEl(event.currentTarget);

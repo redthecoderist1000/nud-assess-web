@@ -15,6 +15,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs, { extend } from "dayjs";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
+import { SaudiRiyal } from "lucide-react";
 
 function EditQuiz({ open, onClose, quiz, setSnackbar }) {
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,7 @@ function EditQuiz({ open, onClose, quiz, setSnackbar }) {
   useEffect(() => {
     if (!open) {
       setLoading(false);
+      setFormData({});
       return;
     }
 
@@ -50,6 +52,11 @@ function EditQuiz({ open, onClose, quiz, setSnackbar }) {
       setFormData({
         close_time: quiz?.close_time ? dayjs(quiz.close_time) : null,
       });
+    } else {
+      setFormData({
+        open_time: quiz?.open_time ? dayjs(quiz.open_time) : null,
+        close_time: quiz?.close_time ? dayjs(quiz.close_time) : null,
+      });
     }
   }, [open, quiz]);
 
@@ -57,6 +64,17 @@ function EditQuiz({ open, onClose, quiz, setSnackbar }) {
   const hasChanges = () => {
     if (quiz.status === "Open") {
       return (
+        (formData.close_time && !quiz.close_time) ||
+        (formData.close_time &&
+          quiz.close_time &&
+          !dayjs(formData.close_time).isSame(dayjs(quiz.close_time)))
+      );
+    } else {
+      return (
+        (formData.open_time && !quiz.open_time) ||
+        (formData.open_time &&
+          quiz.open_time &&
+          !dayjs(formData.open_time).isSame(dayjs(quiz.open_time))) ||
         (formData.close_time && !quiz.close_time) ||
         (formData.close_time &&
           quiz.close_time &&
@@ -78,6 +96,8 @@ function EditQuiz({ open, onClose, quiz, setSnackbar }) {
 
     if (quiz.status === "Open") {
       extendDue();
+    } else {
+      scheduleQuiz();
     }
   };
 
@@ -108,14 +128,152 @@ function EditQuiz({ open, onClose, quiz, setSnackbar }) {
     onClose();
   };
 
+  const instaOpen = async () => {
+    setLoading(true);
+    const { error } = await supabase
+      .from("tbl_class_exam")
+      .update({
+        open_time: dayjs().toISOString(),
+        status: "Scheduled",
+      })
+      .eq("id", quiz.class_exam_id);
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to open quiz. Please try again.",
+        severity: "error",
+      });
+      onClose();
+      return;
+    }
+    setSnackbar({
+      open: true,
+      message: "Quiz will be opened in a short while.",
+      severity: "info",
+    });
+    onClose();
+  };
+
   const extendDue = async () => {
-    console.log("extending due date to:", formData.close_time.toISOString());
+    setLoading(true);
+    const { error } = await supabase
+      .from("tbl_class_exam")
+      .update({
+        close_time: formData.close_time.toISOString(),
+      })
+      .eq("id", quiz.class_exam_id);
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to extend due date. Please try again.",
+        severity: "error",
+      });
+      onClose();
+      return;
+    }
+
+    setSnackbar({
+      open: true,
+      message: "Due date extended successfully.",
+      severity: "success",
+    });
+    onClose();
+  };
+
+  const scheduleQuiz = async () => {
+    if (dayjs(formData.open_time).isAfter(dayjs(formData.close_time))) {
+      setSnackbar({
+        open: true,
+        message: "Open date must be before close date.",
+        severity: "error",
+      });
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase
+      .from("tbl_class_exam")
+      .update({
+        open_time: formData.open_time.toISOString(),
+        close_time: formData.close_time.toISOString(),
+        status: "Scheduled",
+      })
+      .eq("id", quiz.class_exam_id);
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to re-schedule quiz. Please try again.",
+        severity: "error",
+      });
+      onClose();
+      return;
+    }
+    setSnackbar({
+      open: true,
+      message: "Quiz re-scheduled successfully.",
+      severity: "success",
+    });
+    onClose();
   };
 
   const actions = () => {
     switch (quiz?.status) {
       case "Scheduled":
-        return "Edit";
+        return (
+          <Stack rowGap={2} mt={2}>
+            <Button
+              variant="contained"
+              color="success"
+              disableElevation
+              onClick={instaOpen}
+              loading={loading}
+            >
+              Open quiz
+            </Button>
+            <Divider>
+              <Typography variant="caption" color="text.secondary">
+                or
+              </Typography>
+            </Divider>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DateTimePicker
+                label="Change open date"
+                name="open_time"
+                defaultValue={formData.open_time ? formData.open_time : dayjs()}
+                minDateTime={dayjs()}
+                slotProps={{
+                  textField: {
+                    error: false,
+                    sx: { width: "100%", bgcolor: "white" },
+                  },
+                }}
+                onChange={(e) => {
+                  setFormData({ ...formData, open_time: e });
+                }}
+              />
+            </LocalizationProvider>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DateTimePicker
+                label="Change close date"
+                name="close_time"
+                defaultValue={
+                  formData.close_time ? formData.close_time : dayjs()
+                }
+                minDateTime={formData.open_time || dayjs()}
+                slotProps={{
+                  textField: {
+                    error: false,
+                    sx: { width: "100%", bgcolor: "white" },
+                  },
+                }}
+                onChange={(e) => {
+                  setFormData({ ...formData, close_time: e });
+                }}
+              />
+            </LocalizationProvider>
+          </Stack>
+        );
       case "Open":
         return (
           <Stack rowGap={2} mt={2}>
@@ -147,13 +305,55 @@ function EditQuiz({ open, onClose, quiz, setSnackbar }) {
                     sx: { width: "100%", bgcolor: "white" },
                   },
                 }}
-                onChange={() => {}}
+                onChange={(e) => {
+                  setFormData({ ...formData, close_time: e });
+                }}
               />
             </LocalizationProvider>
           </Stack>
         );
       case "Close":
-        return "View Results";
+        return (
+          <Stack rowGap={2} mt={2}>
+            <Typography>Re-open quiz on:</Typography>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DateTimePicker
+                label="Change open date"
+                name="open_time"
+                defaultValue={formData.open_time ? formData.open_time : dayjs()}
+                minDateTime={dayjs()}
+                slotProps={{
+                  textField: {
+                    error: false,
+                    sx: { width: "100%", bgcolor: "white" },
+                  },
+                }}
+                onChange={(e) => {
+                  setFormData({ ...formData, open_time: e });
+                }}
+              />
+            </LocalizationProvider>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DateTimePicker
+                label="Change close date"
+                name="close_time"
+                defaultValue={
+                  formData.close_time ? formData.close_time : dayjs()
+                }
+                minDateTime={formData.open_time || dayjs()}
+                slotProps={{
+                  textField: {
+                    error: false,
+                    sx: { width: "100%", bgcolor: "white" },
+                  },
+                }}
+                onChange={(e) => {
+                  setFormData({ ...formData, close_time: e });
+                }}
+              />
+            </LocalizationProvider>
+          </Stack>
+        );
       default:
         return "Unknown Action";
     }

@@ -157,13 +157,16 @@ const AnimatedRoutes = () => {
         .eq("id", session.user.id)
         .single();
 
-      if (!error && data) {
-        setUser({
-          email: session.user.email,
-          user_id: session.user.id,
-          ...data,
-        });
+      if (error) {
+        navigate("/setup");
+        return;
       }
+
+      setUser({
+        email: session.user.email,
+        user_id: session.user.id,
+        ...data,
+      });
     }
 
     setLoading(false);

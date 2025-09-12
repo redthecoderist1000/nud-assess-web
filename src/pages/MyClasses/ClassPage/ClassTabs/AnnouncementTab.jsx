@@ -1,54 +1,36 @@
-import React, { useMemo, useRef, useState } from "react";
-import {
-  Button,
-  Checkbox,
-  FormControlLabel,
-  Menu,
-  MenuItem,
-  IconButton,
-  TextField,
-} from "@mui/material";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Button, TextField, Snackbar, Alert, Stack, Grid } from "@mui/material";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import JoditEditor from "jodit-react";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import { supabase } from "../../../../helper/Supabase";
+import AnnouncementItem from "../../components/AnnouncementItem";
+import DeleteAnnounce from "../../components/DeleteAnnounce";
+import EditAnnounce from "../../components/EditAnnounce";
 
-const defaultAnnouncements = [
-  {
-    id: 1,
-    title: "Midterm Exam Schedule",
-    author: "Dr. Sarah Johnson",
-    date: "3/1/2024 • 8:00:00 AM",
-    content:
-      "The midterm exam will be held on March 15th. Please review chapters 1-5 and be prepared for both theoretical and practical questions.",
-  },
-];
-
-const AnnouncementTab = () => {
-  const [announcementTitle, setAnnouncementTitle] = useState("");
-  const [announcementContent, setAnnouncementContent] = useState("");
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+const AnnouncementTab = ({ classData }) => {
   const [formData, setFormData] = useState({
     content: "",
     title: "",
-    // created_by: user.user_id,
+    start_date: null,
   });
-
-  const handleMenuOpen = (event, announcement) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedAnnouncement(announcement);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedAnnouncement(null);
-  };
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [loading, setLoading] = useState(false);
+  const [announcementList, setAnnouncementList] = useState([]);
 
   const editor = useRef(null);
   const config = useMemo(
     () => ({
+      required: true,
       readonly: false,
-      placeholder: "Start typing...",
+      placeholder: "Start typing content...",
       toolbarAdaptive: false,
       uploader: { insertImageAsBase64URI: true }, // configure image upalods
       addNewLine: false,
@@ -57,8 +39,127 @@ const AnnouncementTab = () => {
     }),
     []
   );
+
+  const [toEdit, setToEdit] = useState(null);
+  const [toDelete, setToDelete] = useState(null);
+
+  const stripHtml = (html = "") =>
+    typeof DOMParser !== "undefined"
+      ? new DOMParser().parseFromString(html, "text/html").body.textContent ||
+        ""
+      : html.replace(/<[^>]*>/g, ""); // fallback for non-browser
+
+  const handleEditorChange = (content) => {
+    setFormData((prev) => ({ ...prev, content }));
+  };
+
   const handleJodit = (e) => {
-    // setFormData({ ...formData, content: e });
+    handleEditorChange(e);
+  };
+
+  const submitForm = async (e) => {
+    setLoading(true);
+    e.preventDefault();
+    // console.log(formData);
+    const text = stripHtml(formData.content).trim();
+    if (!formData.title || !text) {
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "Please fill in all fields",
+        severity: "error",
+      });
+      return;
+    }
+
+    // create payload
+    const payload = {
+      title: formData.title,
+      content: formData.content,
+      class_id: classData.id,
+      ...(formData.start_date && { start_date: formData.start_date }),
+      ...(formData.start_date &&
+        new Date(formData.start_date) > new Date() && { status: "Scheduled" }),
+    };
+
+    const { data, error } = await supabase
+      .from("tbl_announcement")
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Error creating announcement. Please try again.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    setSnackbar({
+      open: true,
+      message: "Announcement posted successfully",
+      severity: "success",
+    });
+    setFormData({ content: "", title: "", start_date: null });
+    setLoading(false);
+  };
+
+  const handleStartDate = (e) => {
+    setFormData({ ...formData, start_date: e });
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+
+    const announcementChannel = supabase
+      .channel("announcement_channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tbl_announcement",
+          filter: `class_id=eq.${classData.id}`,
+        },
+        (payload) => {
+          fetchAnnouncements();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(announcementChannel);
+    };
+  }, [classData.id]);
+
+  const fetchAnnouncements = async () => {
+    const { data, error } = await supabase
+      .from("tbl_announcement")
+      .select("*, tbl_users ( f_name, l_name )")
+      .eq("class_id", classData.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Error fetching announcements. Please try again.",
+        severity: "error",
+      });
+      return;
+    }
+
+    setAnnouncementList(data);
+  };
+
+  const editAnnouncement = (announcement) => {
+    console.log("edit", announcement);
+  };
+
+  const confirmDelete = (announcement) => {
+    console.log("delete", announcement);
   };
 
   return (
@@ -85,89 +186,120 @@ const AnnouncementTab = () => {
         />
         <div className="flex-1">
           <div className="font-semibold mb-1">Post Announcement</div>
-          <TextField
-            value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-            placeholder="Title"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-          />
-          <JoditEditor
-            ref={editor}
-            value={formData.content}
-            config={config}
-            onBlur={handleJodit}
-          />
-          <Button
-            variant="contained"
-            sx={{
-              background: "#23286b",
-              color: "#fff",
-              textTransform: "none",
-              fontWeight: 500,
-              fontSize: "0.95rem",
-              borderRadius: "8px",
-              boxShadow: "none",
-              "&:hover": {
-                background: "#23286b",
-                boxShadow: "none",
-              },
-              minWidth: "150px",
-              padding: "6px 16px",
-              alignSelf: "flex-end",
-              display: "block",
-            }}
-          >
-            Post Announcement
-          </Button>
+          <form onSubmit={submitForm}>
+            <Stack rowGap={2}>
+              <Grid container spacing={2}>
+                <Grid flex={3}>
+                  <TextField
+                    required
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    placeholder="Title"
+                    variant="outlined"
+                    fullWidth
+                    sx={{ bgcolor: "white" }}
+                  />
+                </Grid>
+                <Grid flex={1}>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DateTimePicker
+                      label="Post announcement on:"
+                      name="open_time"
+                      value={formData.start_date}
+                      minDateTime={dayjs()}
+                      slotProps={{
+                        textField: {
+                          sx: { width: "100%", bgcolor: "white" },
+                        },
+                      }}
+                      onChange={handleStartDate}
+                    />
+                  </LocalizationProvider>
+                </Grid>
+              </Grid>
+              <JoditEditor
+                ref={editor}
+                value={formData.content}
+                config={config}
+                onBlur={handleJodit}
+                onChange={handleEditorChange}
+              />
+              <Button
+                variant="contained"
+                disableElevation
+                sx={{
+                  maxWidth: "200px",
+                  background: "#23286b",
+                  color: "#fff",
+                  textTransform: "none",
+                  fontWeight: 500,
+                  fontSize: "0.95rem",
+                  borderRadius: "8px",
+                  "&:hover": {
+                    background: "#23286b",
+                    boxShadow: "none",
+                  },
+                }}
+                type="submit"
+                loading={loading}
+              >
+                Post Announcement
+              </Button>
+            </Stack>
+          </form>
         </div>
       </div>
       {/* Announcement List */}
       <div className="mt-4">
-        {defaultAnnouncements.map((a) => (
-          <div
-            key={a.id}
-            className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-4 p-6 flex flex-col"
-            style={{ borderLeft: "4px solid #facc15" }}
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-2">
-                <div className="bg-[#23286b] text-white rounded-full w-10 h-10 flex items-center justify-center font-semibold text-lg">
-                  DSJ
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-base">{a.title}</span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {a.author} • {a.date}
-                  </div>
-                </div>
-              </div>
-              <IconButton
-                onClick={(e) => handleMenuOpen(e, a)}
-                sx={{ color: "#23286b" }}
-              >
-                <MoreVertIcon />
-              </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl && selectedAnnouncement?.id === a.id)}
-                onClose={handleMenuClose}
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                transformOrigin={{ vertical: "top", horizontal: "right" }}
-              >
-                <MenuItem onClick={handleMenuClose}>Edit</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Delete</MenuItem>
-              </Menu>
-            </div>
-            <div className="mt-3 text-gray-800 text-sm">{a.content}</div>
-          </div>
-        ))}
+        {announcementList.length === 0 ? (
+          <div className="text-gray-500">No announcements yet.</div>
+        ) : (
+          announcementList.map((a, index) => {
+            return (
+              <AnnouncementItem
+                key={index}
+                announcement={a}
+                onEdit={setToEdit}
+                onDelete={setToDelete}
+              />
+            );
+          })
+        )}
       </div>
+
+      <DeleteAnnounce
+        open={!!toDelete}
+        onClose={() => setToDelete(null)}
+        announcement={toDelete}
+        setSnackbar={setSnackbar}
+        fetchAnnouncements={fetchAnnouncements}
+      />
+
+      <EditAnnounce
+        open={!!toEdit}
+        onClose={() => setToEdit(null)}
+        announcement={toEdit}
+        setSnackbar={setSnackbar}
+      />
+
+      {/* snackbar */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

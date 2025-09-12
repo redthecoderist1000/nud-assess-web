@@ -222,7 +222,9 @@ const ClassPage = () => {
             {activeTab === "people" && (
               <PeopleTab people={people} classData={classData} />
             )}
-            {activeTab === "announcement" && <AnnouncementTab />}
+            {activeTab === "announcement" && (
+              <AnnouncementTab classData={classData} />
+            )}
             {activeTab === "grade" && <GradeTab classData={classData} />}
           </Stack>
         </Grid>

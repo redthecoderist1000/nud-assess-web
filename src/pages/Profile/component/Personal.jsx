@@ -1,98 +1,139 @@
-import React from "react";
+import React, { useContext, useState } from "react";
+import { userContext } from "../../../App";
+import { Button, Stack, TextField } from "@mui/material";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+import Person2RoundedIcon from "@mui/icons-material/Person2Rounded";
+import { supabase } from "../../../helper/Supabase";
 
-const Personal = ({
-  firstName,
-  setFirstName,
-  middleName,
-  setMiddleName,
-  lastName,
-  setLastName,
-  email,
-  setEmail,
-  handleUpdatePersonalInfo,
-}) => (
-  <div className="w-full bg-white rounded-lg border border-gray-200 p-6">
-    <div className="mb-4">
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-indigo-600">
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-            <path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-5.33 0-8 2.67-8 4v2a1 1 0 001 1h14a1 1 0 001-1v-2c0-1.33-2.67-4-8-4z" fill="currentColor"/>
-          </svg>
-        </span>
-        <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+const Personal = ({ setSnackbar }) => {
+  const { user, setUser } = useContext(userContext);
+  const [formData, setFormData] = useState({
+    f_name: user?.f_name || "",
+    m_name: user?.m_name || "",
+    l_name: user?.l_name || "",
+  });
+  const [loading, setLoading] = useState(false);
+
+  const hasChanges =
+    formData.f_name !== (user?.f_name || "") ||
+    formData.m_name !== (user?.m_name || "") ||
+    formData.l_name !== (user?.l_name || "");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!hasChanges) {
+      setSnackbar({
+        open: true,
+        message: "No changes detected.",
+        severity: "info",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("tbl_users")
+      .update({
+        f_name: formData.f_name,
+        m_name: formData.m_name,
+        l_name: formData.l_name,
+      })
+      .eq("id", user.user_id)
+      .select()
+      .single();
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to update personal info.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    setUser({
+      ...user,
+      f_name: data.f_name,
+      m_name: data.m_name,
+      l_name: data.l_name,
+    });
+
+    setSnackbar({
+      open: true,
+      message: "Personal info updated successfully!",
+      severity: "success",
+    });
+
+    setLoading(false);
+  };
+
+  return (
+    <div className="w-full bg-white rounded-lg border border-gray-200 p-6">
+      <div className="mb-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Person2RoundedIcon sx={{ color: "#4F46E5" }} />
+          <h3 className="text-lg font-semibold text-gray-900">
+            Personal Information
+          </h3>
+        </div>
+        <p className="text-gray-500 text-sm">Update your personal details</p>
       </div>
-      <p className="text-gray-500 text-sm">Update your personal details</p>
+      <form onSubmit={handleSubmit}>
+        <Stack rowGap={2}>
+          <TextField
+            value={formData.f_name}
+            label="First Name"
+            variant="outlined"
+            size="small"
+            onChange={(e) =>
+              setFormData({ ...formData, f_name: e.target.value })
+            }
+            fullWidth
+            sx={{ backgroundColor: "#f3f4f6" }}
+          />
+          <TextField
+            value={formData.m_name}
+            label="Middle Name"
+            variant="outlined"
+            size="small"
+            onChange={(e) =>
+              setFormData({ ...formData, m_name: e.target.value })
+            }
+            fullWidth
+            sx={{ backgroundColor: "#f3f4f6" }}
+          />
+          <TextField
+            value={formData.l_name}
+            label="Last Name"
+            variant="outlined"
+            size="small"
+            onChange={(e) =>
+              setFormData({ ...formData, l_name: e.target.value })
+            }
+            fullWidth
+            sx={{ backgroundColor: "#f3f4f6" }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            fullWidth
+            disableElevation
+            disabled={!hasChanges}
+            loading={loading}
+            startIcon={<CheckRoundedIcon />}
+            sx={{
+              backgroundColor: "#2D3B87",
+              "&:hover": { backgroundColor: "#1a2561" },
+            }}
+          >
+            Update Personal Info
+          </Button>
+        </Stack>
+      </form>
     </div>
-    <form>
-      <div className="space-y-4">
-        <div>
-          <label htmlFor="first-name" className="block text-sm font-medium text-gray-700 mb-1">
-            First Name
-          </label>
-          <input
-            type="text"
-            id="first-name"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className="block w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="First Name"
-          />
-        </div>
-        <div>
-          <label htmlFor="last-name" className="block text-sm font-medium text-gray-700 mb-1">
-            Last Name
-          </label>
-          <input
-            type="text"
-            id="last-name"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            className="block w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Last Name"
-          />
-        </div>
-        <div>
-          <label htmlFor="middle-name" className="block text-sm font-medium text-gray-700 mb-1">
-            Middle Name
-          </label>
-          <input
-            type="text"
-            id="middle-name"
-            value={middleName}
-            onChange={(e) => setMiddleName(e.target.value)}
-            className="block w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Middle Name"
-          />
-        </div>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email Address
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="block w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Email Address"
-          />
-        </div>
-      </div>
-      <button
-        type="button"
-        onClick={handleUpdatePersonalInfo}
-        className="mt-6 w-full flex items-center justify-center gap-2 text-white font-medium py-2 rounded-md hover:bg-indigo-800 transition"
-        style={{
-        backgroundColor: "#2D3B87",
-        }}
-      >
-        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-          <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        Update Personal Info
-      </button>
-    </form>
-  </div>
-);
+  );
+};
 
 export default Personal;

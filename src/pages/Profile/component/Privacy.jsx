@@ -1,18 +1,89 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import LogoutDialog from "./LogoutDialog";
+import { Button, Stack, TextField } from "@mui/material";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import { supabase } from "../../../helper/Supabase";
+import { userContext } from "../../../App";
 
-const Privacy = ({
-  currentPassword,
-  setCurrentPassword,
-  newPassword,
-  setNewPassword,
-  confirmPassword,
-  setConfirmPassword,
-  handleUpdatePrivacy,
-  handleLogout,
-  handleDeleteAccount,
-}) => {
+const Privacy = ({ setSnackbar }) => {
+  const { user } = useContext(userContext);
   const [logout, setLogout] = useState(false);
+  const [formData, setFormData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [loading, setLoading] = useState(false);
+
+  const hasInput = Object.values(formData).some((value) => value !== "");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.newPassword !== formData.confirmPassword) {
+      setSnackbar({
+        open: true,
+        message: "New password and confirmation do not match.",
+        severity: "error",
+      });
+      return;
+    }
+    setLoading(true);
+
+    // check current password by login in
+    const { error: checkError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: formData.currentPassword,
+    });
+
+    if (checkError) {
+      setSnackbar({
+        open: true,
+        message: "Current password is incorrect.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (formData.currentPassword === formData.newPassword) {
+      setSnackbar({
+        open: true,
+        message: "New password must be different from current password.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: formData.newPassword,
+    });
+
+    if (updateError) {
+      setSnackbar({
+        open: true,
+        message: "Failed to update password.",
+        severity: "error",
+      });
+      setFormData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      setLoading(false);
+      return;
+    }
+
+    setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+
+    setSnackbar({
+      open: true,
+      message: "Password updated successfully.",
+      severity: "success",
+    });
+  };
 
   return (
     <div className="w-full bg-white rounded-lg border border-gray-200 p-6">
@@ -33,125 +104,78 @@ const Privacy = ({
           Update your password and manage account access
         </p>
       </div>
-      <form>
-        <div className="space-y-4">
-          <div>
-            <label
-              htmlFor="current-password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Current Password
-            </label>
-            <input
-              type="password"
-              id="current-password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className="block w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Enter your current password"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="new-password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Enter New Password
-            </label>
-            <input
-              type="password"
-              id="new-password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="block w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Enter your new password"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="confirm-password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              id="confirm-password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="block w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Confirm your new password"
-            />
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={handleUpdatePrivacy}
-          className="mt-6 w-full flex items-center justify-center gap-2 text-white font-medium py-2 rounded-md hover:bg-indigo-800 transition"
-          style={{
-            backgroundColor: "#2D3B87",
-          }}
-        >
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-            <path
-              d="M5 13l4 4L19 7"
-              stroke="#fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Update Password
-        </button>
+      <form onSubmit={handleSubmit}>
+        <Stack rowGap={2}>
+          <TextField
+            required
+            value={formData.currentPassword}
+            label="Current Password"
+            variant="outlined"
+            size="small"
+            onChange={(e) =>
+              setFormData({ ...formData, currentPassword: e.target.value })
+            }
+            fullWidth
+            sx={{ backgroundColor: "#f3f4f6" }}
+          />
+          <TextField
+            required
+            value={formData.newPassword}
+            label="Enter New Password"
+            variant="outlined"
+            size="small"
+            onChange={(e) =>
+              setFormData({ ...formData, newPassword: e.target.value })
+            }
+            fullWidth
+            sx={{ backgroundColor: "#f3f4f6" }}
+          />
+          <TextField
+            required
+            value={formData.confirmPassword}
+            label="Confirm Password"
+            variant="outlined"
+            size="small"
+            onChange={(e) =>
+              setFormData({ ...formData, confirmPassword: e.target.value })
+            }
+            fullWidth
+            sx={{ backgroundColor: "#f3f4f6" }}
+          />
+          <Button
+            fullWidth
+            type="submit"
+            sx={{
+              backgroundColor: "#2D3B87",
+              "&:hover": { backgroundColor: "#1e2a78" },
+            }}
+            disableElevation
+            variant="contained"
+            startIcon={<CheckRoundedIcon />}
+            disabled={!hasInput}
+          >
+            Update Password
+          </Button>
+        </Stack>
       </form>
       <hr className="border-gray-300 my-6" />
       {/* Log Out Section */}
       <div className="mb-4">
-        <h3 className="text-md font-semibold text-gray-900 mb-1">Log Out</h3>
+        <h3 className="text-md font-semibold text-gray-900 mb-1">Sign Out</h3>
         <p className="text-gray-500 text-sm mb-2">
           Sign out of your TestBank Pro account on this device
         </p>
-        <button
-          type="button"
+
+        <Button
+          variant="contained"
+          color="error"
+          fullWidth
+          disableElevation
+          startIcon={<LogoutRoundedIcon />}
           onClick={() => setLogout(true)}
-          className="w-full flex items-center justify-center gap-2 border border-gray-300 bg-white text-gray-700 font-medium py-2 rounded-md hover:bg-gray-100 transition"
         >
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-            <path
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1"
-              stroke="#555"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Log Out Account
-        </button>
-      </div>
-      {/* Delete Account Section */}
-      <div>
-        <h3 className="text-md font-semibold text-red-600 mb-1">
-          Delete Account
-        </h3>
-        <p className="text-gray-500 text-sm mb-2">
-          Permanently delete your account and all associated data
-        </p>
-        <button
-          type="button"
-          onClick={handleDeleteAccount}
-          className="w-full flex items-center justify-center gap-2 bg-red-600 text-white font-medium py-2 rounded-md hover:bg-red-700 transition"
-        >
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-            <path
-              d="M6 7h12M9 7V5a3 3 0 016 0v2m-9 0v10a2 2 0 002 2h6a2 2 0 002-2V7"
-              stroke="#fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Delete Account
-        </button>
+          Sign Out Account
+        </Button>
       </div>
 
       <LogoutDialog open={logout} onClose={() => setLogout(false)} />

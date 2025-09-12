@@ -141,57 +141,6 @@ const AnimatedRoutes = () => {
     };
   }, [lastActivity]);
 
-  // useEffect(() => {
-  //   const { data: authListener } = supabase.auth.onAuthStateChange(
-  //     (event, session) => {
-  //       console.log("Auth event:", event);
-  //       console.log("Auth session:", session);
-
-  //       if (session == null) {
-  //         navigate("/login");
-  //         return;
-  //       }
-  //       if (event === "SIGNED_IN") {
-  //         if (!user.email && !user.user_id) {
-  //           (async () => {
-  //             let { data, error } = await supabase
-  //               .from("tbl_users")
-  //               .select("*")
-  //               .eq("id", session.user.id)
-  //               .single();
-
-  //             if (error) {
-  //               navigate("setup", {
-  //                 state: {
-  //                   email: session.user.email,
-  //                   user_id: session.user.id,
-  //                 },
-  //               });
-  //               return;
-  //             }
-
-  //             setUser({
-  //               ...user.user,
-  //               email: session.user.email,
-  //               user_id: session.user.id,
-  //               suffix: data.suffix,
-  //               role: data.role,
-  //               f_name: data.f_name,
-  //               m_name: data.m_name,
-  //               l_name: data.l_name,
-  //               department_id: data.department_id,
-  //               allow_ai: data.allow_ai,
-  //             });
-  //           })();
-  //         }
-  //       }
-  //     }
-  //   );
-
-  //   return () => {
-  //     authListener.subscription.unsubscribe();
-  //   };
-  // }, [user]);
   const initAuth = async () => {
     const {
       data: { session },

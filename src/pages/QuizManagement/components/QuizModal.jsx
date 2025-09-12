@@ -186,12 +186,7 @@ const QuizModal = (props) => {
           justifyContent: "start",
         }}
       >
-        <Button
-          onClick={onClose}
-          color="error"
-          size="medium"
-          variant="outlined"
-        >
+        <Button onClick={onClose} color="error" size="medium">
           Cancel
         </Button>
       </DialogActions>

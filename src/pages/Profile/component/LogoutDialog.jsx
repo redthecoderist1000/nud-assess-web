@@ -26,7 +26,9 @@ function LogoutDialog({ open, onClose }) {
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle>Sign out</DialogTitle>
       <DialogContent>
-        <DialogContentText>Are you sure you want to logout?</DialogContentText>
+        <DialogContentText>
+          Are you sure you want to sign out?
+        </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Stack direction={"row"} justifyContent={"space-between"} flexGrow={1}>
@@ -41,7 +43,7 @@ function LogoutDialog({ open, onClose }) {
             disableElevation
             loading={loading}
           >
-            logout
+            sign out
           </Button>
         </Stack>
       </DialogActions>

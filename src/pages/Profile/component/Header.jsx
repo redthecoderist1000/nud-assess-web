@@ -1,34 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "../../../helper/Supabase";
+import { userContext } from "../../../App";
 
-const getUserInfo = async (userId) => {
-  const { data, error } = await supabase
-    .from("tbl_users")
-    .select("suffix, f_name, m_name, l_name, email")
-    .eq("id", userId)
-    .single();
+const Header = ({ avatarUrl }) => {
+  const { user } = useContext(userContext);
 
-  if (error || !data) {
-    return { name: "", email: "" };
-  }
-
-  // Build full name
-  const { suffix, f_name, m_name, l_name, email } = data;
-  const name = [suffix, f_name, m_name, l_name].filter(Boolean).join(" ");
-  return { name, email };
-};
-
-const Header = ({ avatarUrl, userId }) => {
-  const [userInfo, setUserInfo] = useState({ name: "", email: "" });
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const info = await getUserInfo(userId);
-      setUserInfo(info);
-    };
-    fetchUser();
-  }, [userId]);
+  const full_name = [user?.suffix, user?.f_name, user?.m_name, user?.l_name]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <motion.div
@@ -73,8 +53,8 @@ const Header = ({ avatarUrl, userId }) => {
           </span>
         </div>
         <div className="ml-4">
-          <div className="text-white font-bold text-lg">{userInfo.name}</div>
-          <div className="text-white text-sm opacity-80">{userInfo.email}</div>
+          <div className="text-white font-bold text-lg">{full_name}</div>
+          <div className="text-white text-sm opacity-80">{user?.email}</div>
         </div>
       </div>
     </motion.div>

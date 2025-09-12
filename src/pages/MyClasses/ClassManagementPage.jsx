@@ -76,10 +76,7 @@ const ClassManagementPage = () => {
   }, []);
 
   const fetchData = async () => {
-    const { data, error } = await supabase
-      .from("tbl_class")
-      .select("*")
-      .eq("created_by", user.user_id);
+    const { data, error } = await supabase.from("vw_classesbyprof").select("*");
 
     if (error) {
       setSnackbar({
@@ -184,7 +181,6 @@ const ClassManagementPage = () => {
   };
 
   const handleClassClick = (cls) => {
-    // setSelectedAnalyticsClass(cls);
     navigate("/class", { state: cls });
   };
 
@@ -214,77 +210,73 @@ const ClassManagementPage = () => {
           </button>
         </div>
 
-        <div className="flex gap-5">
-          <div className="w-7/10 rounded-lg">
-            <div className="flex items-center justify-between mb-4">
-              <div
-                className="flex bg-[#f3f4f6] rounded-full p-1"
-                style={{ minWidth: 260, maxWidth: 300 }}
-              >
-                <button
-                  className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
+        {/* <div className="flex gap-5"> */}
+        <Stack rowGap={2}>
+          <div
+            className="flex bg-[#f3f4f6] rounded-full p-1"
+            style={{ minWidth: 260, maxWidth: 300 }}
+          >
+            <button
+              className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
                 ${activeTab === "active" ? "bg-white text-black shadow-sm" : "text-gray-700"}
               `}
-                  style={{
-                    border: "none",
-                    background: activeTab === "active" ? "#fff" : "transparent",
-                    boxShadow:
-                      activeTab === "active"
-                        ? "0 1px 4px rgba(0,0,0,0.03)"
-                        : "none",
-                  }}
-                  onClick={() => setActiveTab("active")}
-                >
-                  Active
-                </button>
-                <button
-                  className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
+              style={{
+                border: "none",
+                background: activeTab === "active" ? "#fff" : "transparent",
+                boxShadow:
+                  activeTab === "active"
+                    ? "0 1px 4px rgba(0,0,0,0.03)"
+                    : "none",
+              }}
+              onClick={() => setActiveTab("active")}
+            >
+              Active
+            </button>
+            <button
+              className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
                 ${activeTab === "archived" ? "bg-white text-black shadow-sm" : "text-gray-700"}
               `}
-                  style={{
-                    border: "none",
-                    background:
-                      activeTab === "archived" ? "#fff" : "transparent",
-                    boxShadow:
-                      activeTab === "archived"
-                        ? "0 1px 4px rgba(0,0,0,0.03)"
-                        : "none",
-                  }}
-                  onClick={() => setActiveTab("archived")}
-                >
-                  Archive
-                </button>
-              </div>
-            </div>
-
-            {activeTab === "archived" && filteredClasses.length === 0 ? (
-              <div className="text-center text-gray-500 py-10">
-                No Archive Class
-              </div>
-            ) : (
-              <ClassGrid
-                classes={filteredClasses}
-                open={open}
-                selectedClass={selectedClass}
-                anchorEl={anchorEl}
-                handleOpenPopover={handleOpenPopover}
-                handleClosePopover={handleClosePopover}
-                handleArchiveDialog={() => setArchiveDialog(true)}
-                handleActivate={handleActivate}
-                handleDeleteDialog={() => setDeleteDialog(true)}
-                handleSelectAnalyticsClass={handleClassClick}
-                onDoubleClick={handleClassDoubleClick}
-              />
-            )}
+              style={{
+                border: "none",
+                background: activeTab === "archived" ? "#fff" : "transparent",
+                boxShadow:
+                  activeTab === "archived"
+                    ? "0 1px 4px rgba(0,0,0,0.03)"
+                    : "none",
+              }}
+              onClick={() => setActiveTab("archived")}
+            >
+              Archive
+            </button>
           </div>
 
-          <div className="w-1/3 mt-15">
+          {activeTab === "archived" && filteredClasses.length === 0 ? (
+            <div className="text-center text-gray-500 py-10">
+              No Archive Class
+            </div>
+          ) : (
+            <ClassGrid
+              classes={filteredClasses}
+              open={open}
+              selectedClass={selectedClass}
+              anchorEl={anchorEl}
+              handleOpenPopover={handleOpenPopover}
+              handleClosePopover={handleClosePopover}
+              handleArchiveDialog={() => setArchiveDialog(true)}
+              handleActivate={handleActivate}
+              handleDeleteDialog={() => setDeleteDialog(true)}
+              handleSelectAnalyticsClass={handleClassClick}
+            />
+          )}
+        </Stack>
+
+        {/* <div className="w-1/3 mt-15">
             <ClassAnalyticsChart
               classes={classes}
               selectedClass={selectedAnalyticsClass}
             />
-          </div>
-        </div>
+          </div> */}
+        {/* </div> */}
 
         <CreateClass
           onCancel={() => {}}
@@ -306,11 +298,7 @@ const ClassManagementPage = () => {
           </DialogContent>
           <DialogActions>
             <Stack direction="row" justifyContent="space-between" width="100%">
-              <Button
-                onClick={() => setArchiveDialog(false)}
-                color="error"
-                variant="outlined"
-              >
+              <Button onClick={() => setArchiveDialog(false)} color="error">
                 Cancel
               </Button>
               <Button

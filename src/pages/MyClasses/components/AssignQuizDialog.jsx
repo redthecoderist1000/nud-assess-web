@@ -24,7 +24,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import dayjs from "dayjs";
 
-function AssignQuizDialog({ open, setOpen, classId }) {
+function AssignQuizDialog({ open, setOpen, classId, setSnackbar }) {
   const [quizzes, setQuizzes] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedQuiz, setSelectedQuiz] = useState(null);
@@ -43,7 +43,11 @@ function AssignQuizDialog({ open, setOpen, classId }) {
   const fetchQuizzes = async () => {
     const { data, error } = await supabase.from("vw_allquizbyuser").select("*");
     if (error) {
-      console.log("fail to fetch quizzes:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch quizzes. Please try again.",
+        severity: "error",
+      });
       return;
     }
     setQuizzes(data);
@@ -87,9 +91,18 @@ function AssignQuizDialog({ open, setOpen, classId }) {
     });
 
     if (error) {
-      console.log("fail to assign quiz:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to assign quiz. Please try again.",
+        severity: "error",
+      });
       return;
     }
+    setSnackbar({
+      open: true,
+      message: "Quiz assigned successfully.",
+      severity: "success",
+    });
     setOpen(false);
   };
 
@@ -194,7 +207,10 @@ function AssignQuizDialog({ open, setOpen, classId }) {
           fullWidth
           onChange={(e) => setSearch(e.target.value)}
         />
-        <List sx={{ width: "100%" }} dense>
+        <List
+          sx={{ width: "100%", maxHeight: "300px", overflowY: "auto" }}
+          dense
+        >
           {filteredQuizzes.map((data, index) => {
             return (
               <ListItemButton key={index} onClick={() => setSelectedQuiz(data)}>

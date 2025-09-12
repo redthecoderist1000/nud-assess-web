@@ -1,12 +1,28 @@
-import { Dialog, DialogTitle, Divider, DialogContent, DialogContentText, DialogActions, Stack, Button } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  Divider,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Stack,
+  Button,
+} from "@mui/material";
 
-const ArchiveClassDialog = ({ open, onClose, className, onArchive, loading }) => (
+const ArchiveClassDialog = ({
+  open,
+  onClose,
+  className,
+  onArchive,
+  loading,
+}) => (
   <Dialog open={open} onClose={onClose}>
     <DialogTitle>Archive Class: {className}</DialogTitle>
     <Divider />
     <DialogContent>
       <DialogContentText>
-        Are you sure you want to archive this class? This action cannot be undone.
+        Are you sure you want to archive this class? This action cannot be
+        undone.
       </DialogContentText>
     </DialogContent>
     <Divider />

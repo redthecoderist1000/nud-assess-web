@@ -548,12 +548,7 @@ function CartPage() {
         <LinearProgress />
       ) : (
         <Stack direction="row" justifyContent={"space-between"}>
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={() => navigate(-1)}
-            disabled={loading}
-          >
+          <Button color="error" onClick={() => navigate(-1)} disabled={loading}>
             Cancel
           </Button>
           <Button

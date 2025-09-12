@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Stack } from "@mui/material";
+import { Alert, Button, Snackbar, Stack } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -9,15 +9,23 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AssignQuizDialog from "../../components/AssignQuizDialog";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
+import QuizItem from "../../components/QuizItem";
+import DeleteQuiz from "../../components/DeleteQuiz";
+import EditQuiz from "../../components/EditQuiz";
 
 const dateFormat = (dateTime) => {
   return dayjs(dateTime).format("MMM DD, YYYY");
 };
 
 const QuizTab = ({ quizzes, classData }) => {
-  const navigate = useNavigate();
-
   const [assignQuiz, setAssignQuiz] = useState(false);
+  const [deleteQuiz, setDeleteQuiz] = useState(null);
+  const [editQuiz, setEditQuiz] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   return (
     <div>
@@ -70,126 +78,54 @@ const QuizTab = ({ quizzes, classData }) => {
           </div>
         ) : (
           quizzes.map((quiz, index) => (
-            <div
+            <QuizItem
               key={index}
-              className="bg-white rounded-xl border-l-4 border-gray-200 border-l-blue-800 shadow-sm p-6 flex flex-col"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex items-center">
-                  <h3 className="font-semibold text-lg text-[#23286b] mr-2">
-                    {quiz.name}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outlined"
-                    startIcon={<VisibilityIcon />}
-                    size="small"
-                    sx={{
-                      textTransform: "none",
-                      borderRadius: "8px",
-                      fontWeight: 500,
-                      fontSize: "0.95rem",
-                      color: "#23286b",
-                      borderColor: "#e0e0e0",
-                      background: "#fff",
-                      "&:hover": {
-                        background: "#f3f3f3",
-                        borderColor: "#cfcfcf",
-                      },
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate("/quiz", {
-                        state: {
-                          class_exam_id: quiz.class_exam_id,
-                          class_id: classData.id,
-                        },
-                      });
-                    }}
-                  >
-                    View Results
-                  </Button>
-                  <Button
-                    variant="text"
-                    size="small"
-                    sx={{
-                      minWidth: "32px",
-                      color: "#23286b",
-                    }}
-                  >
-                    <MoreVertIcon />
-                  </Button>
-                </div>
-              </div>
-              <div className=" text-gray-700 text-sm">
-                {quiz.description || "No description provided."}
-              </div>
-              <Stack direction="row" spacing={1} justifyContent="space-between">
-                <div className="flex items-center gap-2">
-                  <AssignmentIcon fontSize="small" className="text-[#23286b]" />
-                  <div>
-                    <div className="text-xs text-gray-400">Questions</div>
-                    <div className="text-sm font-semibold">
-                      {quiz.total_items} items
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <HelpOutlineIcon
-                    fontSize="small"
-                    className="text-[#23286b]"
-                  />
-                  <div>
-                    <div className="text-xs text-gray-400">Open Date</div>
-                    <div className="text-sm font-semibold">
-                      {quiz.open_time ? dateFormat(quiz.open_time) : "No date"}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <HelpOutlineIcon
-                    fontSize="small"
-                    className="text-[#23286b]"
-                  />
-                  <div>
-                    <div className="text-xs text-gray-400">Due Date</div>
-                    <div className="text-sm font-semibold">
-                      {quiz.close_time
-                        ? dateFormat(quiz.close_time)
-                        : "No date"}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <AccessTimeIcon fontSize="small" className="text-[#23286b]" />
-                  <div>
-                    <div className="text-xs text-gray-400">Duration</div>
-                    <div className="text-sm font-semibold">
-                      {quiz.time_limit ? `${quiz.time_limit} minutes` : "--"}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <AccessTimeIcon fontSize="small" className="text-[#23286b]" />
-                  <div>
-                    <div className="text-xs text-gray-400">Status</div>
-                    <div className="text-sm font-semibold">
-                      {quiz.status ? quiz.status : "--"}
-                    </div>
-                  </div>
-                </div>
-              </Stack>
-            </div>
+              quiz={quiz}
+              classId={classData.id}
+              setDeleteQuiz={() => setDeleteQuiz(quiz)}
+              setEditQuiz={() => setEditQuiz(quiz)}
+            />
           ))
         )}
       </Stack>
+
+      <DeleteQuiz
+        open={!!deleteQuiz}
+        onClose={() => setDeleteQuiz(null)}
+        quiz={deleteQuiz}
+        setSnackbar={setSnackbar}
+      />
 
       <AssignQuizDialog
         open={assignQuiz}
         setOpen={setAssignQuiz}
         classId={classData.id}
+        setSnackbar={setSnackbar}
       />
+
+      <EditQuiz
+        open={!!editQuiz}
+        onClose={() => setEditQuiz(null)}
+        quiz={editQuiz}
+        setSnackbar={setSnackbar}
+      />
+
+      {/* snackbar */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

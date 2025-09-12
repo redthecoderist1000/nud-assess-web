@@ -6,6 +6,8 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import TableChartIcon from "@mui/icons-material/TableChart";
@@ -15,6 +17,12 @@ import GradeBookTable from "../component/GradeBookTable";
 
 const GradeTab = ({ classData }) => {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [allowExport, setAllowExport] = useState(false);
 
   const handleExportClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -59,6 +67,7 @@ const GradeTab = ({ classData }) => {
               padding: "6px 16px",
             }}
             onClick={handleExportClick}
+            disabled={!allowExport}
           >
             Export
           </Button>
@@ -73,12 +82,12 @@ const GradeTab = ({ classData }) => {
               </ListItemIcon>
               <ListItemText primary=".csv" />
             </MenuItem>
-            <MenuItem onClick={() => handleExport("docx")}>
+            {/* <MenuItem onClick={() => handleExport("docx")}>
               <ListItemIcon>
                 <DescriptionIcon sx={{ color: "#1976d2" }} />
               </ListItemIcon>
               <ListItemText primary=".docx" />
-            </MenuItem>
+            </MenuItem> */}
             <MenuItem onClick={() => handleExport("pdf")}>
               <ListItemIcon>
                 <PictureAsPdfIcon sx={{ color: "#d32f2f" }} />
@@ -88,7 +97,28 @@ const GradeTab = ({ classData }) => {
           </Menu>
         </div>
       </div>
-      <GradeBookTable classId={classData.id} />
+      <GradeBookTable
+        classId={classData.id}
+        setSnackbar={setSnackbar}
+        setAllowExport={setAllowExport}
+      />
+
+      {/* snackbar */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

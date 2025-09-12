@@ -47,6 +47,7 @@ import FacultyInfo from "./pages/Admin/pages/FacultyInfoPage.jsx";
 import SubjectInfoPage from "./pages/Admin/pages/SubjectInfoPage.jsx";
 import CartPage from "./pages/QuizManagement/manualCreation/CartPage.jsx";
 import Tosifier from "./pages/QuizManagement/tosPage/Tosifier.jsx";
+import AutoSignOut from "./components/elements/AutoSignOut.jsx";
 
 export const userContext = createContext();
 export const signupContext = createContext();
@@ -63,8 +64,10 @@ const AnimatedRoutes = () => {
   const signupVal = { signupData, setSignupData };
 
   const [lastActivity, setLastActivity] = useState(Date.now());
-  const INACTIVITY_TIMEOUT = 60 * 1000; // 5 minutes in milliseconds
+  const INACTIVITY_TIMEOUT = 60 * 1000; // 1 minutes in milliseconds
+  // const INACTIVITY_TIMEOUT = 60 * 10000; // 10 minutes in milliseconds
   const SESSION_CHECK_INTERVAL = 60 * 1000; // Check every minute
+  const [autoSignOut, setAutoSignOut] = useState(true);
 
   const checkSessionAndActivity = async () => {
     try {
@@ -83,6 +86,7 @@ const AnimatedRoutes = () => {
       if (timeInactive > INACTIVITY_TIMEOUT) {
         console.log("Signing out due to inactivity");
         // setUser({});
+        setAutoSignOut(true);
         // await supabase.auth.signOut();
         return;
       }
@@ -183,81 +187,87 @@ const AnimatedRoutes = () => {
 
   // setInterval(checkSession, 10000);
   return (
-    <signupContext.Provider value={signupVal}>
-      <userContext.Provider value={userVal}>
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            {/* Authentication Routes */}
+    <>
+      <signupContext.Provider value={signupVal}>
+        <userContext.Provider value={userVal}>
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              {/* Authentication Routes */}
 
-            <Route element={<ProtectedLoggedin />}>
-              <Route path="/login" element={<AuthPage />} />
-              <Route path="/signup-otp" element={<SignupOtp />} />
-              <Route path="/setup" element={<SetUpAccount />} />
+              <Route element={<ProtectedLoggedin />}>
+                <Route path="/login" element={<AuthPage />} />
+                <Route path="/signup-otp" element={<SignupOtp />} />
+                <Route path="/setup" element={<SetUpAccount />} />
 
-              {/* di pa ayos */}
-              {/* <Route path="/class/:id" element={<ClassPage />} /> */}
-              {/* <Route path="/create-class" element={<CreateClass />} /> */}
-              {/* <Route path="/question-summary" element={<QuestionSummary />} /> */}
-            </Route>
+                {/* di pa ayos */}
+                {/* <Route path="/class/:id" element={<ClassPage />} /> */}
+                {/* <Route path="/create-class" element={<CreateClass />} /> */}
+                {/* <Route path="/question-summary" element={<QuestionSummary />} /> */}
+              </Route>
 
-            {/* Dashboard Routes - Wrapped with Layout */}
-            <Route element={<ProtectedRoutes />}>
-              <Route path="/class" element={<ClassPage />} />
-              <Route path="/quiz" element={<QuizInfoPage />} />
+              {/* Dashboard Routes - Wrapped with Layout */}
+              <Route element={<ProtectedRoutes />}>
+                <Route path="/class" element={<ClassPage />} />
+                <Route path="/quiz" element={<QuizInfoPage />} />
 
-              <Route path="/" element={<DashboardLayout />}>
-                <Route index element={<DashboardPage />} />
-                <Route path="quizzes" element={<QuizmanagementPage />} />
-                <Route path="QuestionSummary" element={<QuestionSummary />} />
-                <Route
-                  path="QuestionManagement"
-                  element={<QuestionManagementPage />}
-                />
-                <Route
-                  path="ClassManagement"
-                  element={<ClassManagementPage />}
-                />
-                <Route
-                  path="ReportAndAnalytics"
-                  element={<ReportAndAnalyticsPage />}
-                />
-                <Route
-                  path="ProfileSettings"
-                  element={<ProfileSettingsPage />}
-                />
+                <Route path="/" element={<DashboardLayout />}>
+                  <Route index element={<DashboardPage />} />
+                  <Route path="quizzes" element={<QuizmanagementPage />} />
+                  <Route path="QuestionSummary" element={<QuestionSummary />} />
+                  <Route
+                    path="QuestionManagement"
+                    element={<QuestionManagementPage />}
+                  />
+                  <Route
+                    path="ClassManagement"
+                    element={<ClassManagementPage />}
+                  />
+                  <Route
+                    path="ReportAndAnalytics"
+                    element={<ReportAndAnalyticsPage />}
+                  />
+                  <Route
+                    path="ProfileSettings"
+                    element={<ProfileSettingsPage />}
+                  />
 
-                {/* <Route path="/class/:id" element={<ClassPage />} />
+                  {/* <Route path="/class/:id" element={<ClassPage />} />
                 <Route path="/create-class" element={<CreateClass />} /> */}
-                <Route
-                  path="CreateAutomatically"
-                  element={<CreateAutomaticallyPage />}
-                />
-                <Route
-                  path="CreateQuestionManually"
-                  element={<CreateQuestionManually />}
-                />
-                <Route
-                  path="GenerateQuestion"
-                  element={<CreateQuestionAutomatically />}
-                />
-                <Route path="quiz-detail" element={<Tosifier />} />
-                <Route path="manual-quiz" element={<CartPage />} />
-                <Route path="quizsummary" element={<QuizResultPage />} />
+                  <Route
+                    path="CreateAutomatically"
+                    element={<CreateAutomaticallyPage />}
+                  />
+                  <Route
+                    path="CreateQuestionManually"
+                    element={<CreateQuestionManually />}
+                  />
+                  <Route
+                    path="GenerateQuestion"
+                    element={<CreateQuestionAutomatically />}
+                  />
+                  <Route path="quiz-detail" element={<Tosifier />} />
+                  <Route path="manual-quiz" element={<CartPage />} />
+                  <Route path="quizsummary" element={<QuizResultPage />} />
 
-                <Route element={<ProtectedAdmin />}>
-                  {/* admin only */}
-                  <Route path="/admin" element={<AdminPage />} />
-                  <Route path="/admin/faculty" element={<FacultyInfo />} />
-                  <Route path="/admin/subject" element={<SubjectInfoPage />} />
+                  <Route element={<ProtectedAdmin />}>
+                    {/* admin only */}
+                    <Route path="/admin" element={<AdminPage />} />
+                    <Route path="/admin/faculty" element={<FacultyInfo />} />
+                    <Route
+                      path="/admin/subject"
+                      element={<SubjectInfoPage />}
+                    />
+                  </Route>
                 </Route>
               </Route>
-            </Route>
 
-            {/* Catch-All */}
-          </Routes>
-        </AnimatePresence>
-      </userContext.Provider>
-    </signupContext.Provider>
+              {/* Catch-All */}
+            </Routes>
+          </AnimatePresence>
+        </userContext.Provider>
+      </signupContext.Provider>
+      <AutoSignOut open={autoSignOut} onClose={() => setAutoSignOut(false)} />
+    </>
   );
 };
 

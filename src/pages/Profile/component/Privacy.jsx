@@ -3,6 +3,8 @@ import LogoutDialog from "./LogoutDialog";
 import { Button, Stack, TextField } from "@mui/material";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import Person2RoundedIcon from "@mui/icons-material/Person2Rounded";
+
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
 
@@ -90,14 +92,7 @@ const Privacy = ({ setSnackbar }) => {
       {/* Privacy Section */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-indigo-600">
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-              <path
-                d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-5.33 0-8 2.67-8 4v2a1 1 0 001 1h14a1 1 0 001-1v-2c0-1.33-2.67-4-8-4z"
-                fill="currentColor"
-              />
-            </svg>
-          </span>
+          <Person2RoundedIcon sx={{ color: "#4F46E5" }} />
           <h3 className="text-lg font-semibold text-gray-900">Privacy</h3>
         </div>
         <p className="text-gray-500 text-sm">
@@ -174,7 +169,7 @@ const Privacy = ({ setSnackbar }) => {
           startIcon={<LogoutRoundedIcon />}
           onClick={() => setLogout(true)}
         >
-          Sign Out Account
+          Sign Out
         </Button>
       </div>
 

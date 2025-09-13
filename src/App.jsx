@@ -48,6 +48,7 @@ import SubjectInfoPage from "./pages/Admin/pages/SubjectInfoPage.jsx";
 import CartPage from "./pages/QuizManagement/manualCreation/CartPage.jsx";
 import Tosifier from "./pages/QuizManagement/tosPage/Tosifier.jsx";
 import AutoSignOut from "./components/elements/AutoSignOut.jsx";
+import { Alert, Snackbar } from "@mui/material";
 
 export const userContext = createContext();
 export const signupContext = createContext();
@@ -59,8 +60,12 @@ const AnimatedRoutes = () => {
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
   const [signupData, setSignupData] = useState({});
-
-  const userVal = { user, setUser, loading };
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const userVal = { user, setUser, loading, setSnackbar };
   const signupVal = { signupData, setSignupData };
 
   const [lastActivity, setLastActivity] = useState(Date.now());
@@ -146,6 +151,8 @@ const AnimatedRoutes = () => {
   }, [lastActivity]);
 
   const initAuth = async () => {
+    // await supabase.auth.signOut();
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -155,10 +162,22 @@ const AnimatedRoutes = () => {
         .from("tbl_users")
         .select("*")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        navigate("/setup");
+        console.log("Error fetching user data:", error);
+        setLoading(false);
+        return;
+      }
+
+      if (data === null) {
+        navigate("/setup", {
+          replace: true,
+          state: {
+            user_id: session.user.id,
+            email: session.user.email,
+          },
+        });
         return;
       }
 
@@ -270,6 +289,23 @@ const AnimatedRoutes = () => {
         </userContext.Provider>
       </signupContext.Provider>
       <AutoSignOut open={autoSignOut} onClose={() => setAutoSignOut(false)} />
+
+      {/* snackbar */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

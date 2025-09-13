@@ -18,10 +18,11 @@ import {
   Divider,
   Snackbar,
   Stack,
+  Typography,
 } from "@mui/material";
 
 const ClassManagementPage = () => {
-  const { user } = useContext(userContext);
+  const { user, setSnackbar } = useContext(userContext);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("active");
   const [classes, setClasses] = useState([]);
@@ -31,12 +32,6 @@ const ClassManagementPage = () => {
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [archiveDialog, setArchiveDialog] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedAnalyticsClass, setSelectedAnalyticsClass] = useState(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
 
   useEffect(() => {
     const user_id = user?.user_id;
@@ -176,10 +171,6 @@ const ClassManagementPage = () => {
     }
   });
 
-  const handleClassDoubleClick = (cls) => {
-    navigate("/class", { state: cls });
-  };
-
   const handleClassClick = (cls) => {
     navigate("/class", { state: cls });
   };
@@ -250,10 +241,14 @@ const ClassManagementPage = () => {
             </button>
           </div>
 
-          {activeTab === "archived" && filteredClasses.length === 0 ? (
-            <div className="text-center text-gray-500 py-10">
-              No Archive Class
-            </div>
+          {filteredClasses.length === 0 ? (
+            <Typography
+              alignSelf={"center"}
+              variant="body1"
+              color="textSecondary"
+            >
+              No classes yet
+            </Typography>
           ) : (
             <ClassGrid
               classes={filteredClasses}
@@ -340,23 +335,6 @@ const ClassManagementPage = () => {
           </DialogActions>
         </Dialog>
       </motion.div>
-
-      {/* snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Container>
   );
 };

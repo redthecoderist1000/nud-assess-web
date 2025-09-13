@@ -1,3 +1,4 @@
+import { Typography } from "@mui/material";
 import ClassCard from "./ClassCard";
 
 const ClassGrid = ({

@@ -5,8 +5,8 @@ import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import Person2RoundedIcon from "@mui/icons-material/Person2Rounded";
 import { supabase } from "../../../helper/Supabase";
 
-const Personal = ({ setSnackbar }) => {
-  const { user, setUser } = useContext(userContext);
+const Personal = () => {
+  const { user, setUser, setSnackbar } = useContext(userContext);
   const [formData, setFormData] = useState({
     f_name: user?.f_name || "",
     m_name: user?.m_name || "",

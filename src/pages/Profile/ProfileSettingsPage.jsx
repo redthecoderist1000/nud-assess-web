@@ -11,12 +11,7 @@ import { Alert, Snackbar } from "@mui/material";
 
 const ProfileSettingsPage = () => {
   const [avatarUrl, setAvatarUrl] = useState(sampleProfile);
-
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  const { setSnackbar } = useContext(userContext);
 
   return (
     <Container maxWidth="xl" className="my-5">
@@ -28,29 +23,12 @@ const ProfileSettingsPage = () => {
       <Header avatarUrl={avatarUrl} />
       <div className="flex flex-col md:flex-row gap-5 mt-6">
         <div className="flex-1">
-          <Personal setSnackbar={setSnackbar} />
+          <Personal />
         </div>
         <div className="flex-1">
-          <Privacy setSnackbar={setSnackbar} />
+          <Privacy />
         </div>
       </div>
-
-      {/* snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Container>
   );
 };

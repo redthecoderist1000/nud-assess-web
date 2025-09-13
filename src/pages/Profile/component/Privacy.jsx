@@ -8,8 +8,8 @@ import Person2RoundedIcon from "@mui/icons-material/Person2Rounded";
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
 
-const Privacy = ({ setSnackbar }) => {
-  const { user } = useContext(userContext);
+const Privacy = () => {
+  const { user, setSnackbar } = useContext(userContext);
   const [logout, setLogout] = useState(false);
   const [formData, setFormData] = useState({
     currentPassword: "",

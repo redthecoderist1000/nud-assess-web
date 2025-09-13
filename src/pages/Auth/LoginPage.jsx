@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 
 import { userContext } from "../../App";
 import { supabase } from "../../helper/Supabase";
-import { CircularProgress } from "@mui/material";
+import { Button, CircularProgress, Stack, TextField } from "@mui/material";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ const LoginPage = () => {
   const [showCPassword, setShowCPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const userCon = useContext(userContext);
+  const { setSnackbar } = useContext(userContext);
 
   const [signUp, setSignUp] = useState(false);
   const [formSignUp, setFormSignUp] = useState({
@@ -90,25 +90,25 @@ const LoginPage = () => {
       return;
     }
 
-    await supabase
-      .from("tbl_users")
-      .select("*")
-      .eq("id", data.user.id)
-      .single()
-      .then((data2) => {
-        userCon.setUser({
-          ...userCon.user,
-          email: data.user.email,
-          user_id: data.user.id,
-          suffix: data2.data.suffix,
-          role: data2.data.role,
-          f_name: data2.data.f_name,
-          m_name: data2.data.m_name,
-          l_name: data2.data.l_name,
-          department_id: data2.data.department_id,
-          allow_ai: data2.data.allow_ai,
-        });
-      });
+    // await supabase
+    //   .from("tbl_users")
+    //   .select("*")
+    //   .eq("id", data.user.id)
+    //   .single()
+    //   .then((data2) => {
+    //     userCon.setUser({
+    //       ...userCon.user,
+    //       email: data.user.email,
+    //       user_id: data.user.id,
+    //       suffix: data2.data.suffix,
+    //       role: data2.data.role,
+    //       f_name: data2.data.f_name,
+    //       m_name: data2.data.m_name,
+    //       l_name: data2.data.l_name,
+    //       department_id: data2.data.department_id,
+    //       allow_ai: data2.data.allow_ai,
+    //     });
+    //   });
 
     // navigate("/dashboard");
     setIsLoading(false);
@@ -156,117 +156,66 @@ const LoginPage = () => {
               >
                 Enter your valid NU faculty email to recieve a confirmation link
               </motion.p>
-              <div className="space-y-4">
-                <motion.div
-                  className="relative"
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <input
-                    type="email"
-                    id="email_signUp"
-                    name="email"
-                    onChange={handleChangeSignUpForm}
-                    className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                    placeholder=""
-                    // pattern="r'^[a-zA-Z0-9._%+-]+@(nu-dasma\.edu\.ph)$'"
-                    // pattern="^[a-zA-Z0-9._%+-]+@nu-dasma\\.edu\\.ph$"
-                    required
-                  />
-                  <label
-                    htmlFor="email_signUp"
-                    className="absolute text-lg text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4"
-                  >
-                    Email
-                  </label>
-                </motion.div>
+              <Stack rowGap={1}>
+                <TextField
+                  required
+                  size="small"
+                  label="Email"
+                  type="text"
+                  name="email"
+                  fullWidth
+                  onChange={handleChangeSignUpForm}
+                />
 
-                <motion.div
-                  className="relative"
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    id="password"
-                    onChange={handleChangeSignUpForm}
-                    className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer pr-10"
-                    placeholder=" "
-                    required
-                    minLength={6}
-                  />
-                  <label
-                    htmlFor="password"
-                    className="absolute text-lg text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4"
-                  >
-                    Password
-                  </label>
-                  <img
-                    src={showPassword ? hideIcon : unhideIcon}
-                    alt="Toggle password visibility"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="w-5 h-5 absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer"
-                  />
-                </motion.div>
-                <motion.div
-                  className="relative"
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <input
-                    type={showCPassword ? "text" : "password"}
-                    name="cpassword"
-                    id="c_password"
-                    onChange={handleChangeSignUpForm}
-                    className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer pr-10"
-                    placeholder=" "
-                    required
-                  />
-                  <label
-                    htmlFor="c_password"
-                    className="absolute text-lg text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4"
-                  >
-                    Confirm Password
-                  </label>
-                  <img
-                    src={showCPassword ? hideIcon : unhideIcon}
-                    alt="Toggle password visibility"
-                    onClick={() => setShowCPassword(!showCPassword)}
-                    className="w-5 h-5 absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer"
-                  />
-                </motion.div>
-              </div>
-              <p className="text-red-500 text-sm mt-3">{error}</p>
+                <TextField
+                  required
+                  size="small"
+                  label="Password"
+                  name="password"
+                  type="password"
+                  fullWidth
+                  onChange={handleChangeSignUpForm}
+                />
 
-              {/* Send Confirmation Button */}
-              <motion.button
-                type="submit"
-                className="w-full mt-4 p-3 bg-[#35408E] text-white rounded-md"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-                disabled={isLoading}
-              >
-                {isLoading ? <CircularProgress /> : "Send Confirmation"}
-              </motion.button>
-              {/* Login Link */}
-              <motion.p
-                className="text-center mt-3 text-gray-600"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
-                Already have an account?{" "}
-                <span
-                  onClick={() => setSignUp(false)}
-                  className="text-amber-400 cursor-pointer hover:underline"
+                <TextField
+                  required
+                  size="small"
+                  label="Confirm Password"
+                  name="cpassword"
+                  type="password"
+                  fullWidth
+                  onChange={handleChangeSignUpForm}
+                />
+                {/* Send Confirmation Button */}
+                <Button
+                  variant="contained"
+                  type="submit"
+                  loading={isLoading}
+                  disableElevation
+                  fullWidth
+                  sx={{
+                    bgcolor: "#35408E",
+                    "&:hover": { bgcolor: "#2c347a" },
+                  }}
                 >
-                  Log In
-                </span>
-              </motion.p>
+                  send confirmation
+                </Button>
+                {/* Login Link */}
+                <motion.p
+                  className="text-center text-gray-600"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  Already have an account?{" "}
+                  <span
+                    onClick={() => setSignUp(false)}
+                    className="text-amber-400 cursor-pointer hover:underline"
+                  >
+                    Log In
+                  </span>
+                </motion.p>
+              </Stack>
             </form>
           ) : (
             <form className="w-full max-w-md" onSubmit={handleLogin}>
@@ -289,77 +238,38 @@ const LoginPage = () => {
               </motion.p>
 
               <div className="space-y-4">
-                <motion.div
-                  className="relative"
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <input
-                    type="email"
-                    id="email"
-                    // value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                    placeholder=""
-                    // pattern="r'^[a-zA-Z0-9._%+-]+@(nu-dasma\.edu\.ph)$'"
-                    // pattern="^[a-zA-Z0-9._%+-]+@nu-dasma\\.edu\\.ph$"
-                    required
-                  />
-                  <label
-                    htmlFor="email"
-                    className="absolute text-lg text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4"
-                  >
-                    Email
-                  </label>
-                </motion.div>
-
-                <motion.div
-                  className="relative"
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer pr-10"
-                    placeholder=" "
-                    required
-                  />
-                  <label
-                    htmlFor="password"
-                    className="absolute text-lg text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4"
-                  >
-                    Password
-                  </label>
-                  <img
-                    src={showPassword ? hideIcon : unhideIcon}
-                    alt="Toggle password visibility"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="w-5 h-5 absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer"
-                  />
-                </motion.div>
+                <TextField
+                  required
+                  label="Email"
+                  type="email"
+                  fullWidth
+                  size="small"
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <TextField
+                  required
+                  label="Password"
+                  type="password"
+                  fullWidth
+                  size="small"
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
 
-              <p className="text-red-500 text-sm mt-3">{error}</p>
-
               {/* Login Button */}
-              <motion.button
+
+              <Button
                 type="submit"
-                className={
-                  isLoading
-                    ? "w-full mt-4 p-3 bg-[#969697] text-white rounded-md"
-                    : "w-full mt-4 p-3 bg-[#35408E] text-white rounded-md"
-                }
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-                disabled={isLoading}
+                loading={isLoading}
+                fullWidth
+                sx={{
+                  bgcolor: "#35408E",
+                  color: "white",
+                  "&:hover": { bgcolor: "#2c347a" },
+                }}
               >
-                {isLoading ? <CircularProgress /> : "Log in"}
-              </motion.button>
+                Sign In
+              </Button>
 
               {/* Signup Link */}
               <motion.p

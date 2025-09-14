@@ -242,7 +242,7 @@ function SubjectTab() {
               // rowCount={rows.length}
             /> */}
           <TableHead>
-            <TableRow>
+            <TableRow sx={{ background: "#f6f7fb" }}>
               {headCells.map((headCell, index) => {
                 return (
                   <StyledTableCell key={index}>

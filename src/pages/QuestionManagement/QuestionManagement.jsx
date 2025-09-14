@@ -7,11 +7,12 @@ import { Box, Card, Container, Stack, Tab, Tabs } from "@mui/material";
 
 import MyQuestionTab from "./questionmanagementTabs/MyQuestionTab";
 import { supabase } from "../../helper/Supabase";
+import SharedQuestionTab from "./questionmanagementTabs/SharedQuestionTab";
 
 const QuestionManagementPage = () => {
   const [repoModalOpen, setRepoModalOpen] = useState(false);
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("MyQuestions");
+  const [activeTab, setActiveTab] = useState("SharedQuestions");
 
   // Backend stats for TetraBox
   const [tetraStats, setTetraStats] = useState({
@@ -162,59 +163,10 @@ const QuestionManagementPage = () => {
                 minHeight: 0,
                 display: "flex",
                 flexDirection: "column",
-                overflow: "hidden",
               }}
             >
-              {activeTab === "MyQuestions" && (
-                <Card
-                  sx={{
-                    flex: 1,
-                    minHeight: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    overflow: "hidden",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: "100%",
-                      flex: 1,
-                      minHeight: 0,
-                      display: "flex",
-                      flexDirection: "column",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <MyQuestionTab />
-                  </Box>
-                </Card>
-              )}
-              {activeTab === "SharedQuestions" && (
-                <Card
-                  variant="outlined"
-                  sx={{
-                    flex: 1,
-                    minHeight: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    overflow: "hidden",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: "100%",
-                      flex: 1,
-                      minHeight: 0,
-                      display: "flex",
-                      flexDirection: "column",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {/* Replace with your shared questions tab component */}
-                    Item Two
-                  </Box>
-                </Card>
-              )}
+              {activeTab === "MyQuestions" && <MyQuestionTab />}
+              {activeTab === "SharedQuestions" && <SharedQuestionTab />}
             </Box>
           </Stack>
           <QuestionRepoModal

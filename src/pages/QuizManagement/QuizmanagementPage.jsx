@@ -29,7 +29,7 @@ function CustomTabPanel(props) {
 const QuizmanagementPage = () => {
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [isRepoModalOpen, setIsRepoModalOpen] = useState(false);
-  const [value, setValue] = useState(1);
+  const [value, setValue] = useState(0);
 
   const [quizDetail, setQuizDetail] = useState({
     repository: "",

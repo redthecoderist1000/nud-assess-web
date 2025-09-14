@@ -244,7 +244,7 @@ function FacultyTab() {
       <TableContainer component={Paper} variant="outlined">
         <Table>
           <TableHead>
-            <TableRow>
+            <TableRow sx={{ background: "#f6f7fb" }}>
               {headCells.map((headCell, index) => (
                 <StyledTableCell key={index}>
                   <b>{headCell.label}</b>

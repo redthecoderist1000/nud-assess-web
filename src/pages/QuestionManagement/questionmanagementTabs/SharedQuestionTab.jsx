@@ -8,7 +8,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  Stack,
   styled,
   Table,
   TableBody,
@@ -30,14 +29,16 @@ const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
 }));
 
 const headCells = [
-  { id: "exam_name", label: "Exam Name" },
-  { id: "subject_name", label: "Subject" },
-  { id: "total_items", label: "Total Items" },
-  { id: "answered_count", label: "Answered Count" },
-  { id: "created_by", label: "Created By" },
+  "Question",
+  "Type",
+  "Cognitive Level",
+  "Lesson",
+  "Subject",
+  "Usage Count",
+  "Created By",
 ];
 
-function SharedQuizTab() {
+function SharedQuestionTab() {
   const { setSnackbar, user } = useContext(userContext);
   const [rows, setRows] = useState([]);
   const [page, setPage] = useState(0);
@@ -46,83 +47,76 @@ function SharedQuizTab() {
     subject: "All",
     repository: "All",
     search: "",
+    type: "All",
+    cognitive: "All",
   });
   const [subOptions, setSubOptions] = useState([]);
-  const [repoOptions, setRepoOptions] = useState([]);
-
-  const fetchData = async () => {
-    // fetch incharge
-    const { data: quizData, error: quizError } = await supabase
-      .from("vw_sharedquiz")
-      .select("*");
-
-    if (quizError) {
-      setSnackbar({
-        open: true,
-        message: "Failed to fetch shared quizzes, Refresh the page",
-        severity: "error",
-      });
-      return;
-    }
-
-    // get unique subjects
-    // console.log(quizData);
-
-    const uniqueRepo = Array.from(
-      new Set(quizData.map((exam) => exam.repository).filter(Boolean))
-    );
-
-    const uniqueSubjects = Array.from(
-      new Map(
-        quizData.map((data) => [
-          data.subject_id,
-          {
-            subject_id: data.subject_id,
-            subject_name: data.subject_name.trim(),
-          },
-        ])
-      ).values()
-    );
-
-    setRepoOptions(uniqueRepo);
-    setSubOptions(uniqueSubjects);
-    setRows(quizData);
-  };
+  const [typeOptions, setTypeOptions] = useState([]);
+  const [cognitiveOptions, setCognitiveOptions] = useState([]);
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const visibleRows = useMemo(
-    () =>
-      rows
-        .filter((row) => {
-          const matchExamName = row.exam_name
+  const fetchData = async () => {
+    const { data: questionData, error: questionError } = await supabase
+      .from("vw_sharedquestion")
+      .select("*");
+
+    if (questionError) {
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch data. Refresh the page.",
+        severity: "error",
+      });
+      return;
+    }
+
+    // const uniqueRepo = Array.from(
+    //   new Set(questionData.map((exam) => exam.repository).filter(Boolean))
+    // );
+    // setRepoOptions(uniqueRepo);    setTypeOptions(uniqueType);
+    const uniqueType = Array.from(
+      new Set(questionData.map((exam) => exam.type).filter(Boolean))
+    );
+
+    const uniqueSubject = Array.from(
+      new Set(questionData.map((exam) => exam.subject_name).filter(Boolean))
+    );
+
+    setTypeOptions(uniqueType);
+    setSubOptions(uniqueSubject);
+    setRows(questionData);
+  };
+
+  const visibleRows = useMemo(() => {
+    return rows
+      .filter((row) => {
+        const matchSearch =
+          (row.question || "")
+            .toLowerCase()
+            .includes(filter.search.toLowerCase()) ||
+          (row.subject_name || "")
             .toLowerCase()
             .includes(filter.search.toLowerCase());
 
-          const searchSubject = row.subject_name
+        const matchSubject =
+          (row.subject_name || "")
             .toLowerCase()
-            .includes(filter.search.toLowerCase());
+            .includes(filter.subject.toLowerCase()) || filter.subject === "All";
 
-          const matchSubject =
-            row.subject_name
-              .toLowerCase()
-              .includes(filter.subject.toLowerCase()) ||
-            filter.subject === "All";
+        const matchType =
+          (row.type || "").toLowerCase().includes(filter.type.toLowerCase()) ||
+          filter.type === "All";
 
-          const matchRepo =
-            row.repository
-              .toLowerCase()
-              .includes(filter.repository.toLowerCase()) ||
-            filter.repository === "All";
+        const matchCognitive =
+          row.cognitive_level === filter.cognitive ||
+          filter.cognitive === "All";
 
-          return matchExamName && searchSubject && matchSubject && matchRepo;
-        })
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-
-    [rows, filter, page, rowsPerPage]
-  );
+        return matchSearch && matchSubject && matchType && matchCognitive;
+      })
+      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  }, [rows, filter, page, rowsPerPage]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -133,29 +127,24 @@ function SharedQuizTab() {
     setPage(0);
   };
 
-  if (rows.length <= 0) {
-    return (
-      <Typography color="textDisabled" align="center" variant="body2">
-        No quizzes created yet
-      </Typography>
-    );
-  }
-
   return (
     <>
-      <Grid container direction={"row"} spacing={2}>
-        <Grid flex={2}>
+      <Grid container spacing={2} mt={2}>
+        <Grid flex={3}>
           <TextField
             fullWidth
+            size="small"
+            placeholder="Search questions..."
+            value={filter.search}
+            onChange={(e) => setFilter({ ...filter, search: e.target.value })}
             sx={{
+              flex: 2,
               background: "#f6f7fb",
+              borderRadius: 2,
               "& .MuiOutlinedInput-root": {
                 borderRadius: 2,
               },
             }}
-            size="small"
-            label="Search exams..."
-            onChange={(e) => setFilter({ ...filter, search: e.target.value })}
           />
         </Grid>
         <Grid flex={1}>
@@ -176,9 +165,33 @@ function SharedQuizTab() {
               sx={{ borderRadius: 2 }}
             >
               <MenuItem value="All">All</MenuItem>
-              {subOptions.map((subject, index) => (
-                <MenuItem key={index} value={subject.subject_name}>
-                  {subject.subject_name}
+              {subOptions.map((subject) => (
+                <MenuItem key={subject} value={subject}>
+                  {subject}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid flex={1}>
+          <FormControl
+            fullWidth
+            size="small"
+            sx={{ minWidth: 120, background: "#f6f7fb", borderRadius: 2 }}
+          >
+            <InputLabel id="type_label">Type</InputLabel>
+            <Select
+              labelId="type_label"
+              label="Type"
+              defaultValue="All"
+              value={filter.type}
+              onChange={(e) => setFilter({ ...filter, type: e.target.value })}
+              sx={{ borderRadius: 2 }}
+            >
+              <MenuItem value="All">All</MenuItem>
+              {typeOptions.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
                 </MenuItem>
               ))}
             </Select>
@@ -190,28 +203,28 @@ function SharedQuizTab() {
             size="small"
             sx={{ minWidth: 140, background: "#f6f7fb", borderRadius: 2 }}
           >
-            <InputLabel id="subject_label">Repository</InputLabel>
+            <InputLabel id="cognitive_label">Cognitive Level</InputLabel>
             <Select
-              labelId="subject_label"
-              label="Repository"
+              labelId="cognitive_label"
+              label="Cognitive Level"
               defaultValue="All"
-              value={filter.repository}
+              value={filter.cognitive}
               onChange={(e) =>
-                setFilter({ ...filter, repository: e.target.value })
+                setFilter({ ...filter, cognitive: e.target.value })
               }
               sx={{ borderRadius: 2 }}
             >
               <MenuItem value="All">All</MenuItem>
-              {repoOptions.map((repository, index) => (
-                <MenuItem key={index} value={repository}>
-                  {repository}
-                </MenuItem>
-              ))}
+              <MenuItem value="Remembering">Remembering</MenuItem>
+              <MenuItem value="Understanding">Understanding</MenuItem>
+              <MenuItem value="Applying">Applying</MenuItem>
+              <MenuItem value="Analyzing">Analyzing</MenuItem>
+              <MenuItem value="Evaluating">Evaluating</MenuItem>
+              <MenuItem value="Creating">Creating</MenuItem>
             </Select>
           </FormControl>
         </Grid>
       </Grid>
-
       <TableContainer
         component={Paper}
         sx={{
@@ -225,7 +238,7 @@ function SharedQuizTab() {
           <TableHead>
             <TableRow sx={{ background: "#f6f7fb" }}>
               {headCells.map((headCell, index) => (
-                <StyledTableCell key={index}>{headCell.label}</StyledTableCell>
+                <StyledTableCell key={index}>{headCell}</StyledTableCell>
               ))}
             </TableRow>
           </TableHead>
@@ -238,23 +251,19 @@ function SharedQuizTab() {
                 }}
               >
                 <TableCell component="th" scope="row">
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ color: "#2C388F", fontWeight: 600 }}
-                    >
-                      {row.exam_name}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: "#6b7280" }}>
-                      {row.repository}
-                    </Typography>
-                  </Box>
+                  <Typography variant="body2">{row.question}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">{row.type}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">{row.cognitive_level}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">{row.lesson_name}</Typography>
                 </TableCell>
                 <TableCell>
                   <Typography variant="body2">{row.subject_name}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.total_items}</Typography>
                 </TableCell>
                 <TableCell>
                   <Typography variant="body2">{row.usage_count}</Typography>
@@ -267,6 +276,7 @@ function SharedQuizTab() {
           </TableBody>
         </Table>
       </TableContainer>
+
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
@@ -280,4 +290,4 @@ function SharedQuizTab() {
   );
 }
 
-export default SharedQuizTab;
+export default SharedQuestionTab;

@@ -12,7 +12,7 @@ import SharedQuestionTab from "./questionmanagementTabs/SharedQuestionTab";
 const QuestionManagementPage = () => {
   const [repoModalOpen, setRepoModalOpen] = useState(false);
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("SharedQuestions");
+  const [activeTab, setActiveTab] = useState("MyQuestions");
 
   // Backend stats for TetraBox
   const [tetraStats, setTetraStats] = useState({

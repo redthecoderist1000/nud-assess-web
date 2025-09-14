@@ -127,6 +127,14 @@ function SharedQuestionTab() {
     setPage(0);
   };
 
+  if (rows.length <= 0) {
+    return (
+      <Typography color="textDisabled" align="center" variant="body2">
+        No questions found
+      </Typography>
+    );
+  }
+
   return (
     <>
       <Grid container spacing={2} mt={2}>

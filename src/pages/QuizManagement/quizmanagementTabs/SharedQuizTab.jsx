@@ -136,7 +136,7 @@ function SharedQuizTab() {
   if (rows.length <= 0) {
     return (
       <Typography color="textDisabled" align="center" variant="body2">
-        No quizzes created yet
+        No quizzes found
       </Typography>
     );
   }

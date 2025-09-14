@@ -9,6 +9,7 @@ import {
   DialogTitle,
   Input,
   InputAdornment,
+  OutlinedInput,
   Paper,
   Stack,
   Table,
@@ -31,6 +32,16 @@ import CloseIcon from "@mui/icons-material/CloseRounded";
 import AssignSubjectDialog from "../components/AssignSubjectDialog";
 import RemoveSubjectDialog from "../components/RemoveSubjectDialog";
 import { useNavigate } from "react-router-dom";
+import styled from "@emotion/styled";
+
+const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
+  background: bgcolor || "inherit",
+  fontWeight: 500,
+  textAlign: "center",
+  borderRight: "1px solid #eee",
+  fontSize: "15px",
+  padding: "12px 8px",
+}));
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -200,10 +211,18 @@ function FacultyTab() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Faculty Management</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-0">
+          Faculty Management
+        </h1>
+        <p className="text-sm text-gray-500 mt-1 mb-0">
+          Manage faculty and assign subjects.
+        </p>
+      </div>
       <Stack direction="row" mt={5} mb={2} justifyContent="space-between">
-        <Input
+        <OutlinedInput
           id="search_input"
+          size="small"
           placeholder="search faculty name..."
           value={search}
           sx={{ width: "25%" }}
@@ -222,91 +241,62 @@ function FacultyTab() {
           }
         />
       </Stack>
-      <Paper sx={{ width: "100%", mb: 5 }}>
-        <TableContainer>
-          <Table>
-            <EnhancedTableHead
-              order={order}
-              orderBy={orderBy}
-              onRequestSort={handleRequestSort}
-              // rowCount={rows.length}
-            />
-            <TableBody>
-              {visibleFaculty.map((row, index) => {
-                const name = row.suffix + " " + row.f_name + " " + row.l_name;
-                return (
-                  <TableRow
-                    key={index}
-                    hover
-                    tabIndex={-1}
-                    sx={{ cursor: "pointer" }}
-                    onClick={() => {
-                      navigate("faculty", { state: { facultyId: row.id } });
-                    }}
-                  >
-                    <TableCell component="th" scope="row">
-                      {name}
-                    </TableCell>
+      <TableContainer component={Paper} variant="outlined">
+        <Table>
+          <TableHead>
+            <TableRow>
+              {headCells.map((headCell, index) => (
+                <StyledTableCell key={index}>
+                  <b>{headCell.label}</b>
+                </StyledTableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {visibleFaculty.map((row, index) => {
+              const name = row.suffix + " " + row.f_name + " " + row.l_name;
+              return (
+                <TableRow
+                  key={index}
+                  hover
+                  tabIndex={-1}
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => {
+                    navigate("faculty", { state: { facultyId: row.id } });
+                  }}
+                >
+                  <StyledTableCell component="th" scope="row">
+                    {name}
+                  </StyledTableCell>
 
-                    <TableCell align="left" width="fit-content">
-                      {/* {row.subject} */}
-                      <Stack
-                        rowGap={1}
-                        columnGap={4}
-                        direction="column"
-                        useFlexGap
-                        sx={{ flexWrap: "wrap" }}
-                        // width="100%"
-                        width="fit-content"
-                        maxHeight="100px"
-                      >
-                        {row.subjects.map((data, index) => {
-                          return <p key={index}>{data}</p>;
-                        })}
-                        {/* {row.name} */}
-                      </Stack>
-                      {/* <Button
-                        variant="text"
-                        size="small"
-                        onClick={() => {
-                          setSelectedFaculty(row.id);
-                          setAssignDialog(true);
-                        }}
-                      >
-                        Assign
-                      </Button> */}
-                      {/* {row.subjects[0] != null ? (
-                        <Button
-                          variant="text"
-                          color="error"
-                          size="small"
-                          onClick={() => {
-                            setSelectedFaculty(row.id);
-                            setRemoveDialog(true);
-                          }}
-                        >
-                          Remove
-                        </Button>
-                      ) : (
-                        <></>
-                      )} */}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
+                  <StyledTableCell>
+                    {/* {row.subject} */}
+                    <Stack
+                      columnGap={4}
+                      useFlexGap
+                      sx={{ flexWrap: "wrap" }}
+                      // width="100%"
+                    >
+                      {row.subjects.map((data, index) => {
+                        return <p key={index}>{data}</p>;
+                      })}
+                    </Stack>
+                  </StyledTableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={rows.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
 
       <AssignSubjectDialog
         open={assignDialog}

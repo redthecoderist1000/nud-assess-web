@@ -257,13 +257,18 @@ const ReportAndAnalyticsPage = () => {
   };
 
   return (
-    <Container maxWidth="xl" className="my-5">
+    <Container maxWidth="xl" sx={{ my: 5 }}>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 pt-6 pb-2">
-        <h1 className="text-5xl font-bold mb-4">Reports & Analytics</h1>
-        <p className="text-sm text-gray-500 mt-1 mb-0">
-          Analytics and performance insights
-        </p>
+
+      <div className="w-full bg-white border-b border-gray-200 py-3 mb-3 flex items-center justify-between mt-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-0">
+            Reports & Analytics
+          </h1>
+          <p className="text-sm text-gray-500 mt-1 mb-0">
+            Analytics and performance insights
+          </p>
+        </div>
       </div>
 
       <FilterAnalytics
@@ -282,7 +287,7 @@ const ReportAndAnalyticsPage = () => {
       )}
 
       {/* Custom Tabs */}
-      <div className="w-full flex justify-center mt-8">
+      <div className="w-full flex justify-center mt-5">
         <div
           className="w-full"
           style={{
@@ -300,8 +305,8 @@ const ReportAndAnalyticsPage = () => {
           ].map((tab) => (
             <button
               key={tab.key}
-              className={`flex-1 text-center py-2 text-[15px] font-medium transition-colors rounded-full
-                ${activeTab === tab.key ? "bg-white text-black" : "text-gray-700"}
+              className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
+                ${activeTab === tab.key ? "bg-white text-black shadow-sm" : "text-gray-700"}
               `}
               style={{
                 margin: "2px",

@@ -7,20 +7,25 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   Input,
   InputAdornment,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
+  OutlinedInput,
   Stack,
 } from "@mui/material";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import SearchIcon from "@mui/icons-material/SearchRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import { supabase } from "../../../../helper/Supabase";
+import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
+import { userContext } from "../../../../App";
 
 function InchargeDialog(props) {
+  const { setSnackbar } = useContext(userContext);
   const { open, setOpen, subjectId } = props;
 
   const [options, setOptions] = useState([]);
@@ -50,27 +55,35 @@ function InchargeDialog(props) {
 
   useEffect(() => {
     if (!open) {
+      setFacultySearch("");
+      setSelected(null);
+      setLoading(false);
       return;
     }
     fetchData();
   }, [open]);
 
   const fetchData = async () => {
-    setLoading(true);
     const { data, error } = await supabase
       .from("tbl_users")
       .select("*")
       .neq("role", "Student");
 
     if (error) {
-      console.error("Failed to load faculty", error);
+      setSnackbar({
+        open: true,
+        message: "Error fetching faculty data",
+        severity: "error",
+      });
+      setOpen(false);
       return;
     }
     setOptions(data);
-    setLoading(false);
   };
 
   const confirmIncharge = async () => {
+    setLoading(true);
+
     const { data: inchargeData, error: inchargeErr } = await supabase
       .from("tbl_subject")
       .update({ faculty_incharge: selected.id })
@@ -78,7 +91,12 @@ function InchargeDialog(props) {
       .select("*");
 
     if (inchargeErr) {
-      console.log("error incharge:", inchargeErr);
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "Error assigning faculty incharge. Please try again.",
+        severity: "error",
+      });
       return;
     }
     setOpen(false);
@@ -98,7 +116,13 @@ function InchargeDialog(props) {
           <DialogContentText>Selected faculty:</DialogContentText>
           <List dense disablePadding sx={{ width: "100%" }}>
             {selected && (
-              <ListItem onClick={() => {}}>
+              <ListItem
+                secondaryAction={
+                  <IconButton size="small" onClick={() => setSelected(null)}>
+                    <HighlightOffRoundedIcon color="error" fontSize="20" />
+                  </IconButton>
+                }
+              >
                 {/* <Stack direction="row" spacing={1}> */}
                 <ListItemText>
                   {selected.suffix +
@@ -107,20 +131,12 @@ function InchargeDialog(props) {
                     " " +
                     selected.l_name}
                 </ListItemText>
-
-                {/* </Stack> */}
-                <Button
-                  size="small"
-                  color="error"
-                  onClick={() => setSelected(null)}
-                >
-                  remove
-                </Button>
               </ListItem>
             )}
           </List>
         </Card>
-        <Input
+        <OutlinedInput
+          size="small"
           id="search_faculty_input"
           placeholder="Search Faculty"
           value={facultySearch}
@@ -139,53 +155,44 @@ function InchargeDialog(props) {
             )
           }
         />
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          <List sx={{ width: "100%" }}>
-            {facultySearch == ""
-              ? options.map((data, index) => {
-                  const name =
-                    data.suffix + " " + data.f_name + " " + data.l_name;
-                  return (
-                    <ListItemButton
-                      key={index}
-                      onClick={() => setSelected(data)}
-                    >
-                      <ListItemText primary={name} />
-                    </ListItemButton>
-                  );
-                })
-              : visibleOptions.map((data, index) => {
-                  const name =
-                    data.suffix + " " + data.f_name + " " + data.l_name;
-                  return (
-                    <ListItemButton
-                      key={index}
-                      onClick={() => setSelected(data)}
-                    >
-                      <ListItemText primary={name} />
-                    </ListItemButton>
-                  );
-                })}
-          </List>
-        )}
+
+        <List sx={{ width: "100%", maxHeight: 300, overflowY: "auto" }}>
+          {facultySearch == ""
+            ? options.map((data, index) => {
+                const name =
+                  data.suffix + " " + data.f_name + " " + data.l_name;
+                return (
+                  <ListItemButton key={index} onClick={() => setSelected(data)}>
+                    <ListItemText primary={name} />
+                  </ListItemButton>
+                );
+              })
+            : visibleOptions.map((data, index) => {
+                const name =
+                  data.suffix + " " + data.f_name + " " + data.l_name;
+                return (
+                  <ListItemButton key={index} onClick={() => setSelected(data)}>
+                    <ListItemText primary={name} />
+                  </ListItemButton>
+                );
+              })}
+        </List>
       </DialogContent>
       <DialogActions>
         <Stack direction="row" justifyContent="space-between" width="100%">
           <Button onClick={() => setOpen(false)} color="error">
             Cancel
           </Button>
-          {selected && (
-            <Button
-              onClick={confirmIncharge}
-              color="success"
-              variant="contained"
-              disableElevation
-            >
-              Confirm
-            </Button>
-          )}
+          <Button
+            onClick={confirmIncharge}
+            color="success"
+            variant="contained"
+            disabled={selected == null || loading}
+            loading={loading}
+            disableElevation
+          >
+            Confirm
+          </Button>
         </Stack>
       </DialogActions>
     </Dialog>

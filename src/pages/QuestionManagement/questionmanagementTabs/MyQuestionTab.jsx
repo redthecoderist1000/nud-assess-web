@@ -14,11 +14,24 @@ import {
   Typography,
   Box,
   Paper,
+  Grid,
+  Stack,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
+import styled from "@emotion/styled";
+import { userContext } from "../../../App";
+
+const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
+  background: bgcolor || "inherit",
+  fontWeight: 600,
+  textAlign: "left",
+  fontSize: "15px",
+  lineHeight: 1.5,
+}));
 
 function MyQuestionTab() {
+  const { setSnackBar } = useContext(userContext);
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [searchBloom, setSearchBloom] = useState("");
@@ -34,7 +47,11 @@ function MyQuestionTab() {
   const fetchData = async () => {
     const { data, error } = await supabase.from("vw_ownquestion").select("*");
     if (error) {
-      console.error("Error fetching data:", error);
+      setSnackBar({
+        open: true,
+        message: "Failed to fetch data. Refresh the page.",
+        severity: "error",
+      });
       return;
     }
     setRows(data);
@@ -49,8 +66,12 @@ function MyQuestionTab() {
     setPage(0);
   };
 
-  const subjects = Array.from(new Set(rows.map(row => row.subject ?? ""))).filter(Boolean);
-  const types = Array.from(new Set(rows.map(row => row.type ?? ""))).filter(Boolean);
+  const subjects = Array.from(
+    new Set(rows.map((row) => row.subject ?? ""))
+  ).filter(Boolean);
+  const types = Array.from(new Set(rows.map((row) => row.type ?? ""))).filter(
+    Boolean
+  );
 
   const visibleRows = useMemo(
     () =>
@@ -66,15 +87,21 @@ function MyQuestionTab() {
             .includes(search.toLowerCase());
 
           const matchType = isTypeAll || data.type === searchType;
-          const matchBlooms = isBloomAll || data.blooms_category === searchBloom;
-          const matchLesson = data.lesson?.toLowerCase().includes(search.toLowerCase());
+          const matchBlooms =
+            isBloomAll || data.blooms_category === searchBloom;
+          const matchLesson = data.lesson
+            ?.toLowerCase()
+            .includes(search.toLowerCase());
           const matchSubject =
-            isSubjectAll || (data.subject ?? "").toLowerCase() === searchSubject.toLowerCase();
+            isSubjectAll ||
+            (data.subject ?? "").toLowerCase() === searchSubject.toLowerCase();
 
           const searchMatch =
             isSearchEmpty ||
             matchQuestion ||
-            (data.blooms_category ?? "").toLowerCase().includes(search.toLowerCase()) ||
+            (data.blooms_category ?? "")
+              .toLowerCase()
+              .includes(search.toLowerCase()) ||
             matchLesson ||
             (data.subject ?? "").toLowerCase().includes(search.toLowerCase());
 
@@ -83,6 +110,14 @@ function MyQuestionTab() {
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [rows, search, page, rowsPerPage, searchBloom, searchSubject, searchType]
   );
+
+  const headCells = [
+    { id: "question", label: "Question" },
+    { id: "type", label: "Type" },
+    { id: "conlevel", label: "Cognitive Level" },
+    { id: "lesson", label: "Lesson" },
+    { id: "sub", label: "Subject" },
+  ];
 
   if (rows.length <= 0) {
     return (
@@ -94,109 +129,114 @@ function MyQuestionTab() {
 
   return (
     <>
-      <Box
-        sx={{
-          display: "flex",
-          gap: 2,
-          alignItems: "center",
-          background: "transparent",
-          paddingBottom: 1,
-          paddingTop: 3,
-        }}
-      >
-        <TextField
-          size="small"
-          placeholder="Search questions..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{
-            flex: 2,
-            background: "#f6f7fb",
-            borderRadius: 2,
-            "& .MuiOutlinedInput-root": {
+      <Grid container spacing={2}>
+        <Grid flex={3}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search questions..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{
+              flex: 2,
+              background: "#f6f7fb",
               borderRadius: 2,
-            },
-          }}
-        />
-        <FormControl size="small" sx={{ minWidth: 140, background: "#f6f7fb", borderRadius: 2 }}>
-          <Select
-            displayEmpty
-            value={searchSubject}
-            onChange={(e) => setSearchSubject(e.target.value)}
-            sx={{ borderRadius: 2 }}
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+              },
+            }}
+          />
+        </Grid>
+        <Grid flex={1}>
+          <FormControl
+            fullWidth
+            size="small"
+            sx={{ minWidth: 140, background: "#f6f7fb", borderRadius: 2 }}
           >
-            <MenuItem value="">All Subjects</MenuItem>
-            <MenuItem value="All">All Subjects</MenuItem>
-            {subjects.map((subject) => (
-              <MenuItem key={subject} value={subject}>
-                {subject}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl size="small" sx={{ minWidth: 120, background: "#f6f7fb", borderRadius: 2 }}>
-          <Select
-            displayEmpty
-            value={searchType}
-            onChange={(e) => setSearchType(e.target.value)}
-            sx={{ borderRadius: 2 }}
+            <InputLabel id="subject_label">Subject</InputLabel>
+            <Select
+              labelId="subject_label"
+              label="Subject"
+              defaultValue="All"
+              value={searchSubject}
+              onChange={(e) => setSearchSubject(e.target.value)}
+              sx={{ borderRadius: 2 }}
+            >
+              <MenuItem value="All">All</MenuItem>
+              {subjects.map((subject) => (
+                <MenuItem key={subject} value={subject}>
+                  {subject}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid flex={1}>
+          <FormControl
+            fullWidth
+            size="small"
+            sx={{ minWidth: 120, background: "#f6f7fb", borderRadius: 2 }}
           >
-            <MenuItem value="">All Types</MenuItem>
-            <MenuItem value="All">All Types</MenuItem>
-            {types.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl size="small" sx={{ minWidth: 140, background: "#f6f7fb", borderRadius: 2 }}>
-          <Select
-            displayEmpty
-            value={searchBloom}
-            onChange={(e) => setSearchBloom(e.target.value)}
-            sx={{ borderRadius: 2 }}
+            <InputLabel id="type_label">Type</InputLabel>
+            <Select
+              labelId="type_label"
+              label="Type"
+              defaultValue="All"
+              value={searchType}
+              onChange={(e) => setSearchType(e.target.value)}
+              sx={{ borderRadius: 2 }}
+            >
+              <MenuItem value="All">All</MenuItem>
+              {types.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid flex={1}>
+          <FormControl
+            fullWidth
+            size="small"
+            sx={{ minWidth: 140, background: "#f6f7fb", borderRadius: 2 }}
           >
-            <MenuItem value="">Bloom's Category</MenuItem>
-            <MenuItem value="All">Bloom's Category</MenuItem>
-            <MenuItem value="Remembering">Remembering</MenuItem>
-            <MenuItem value="Understanding">Understanding</MenuItem>
-            <MenuItem value="Applying">Applying</MenuItem>
-            <MenuItem value="Analyzing">Analyzing</MenuItem>
-            <MenuItem value="Evaluating">Evaluating</MenuItem>
-            <MenuItem value="Creating">Creating</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
+            <InputLabel id="cognitive_label">Cognitive Level</InputLabel>
+            <Select
+              labelId="cognitive_label"
+              label="Cognitive Level"
+              defaultValue="All"
+              value={searchBloom}
+              onChange={(e) => setSearchBloom(e.target.value)}
+              sx={{ borderRadius: 2 }}
+            >
+              <MenuItem value="All">All</MenuItem>
+              <MenuItem value="Remembering">Remembering</MenuItem>
+              <MenuItem value="Understanding">Understanding</MenuItem>
+              <MenuItem value="Applying">Applying</MenuItem>
+              <MenuItem value="Analyzing">Analyzing</MenuItem>
+              <MenuItem value="Evaluating">Evaluating</MenuItem>
+              <MenuItem value="Creating">Creating</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
 
       <TableContainer
         component={Paper}
         variant="outlined"
         sx={{
-          marginTop: 0,
+          marginTop: 2,
           overflow: "auto",
           maxHeight: "60vh",
-          borderRadius: 2,
         }}
       >
-        <Table sx={{ minWidth: 650 }} aria-label="simple table" stickyHeader>
+        <Table sx={{ minWidth: 650 }} size="small" stickyHeader>
           <TableHead>
-            <TableRow>
-              <TableCell>
-                <b>Question</b>
-              </TableCell>
-              <TableCell>
-                <b>Type</b>
-              </TableCell>
-              <TableCell>
-                <b>Blooms Spec</b>
-              </TableCell>
-              <TableCell>
-                <b>Lessons</b>
-              </TableCell>
-              <TableCell>
-                <b>Subject</b>
-              </TableCell>
+            <TableRow sx={{ background: "#f6f7fb" }}>
+              {headCells.map((headCell, index) => (
+                <StyledTableCell key={index}>{headCell.label}</StyledTableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -205,89 +245,27 @@ function MyQuestionTab() {
                 key={index}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
-                <TableCell component="th" scope="row">
-                  {row.question}
-                  {row.keywords && Array.isArray(row.keywords) && (
-                    <Box sx={{ mt: 0.5, display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                      {row.keywords.map((kw, i) => (
-                        <Box
-                          key={i}
-                          sx={{
-                            px: 1,
-                            py: 0.2,
-                            fontSize: "11px",
-                            background: "#f3f4f6",
-                            borderRadius: 1,
-                            color: "#555",
-                            border: "1px solid #e5e7eb",
-                            mr: 0.5,
-                            mb: 0.5,
-                            display: "inline-block",
-                          }}
-                        >
-                          {kw}
-                        </Box>
-                      ))}
-                    </Box>
-                  )}
+                <TableCell>
+                  <Typography variant="body2">{row.question}</Typography>
                 </TableCell>
                 <TableCell>
-                  <Box
-                    sx={{
-                      display: "inline-block",
-                      px: 1,
-                      py: 0.2,
-                      background: "#eaf2ff",
-                      color: "#3b5cb8",
-                      borderRadius: 1,
-                      fontSize: "13px",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {row.type}
-                  </Box>
+                  <Typography variant="body2">{row.type}</Typography>
                 </TableCell>
                 <TableCell>
-                  <Box
-                    sx={{
-                      display: "inline-block",
-                      px: 1,
-                      py: 0.2,
-                      background:
-                        row.blooms_category === "Remembering"
-                          ? "#ffeaea"
-                          : row.blooms_category === "Analyzing"
-                          ? "#eaffea"
-                          : row.blooms_category === "Applying"
-                          ? "#fffbe5"
-                          : "#f3f4f6",
-                      color:
-                        row.blooms_category === "Remembering"
-                          ? "#d32f2f"
-                          : row.blooms_category === "Analyzing"
-                          ? "#388e3c"
-                          : row.blooms_category === "Applying"
-                          ? "#fbc02d"
-                          : "#555",
-                      borderRadius: 1,
-                      fontSize: "13px",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {row.blooms_category}
-                  </Box>
+                  <Typography variant="body2">{row.blooms_category}</Typography>
                 </TableCell>
                 <TableCell>
-                  {row.lesson}
+                  <Typography variant="body2">{row.lesson}</Typography>
                 </TableCell>
                 <TableCell>
-                  {row.subject}
+                  <Typography variant="body2">{row.subject}</Typography>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"

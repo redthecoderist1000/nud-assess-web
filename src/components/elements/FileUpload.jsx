@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useContext } from "react";
 import {
   Box,
   Paper,
@@ -10,9 +10,11 @@ import {
 } from "@mui/material";
 import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
 import DriveFolderUploadRoundedIcon from "@mui/icons-material/DriveFolderUploadRounded";
+import { userContext } from "../../App";
 
 export default function FileUpload({ files, setFiles }) {
   //   const [files, setFiles] = useState([]);
+  const { setSnackbar } = useContext(userContext);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef(null);
@@ -25,18 +27,22 @@ export default function FileUpload({ files, setFiles }) {
     const arr = Array.from(fileList);
     const pdfs = arr.filter((f) => f.type === "application/pdf");
     if (pdfs.length !== arr.length) {
-      setError("Only PDF files are accepted. Non-PDF files were ignored.");
+      setSnackbar({
+        open: true,
+        message: "Only PDF files are accepted. Non-PDF files were ignored.",
+        severity: "warning",
+      });
     }
 
     // enforce max file size
     const oversized = pdfs.filter((f) => f.size > MAX_BYTES);
     const validPdfs = pdfs.filter((f) => f.size <= MAX_BYTES);
     if (oversized.length > 0) {
-      setError(
-        (prev) =>
-          `${oversized.length} file(s) exceed 10 MB and were ignored.` +
-          (prev ? " " + prev : "")
-      );
+      setSnackbar({
+        open: true,
+        message: `${oversized.length} file(s) exceed 10 MB and were ignored.`,
+        severity: "warning",
+      });
     }
 
     if (validPdfs.length === 0) return;
@@ -45,7 +51,11 @@ export default function FileUpload({ files, setFiles }) {
       const existing = new Map(prev.map((f) => [f.name + f.size, f]));
       const remainingSlots = MAX_FILES - existing.size;
       if (remainingSlots <= 0) {
-        setError(`Maximum ${MAX_FILES} files allowed`);
+        setSnackbar({
+          open: true,
+          message: `Maximum ${MAX_FILES} files allowed. Some files were ignored.`,
+          severity: "warning",
+        });
         return prev;
       }
 
@@ -60,17 +70,21 @@ export default function FileUpload({ files, setFiles }) {
       }
 
       if (addedCount < validPdfs.length && addedCount > 0) {
-        setError(
-          `Only ${addedCount} file(s) added. Maximum ${MAX_FILES} files allowed.`
-        );
+        setSnackbar({
+          open: true,
+          message: `Only ${addedCount} file(s) added. Maximum ${MAX_FILES} files allowed.`,
+          severity: "warning",
+        });
       } else if (
         addedCount === 0 &&
         validPdfs.length > 0 &&
         existing.size < MAX_FILES
       ) {
-        setError(
-          "No new files were added. They may be duplicates or invalid PDFs."
-        );
+        setSnackbar({
+          open: true,
+          message: `No new files were added. They may be duplicates or invalid PDFs.`,
+          severity: "info",
+        });
       }
 
       return Array.from(existing.values());
@@ -119,7 +133,7 @@ export default function FileUpload({ files, setFiles }) {
   };
 
   return (
-    <Box component="section" width="fit-content">
+    <Box component="section" width="100%">
       <input
         // required
         name="fileInput"
@@ -138,7 +152,6 @@ export default function FileUpload({ files, setFiles }) {
         elevation={0}
         sx={{
           p: 1,
-          mb: 2,
           border: "2px dashed",
           cursor: files.length > 0 ? "cursor" : "pointer",
           justifyItems: files.length > 0 ? "start" : "center",
@@ -153,7 +166,13 @@ export default function FileUpload({ files, setFiles }) {
         aria-label="Drop PDF files here or click to select"
       >
         {files.length > 0 ? (
-          <Stack rowGap={1}>
+          <Stack
+            columnGap={1}
+            rowGap={1}
+            direction={"row"}
+            flexWrap="wrap"
+            alignItems="center"
+          >
             {files.map((f, i) => (
               <Chip
                 key={i}

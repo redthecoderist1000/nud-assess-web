@@ -12,14 +12,26 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { supabase } from "../../../../helper/Supabase";
+import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
+import { userContext } from "../../../../App";
 
 function AddLessonDialog(props) {
+  const { setSnackbar } = useContext(userContext);
+
   const { open, setOpen, subjectId, subjectName } = props;
 
   const [lessonList, setLessonList] = useState([]);
   const [lesson, setLesson] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setLoading(false);
+      return;
+    }
+  }, [open]);
 
   const onClose = () => {
     setOpen(false);
@@ -29,6 +41,16 @@ function AddLessonDialog(props) {
 
   const addToList = (e) => {
     e.preventDefault();
+
+    if (lessonList.includes(lesson)) {
+      setSnackbar({
+        open: true,
+        message: "Lesson already in the list",
+        severity: "error",
+      });
+      return;
+    }
+
     setLessonList([...lessonList, lesson]);
     setLesson("");
   };
@@ -40,6 +62,34 @@ function AddLessonDialog(props) {
   };
 
   const createLesson = async () => {
+    setLoading(true);
+
+    const { data: duplicateData, error: duplicateErr } = await supabase
+      .from("tbl_lesson")
+      .select("title")
+      .eq("subject_id", subjectId)
+      .in("title", lessonList);
+
+    if (duplicateErr) {
+      setSnackbar({
+        open: true,
+        message: "Error checking duplicates. Please try again.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (duplicateData.length != 0) {
+      setSnackbar({
+        open: true,
+        message: "Error: Duplicate lesson/s found",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
     const payload = lessonList.map((data, index) => {
       return { title: data, subject_id: subjectId };
     });
@@ -49,13 +99,16 @@ function AddLessonDialog(props) {
       .insert(payload);
 
     if (lessonErr) {
-      console.log("error creating lesson:", lessonErr);
+      setSnackbar({
+        open: true,
+        message: "Error creating lesson/s. Please try again.",
+        severity: "error",
+      });
+      setLoading(false);
       return;
     }
 
-    setLessonList([]);
-    setLesson("");
-    setOpen(false);
+    onClose();
   };
 
   return (
@@ -130,7 +183,8 @@ function AddLessonDialog(props) {
             variant="contained"
             disableElevation
             onClick={() => createLesson()}
-            disabled={lessonList.length == 0 ? true : false}
+            loading={loading}
+            disabled={lessonList.length == 0 || loading}
           >
             Confirm
           </Button>

@@ -6,27 +6,35 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   Input,
   InputAdornment,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
+  OutlinedInput,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/SearchRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
-import { useEffect, useMemo, useState } from "react";
+import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
+
+import { useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../../helper/Supabase";
+import { userContext } from "../../../../App";
 
 function AddAssigned(props) {
+  const { setSnackbar } = useContext(userContext);
+
   const { open, setOpen, subjectId, departmentId, progSubId } = props;
 
   const [facultyList, setFacultyList] = useState([]);
   const [search, setSearch] = useState("");
   const [facultyOption, setFacultyOption] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
     // get assigned
@@ -36,7 +44,12 @@ function AddAssigned(props) {
       .eq("subject_id", subjectId);
 
     if (assignedErr) {
-      console.log("error assigned:", assignedErr);
+      setSnackbar({
+        open: true,
+        message: "Error fetching assigned faculty",
+        severity: "error",
+      });
+      onClose();
       return;
     }
 
@@ -66,6 +79,7 @@ function AddAssigned(props) {
 
   useEffect(() => {
     if (!open) {
+      setLoading(false);
       return;
     }
     fetchData();
@@ -98,12 +112,18 @@ function AddAssigned(props) {
       };
     });
 
+    setLoading(true);
     const { error } = await supabase
       .from("tbl_faculty_subject")
       .insert(payload);
 
     if (error) {
-      console.log("error assigning:", error);
+      setSnackbar({
+        open: true,
+        message: "Error assigning faculty. Please try again.",
+        severity: "error",
+      });
+      setLoading(false);
       return;
     }
 
@@ -128,22 +148,25 @@ function AddAssigned(props) {
               const name = `${data.suffix} ${data.f_name} ${data.m_name} ${data.l_name}`;
 
               return (
-                <ListItem key={index}>
+                <ListItem
+                  key={index}
+                  secondaryAction={
+                    <IconButton
+                      size="small"
+                      onClick={() => removeList(data.id)}
+                    >
+                      <HighlightOffRoundedIcon color="error" fontSize="20" />
+                    </IconButton>
+                  }
+                >
                   <ListItemText>{name}</ListItemText>
-
-                  <Button
-                    size="small"
-                    color="error"
-                    onClick={() => removeList(data.id)}
-                  >
-                    undo
-                  </Button>
                 </ListItem>
               );
             })}
           </List>
         </Card>
-        <Input
+        <OutlinedInput
+          size="small"
           placeholder="Search Faculty"
           value={search}
           sx={{ my: 2, width: "100%" }}
@@ -162,7 +185,7 @@ function AddAssigned(props) {
           }
         />
         {facultyOption.length != 0 ? (
-          <List sx={{ width: "100%" }}>
+          <List sx={{ width: "100%", maxHeight: 300, overflowY: "auto" }}>
             {search == "" && facultyList.length == 0
               ? facultyOption.map((data, index) => {
                   const name = `${data.suffix} ${data.f_name} ${data.m_name} ${data.l_name}`;
@@ -206,6 +229,7 @@ function AddAssigned(props) {
             color="success"
             variant="contained"
             disableElevation
+            loading={loading}
             disabled={facultyList.length == 0}
           >
             Confirm

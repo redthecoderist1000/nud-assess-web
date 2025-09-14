@@ -8,7 +8,19 @@ import { motion } from "framer-motion";
 
 import { userContext } from "../../App";
 import { supabase } from "../../helper/Supabase";
-import { Button, CircularProgress, Stack, TextField } from "@mui/material";
+import {
+  Button,
+  CircularProgress,
+  FormControl,
+  IconButton,
+  InputAdornment,
+  InputLabel,
+  OutlinedInput,
+  Stack,
+  TextField,
+} from "@mui/material";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -16,7 +28,6 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showCPassword, setShowCPassword] = useState(false);
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { setSnackbar } = useContext(userContext);
 
@@ -34,7 +45,6 @@ const LoginPage = () => {
   const sendConfirmation = (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
 
     const domain = formSignUp.email.split("@")[1];
     // uncomment on final
@@ -44,7 +54,11 @@ const LoginPage = () => {
     //   return;
     // }
     if (formSignUp.password != formSignUp.cpassword) {
-      setError("Passwords do not match");
+      setSnackbar({
+        open: true,
+        message: "Passwords do not match",
+        severity: "error",
+      });
       setIsLoading(false);
       return;
     }
@@ -56,62 +70,55 @@ const LoginPage = () => {
       });
 
       if (error) {
-        // console.log("Error in sign up:", signUpRes.error);
-        setError(error.message);
+        setSnackbar({
+          open: true,
+          message: "Error: " + error.message,
+          severity: "error",
+        });
         setIsLoading(false);
         return;
       }
 
       if (data) {
-        setError("otp was successfully sent to:", formSignUp.email);
-        navigate("/signup-otp", { state: { email: formSignUp.email } });
+        setSnackbar({
+          open: true,
+          message: "OTP was successfully sent to: " + formSignUp.email,
+          severity: "success",
+        });
+
+        navigate("/signup-otp", {
+          replace: true,
+          state: { email: formSignUp.email },
+        });
       }
-      setIsLoading(false);
     })();
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     // correct na
-    setError("");
     setIsLoading(true);
 
-    // alert(email + password);
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
     if (error) {
-      // console.log("Error: " + error);
-      setError(error.message);
+      setSnackbar({
+        open: true,
+        message: "Error: " + error.message,
+        severity: "error",
+      });
       setIsLoading(false);
 
       return;
     }
 
-    // await supabase
-    //   .from("tbl_users")
-    //   .select("*")
-    //   .eq("id", data.user.id)
-    //   .single()
-    //   .then((data2) => {
-    //     userCon.setUser({
-    //       ...userCon.user,
-    //       email: data.user.email,
-    //       user_id: data.user.id,
-    //       suffix: data2.data.suffix,
-    //       role: data2.data.role,
-    //       f_name: data2.data.f_name,
-    //       m_name: data2.data.m_name,
-    //       l_name: data2.data.l_name,
-    //       department_id: data2.data.department_id,
-    //       allow_ai: data2.data.allow_ai,
-    //     });
-    //   });
-
-    // navigate("/dashboard");
-    setIsLoading(false);
+    setSnackbar({
+      open: true,
+      message: "Successfully Logged In",
+      severity: "success",
+    });
   };
 
   return (
@@ -167,25 +174,56 @@ const LoginPage = () => {
                   onChange={handleChangeSignUpForm}
                 />
 
-                <TextField
-                  required
-                  size="small"
-                  label="Password"
-                  name="password"
-                  type="password"
-                  fullWidth
-                  onChange={handleChangeSignUpForm}
-                />
-
-                <TextField
-                  required
-                  size="small"
-                  label="Confirm Password"
-                  name="cpassword"
-                  type="password"
-                  fullWidth
-                  onChange={handleChangeSignUpForm}
-                />
+                <FormControl variant="outlined" size="small" fullWidth required>
+                  <InputLabel htmlFor="password_input">Password</InputLabel>
+                  <OutlinedInput
+                    id="password_input"
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    onChange={handleChangeSignUpForm}
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? (
+                            <VisibilityOff sx={{ fontSize: 20 }} />
+                          ) : (
+                            <Visibility sx={{ fontSize: 20 }} />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                    label="Password"
+                  />
+                </FormControl>
+                <FormControl variant="outlined" size="small" fullWidth required>
+                  <InputLabel htmlFor="cpassword_input">
+                    Confirm Password
+                  </InputLabel>
+                  <OutlinedInput
+                    id="cpassword_input"
+                    name="cpassword"
+                    onChange={handleChangeSignUpForm}
+                    type={showCPassword ? "text" : "password"}
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowCPassword(!showCPassword)}
+                          edge="end"
+                        >
+                          {showCPassword ? (
+                            <VisibilityOff sx={{ fontSize: 20 }} />
+                          ) : (
+                            <Visibility sx={{ fontSize: 20 }} />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                    label="Confirm Password"
+                  />
+                </FormControl>
                 {/* Send Confirmation Button */}
                 <Button
                   variant="contained"
@@ -212,7 +250,7 @@ const LoginPage = () => {
                     onClick={() => setSignUp(false)}
                     className="text-amber-400 cursor-pointer hover:underline"
                   >
-                    Log In
+                    Sign In here.
                   </span>
                 </motion.p>
               </Stack>
@@ -226,7 +264,7 @@ const LoginPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                Login
+                Sign In
               </motion.h1>
               <motion.p
                 className="text-gray-600 mb-6"
@@ -234,10 +272,10 @@ const LoginPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                Login to access your NUD Assess account
+                Sign in to access your NUD Assess account
               </motion.p>
 
-              <div className="space-y-4">
+              <Stack rowGap={1}>
                 <TextField
                   required
                   label="Email"
@@ -246,30 +284,45 @@ const LoginPage = () => {
                   size="small"
                   onChange={(e) => setEmail(e.target.value)}
                 />
-                <TextField
-                  required
-                  label="Password"
-                  type="password"
+                <FormControl variant="outlined" size="small" fullWidth required>
+                  <InputLabel htmlFor="password_input">Password</InputLabel>
+                  <OutlinedInput
+                    id="password_input"
+                    type={showPassword ? "text" : "password"}
+                    onChange={(e) => setPassword(e.target.value)}
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? (
+                            <VisibilityOff sx={{ fontSize: 20 }} />
+                          ) : (
+                            <Visibility sx={{ fontSize: 20 }} />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                    label="Password"
+                  />
+                </FormControl>
+
+                {/* Login Button */}
+
+                <Button
+                  type="submit"
+                  loading={isLoading}
                   fullWidth
-                  size="small"
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-
-              {/* Login Button */}
-
-              <Button
-                type="submit"
-                loading={isLoading}
-                fullWidth
-                sx={{
-                  bgcolor: "#35408E",
-                  color: "white",
-                  "&:hover": { bgcolor: "#2c347a" },
-                }}
-              >
-                Sign In
-              </Button>
+                  sx={{
+                    bgcolor: "#35408E",
+                    color: "white",
+                    "&:hover": { bgcolor: "#2c347a" },
+                  }}
+                >
+                  Sign In
+                </Button>
+              </Stack>
 
               {/* Signup Link */}
               <motion.p

@@ -165,7 +165,11 @@ const AnimatedRoutes = () => {
         .maybeSingle();
 
       if (error) {
-        console.log("Error fetching user data:", error);
+        setSnackbar({
+          open: true,
+          message: "Error fetching user data",
+          severity: "error",
+        });
         setLoading(false);
         return;
       }
@@ -197,7 +201,7 @@ const AnimatedRoutes = () => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (!session) {
-          setUser(null);
+          setUser({});
         } else {
           initAuth();
         }

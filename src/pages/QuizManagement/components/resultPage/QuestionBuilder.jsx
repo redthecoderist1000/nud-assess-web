@@ -53,9 +53,11 @@ function QuestionBuilder(props) {
     if (data.question && !hasId) {
       setCheckLoading(true);
       setCheckerRes({});
+      setIsChecked(false);
 
       const handler = setTimeout(() => {
         check();
+        // testCheck();
       }, 5000); // 1000ms = 1 seconds
 
       return () => {
@@ -78,11 +80,27 @@ function QuestionBuilder(props) {
         // console.log("sakses checking:", res.data);
         setCheckLoading(false);
         setCheckerRes(res.data);
+        setIsChecked(true);
       })
       .catch((err) => {
+        setIsChecked(false);
         setCheckLoading(false);
         setCheckerRes({ status: "failed" });
       });
+  };
+
+  // const testCheck = () => {
+  //   setTimeout(() => {
+  //     setCheckLoading(false);
+  //     setCheckerRes({ count: 0 });
+  //     setChecked();
+  //   }, 2000);
+  // };
+
+  const testCheck = () => {
+    setCheckLoading(false);
+    setCheckerRes({ count: 0 });
+    setIsChecked(true);
   };
 
   const alertBuilder = () => {
@@ -127,6 +145,11 @@ function QuestionBuilder(props) {
             px: 1,
             fontSize: "0.875rem",
           }}
+          action={
+            <Button color="inherit" size="small" onClick={retryCheck}>
+              retry
+            </Button>
+          }
         >
           Error! Failed to check similarities
         </Alert>
@@ -134,6 +157,14 @@ function QuestionBuilder(props) {
     }
 
     // if wala
+  };
+
+  const retryCheck = () => {
+    setCheckLoading(true);
+    setCheckerRes({});
+    setIsChecked(false);
+    check();
+    // testCheck();
   };
 
   const handleChangeQuestion = (e) => {
@@ -218,6 +249,14 @@ function QuestionBuilder(props) {
       default:
         break;
     }
+  };
+
+  const setIsChecked = (value) => {
+    setItems((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], checked: value };
+      return next;
+    });
   };
 
   return (

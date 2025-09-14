@@ -235,13 +235,9 @@ const FilterAnalytics = ({ filter, setFilter, hasResult }) => {
 
   return (
     <div
-      className="flex flex-wrap items-center w-full justify-between mt-4"
+      className="flex flex-wrap items-center w-full justify-end mt-4"
       style={{ minHeight: 32, paddingTop: 8 }}
     >
-      <span className="text-[14px] text-gray-600 ml-2 mb-2 sm:mb-0">
-        Monitor quiz performance and student engagement
-      </span>
-
       <div className="flex flex-wrap items-center gap-3">
         <Select
           value={filter.class_id || ""}

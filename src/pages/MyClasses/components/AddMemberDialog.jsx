@@ -18,23 +18,21 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
 import * as XLSX from "xlsx";
 
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import CalendarViewMonthRoundedIcon from "@mui/icons-material/CalendarViewMonthRounded";
+import { userContext } from "../../../App";
 
 function AddMemberDialog({ open, setOpen, classId }) {
+  const { setSnackbar } = useContext(userContext);
+
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [studentList, setStudentList] = useState([]);
   const [studentToAdd, setStudentToAdd] = useState([]);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info",
-  });
 
   const fileRef = useRef(null);
 
@@ -378,22 +376,6 @@ function AddMemberDialog({ open, setOpen, classId }) {
           </Stack>
         </Stack>
       </DialogActions>
-      {/* snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Dialog>
   );
 }

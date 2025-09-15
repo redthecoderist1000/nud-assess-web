@@ -23,6 +23,8 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 const LoginPage = () => {
+  const env = import.meta.env;
+
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,11 +50,15 @@ const LoginPage = () => {
 
     const domain = formSignUp.email.split("@")[1];
     // uncomment on final
-    // if (domain != "nu-dasma.edu.ph") {
-    //   setError("Please use your valid NU email");
-    // setIsLoading(false);
-    //   return;
-    // }
+    if (domain != "nu-dasma.edu.ph" && env.VITE_ENVIRONMENT === "deployed") {
+      setSnackbar({
+        open: true,
+        message: "Please use your valid NU email",
+        severity: "error",
+      });
+      setIsLoading(false);
+      return;
+    }
     if (formSignUp.password != formSignUp.cpassword) {
       setSnackbar({
         open: true,

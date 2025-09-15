@@ -27,7 +27,7 @@ function QuizInfoPage() {
   useEffect(() => {
     fetchData();
 
-    supabase
+    const classChannel = supabase
       .channel("custom-filter-channel")
       .on(
         "postgres_changes",
@@ -37,6 +37,10 @@ function QuizInfoPage() {
         }
       )
       .subscribe();
+
+    return () => {
+      supabase.removeChannel(classChannel);
+    };
   }, []);
 
   const fetchData = async () => {

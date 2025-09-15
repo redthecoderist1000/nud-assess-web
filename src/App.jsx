@@ -48,23 +48,30 @@ import SubjectInfoPage from "./pages/Admin/pages/SubjectInfoPage.jsx";
 import CartPage from "./pages/QuizManagement/manualCreation/CartPage.jsx";
 import Tosifier from "./pages/QuizManagement/tosPage/Tosifier.jsx";
 import AutoSignOut from "./components/elements/AutoSignOut.jsx";
+import { Alert, Snackbar } from "@mui/material";
 
 export const userContext = createContext();
 export const signupContext = createContext();
 
 // Wrapper to use location inside AnimatePresence
 const AnimatedRoutes = () => {
+  const env = import.meta.env;
+
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
   const [signupData, setSignupData] = useState({});
-
-  const userVal = { user, setUser, loading };
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const userVal = { user, setUser, loading, setSnackbar };
   const signupVal = { signupData, setSignupData };
 
   const [lastActivity, setLastActivity] = useState(Date.now());
-  const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
+  const INACTIVITY_TIMEOUT = 20 * 60 * 1000; // 20 minutes in milliseconds
   // const INACTIVITY_TIMEOUT = 60 * 10000; // 10 minutes in milliseconds
   const SESSION_CHECK_INTERVAL = 60 * 1000; // Check every minute
   const [autoSignOut, setAutoSignOut] = useState(false);
@@ -84,10 +91,14 @@ const AnimatedRoutes = () => {
 
       // Sign out if user has been inactive for too long
       if (timeInactive > INACTIVITY_TIMEOUT) {
-        console.log("Signing out due to inactivity");
+        // console.log("Signing out due to inactivity");
         // setUser({});
         setAutoSignOut(true);
-        // await supabase.auth.signOut();
+        if (env.VITE_ENVIRONMENT === "deployed") {
+          await supabase.auth.signOut();
+        }
+        // get env variable
+
         return;
       }
 
@@ -146,6 +157,8 @@ const AnimatedRoutes = () => {
   }, [lastActivity]);
 
   const initAuth = async () => {
+    // await supabase.auth.signOut();
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -155,10 +168,26 @@ const AnimatedRoutes = () => {
         .from("tbl_users")
         .select("*")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        navigate("/setup");
+        setSnackbar({
+          open: true,
+          message: "Error fetching user data",
+          severity: "error",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (data === null) {
+        navigate("/setup", {
+          replace: true,
+          state: {
+            user_id: session.user.id,
+            email: session.user.email,
+          },
+        });
         return;
       }
 
@@ -178,7 +207,7 @@ const AnimatedRoutes = () => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (!session) {
-          setUser(null);
+          setUser({});
         } else {
           initAuth();
         }
@@ -270,6 +299,23 @@ const AnimatedRoutes = () => {
         </userContext.Provider>
       </signupContext.Provider>
       <AutoSignOut open={autoSignOut} onClose={() => setAutoSignOut(false)} />
+
+      {/* snackbar */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

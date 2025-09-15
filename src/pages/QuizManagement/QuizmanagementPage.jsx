@@ -4,21 +4,24 @@ import { motion } from "framer-motion";
 import QuizModal from "./components/QuizModal";
 import QuestionRepoModal from "../QuestionManagement/components/QuestionRepoModal";
 import Tosifier from "./tosPage/Tosifier";
-import { Box, Card, Container, Tab, Tabs, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  Container,
+  Stack,
+  Tab,
+  Tabs,
+  Typography,
+} from "@mui/material";
 import MyQuizTab from "./quizmanagementTabs/MyQuizTab";
+import SharedQuizTab from "./quizmanagementTabs/SharedQuizTab";
 
 function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
+  const { children, value, index } = props;
 
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    <div role="tabpanel" hidden={value !== index}>
+      {value === index && <>{children}</>}
     </div>
   );
 }
@@ -26,7 +29,6 @@ function CustomTabPanel(props) {
 const QuizmanagementPage = () => {
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [isRepoModalOpen, setIsRepoModalOpen] = useState(false);
-  const [showTOS, setShowTOS] = useState(false);
   const [value, setValue] = useState(0);
 
   const [quizDetail, setQuizDetail] = useState({
@@ -52,18 +54,12 @@ const QuizmanagementPage = () => {
     });
   };
 
-  // if (showTOS) {
-  //   return (
-  //     <Tosifier quizDetail={quizDetail} onCancel={() => setShowTOS(false)} />
-  //   );
-  // }
-
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
   return (
-    <Container maxWidth="xl" className="my-5">
+    <Container maxWidth="xl" sx={{ my: 5 }}>
       <motion.div
         className="flex h-screen overflow"
         initial={{ opacity: 0, y: 20 }}
@@ -74,7 +70,7 @@ const QuizmanagementPage = () => {
           {/* Top section compact */}
           <div className="bg-white border-b border-gray-200 py-3 mb-6 flex items-center justify-between mt-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-0">Exams</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-0">Quizzes</h1>
               <p className="text-sm text-gray-500 mt-1 mb-0">
                 Manage your test bank and track student performance
               </p>
@@ -127,61 +123,60 @@ const QuizmanagementPage = () => {
             </button>
           </div>
 
-          <Card variant="outlined" sx={{ mt: 3 }}>
-            <Box sx={{ width: "100%" }}>
-              <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-                <Tabs
-                  value={value}
-                  onChange={handleChange}
-                  aria-label="basic tabs example"
-                >
-                  <Tab
-                    label={
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <rect
-                            x="4"
-                            y="6"
-                            width="16"
-                            height="12"
-                            rx="2"
-                            stroke="#2C388F"
-                            strokeWidth="2"
-                          />
-                          <path
-                            d="M8 10h8M8 14h5"
-                            stroke="#2C388F"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ fontWeight: 600, color: "#222" }}
-                        >
-                          My Exams
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                  {/* <Tab label="Shared Quizzes" /> */}
-                </Tabs>
-              </Box>
-              <CustomTabPanel value={value} index={0}>
-                <MyQuizTab />
-              </CustomTabPanel>
-              {/* <CustomTabPanel value={value} index={1}>
-                Item Two
-              </CustomTabPanel> */}
-            </Box>
-          </Card>
+          {/* <Card variant="outlined" sx={{ mt: 3 }}> */}
+          {/* <Box sx={{ borderBottom: 1, borderColor: "divider" }}> */}
+
+          {/* Custom Tabs */}
+          <Stack rowGap={4}>
+            <div className="w-full flex justify-center mt-5">
+              <div
+                className="w-full rounded-full"
+                style={{
+                  background: "#f3f3f7",
+                  padding: "4px",
+                  display: "flex",
+                  border: "none",
+                  boxSizing: "border-box",
+                }}
+              >
+                {[
+                  { label: "My Quizzes", key: 0 },
+                  { label: "Shared Quizzes", key: 1 },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
+                ${value === tab.key ? "bg-white text-black shadow-sm" : "text-gray-700"}
+              `}
+                    style={{
+                      margin: "2px",
+                      background: value === tab.key ? "#fff" : "transparent",
+                      border: "none",
+                      borderRadius: 9999,
+                      boxShadow:
+                        value === tab.key
+                          ? "0 1px 4px rgba(0,0,0,0.03)"
+                          : "none",
+                      minWidth: 0,
+                    }}
+                    onClick={() => setValue(tab.key)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* </Box> */}
+            <CustomTabPanel value={value} index={0}>
+              <MyQuizTab />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={1}>
+              <SharedQuizTab />
+            </CustomTabPanel>
+          </Stack>
+
+          {/* </Card> */}
         </main>
 
         {/* Quiz Modal */}

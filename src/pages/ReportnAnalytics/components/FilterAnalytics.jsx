@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Select, MenuItem } from "@mui/material";
 import InsertDriveFileRoundedIcon from "@mui/icons-material/InsertDriveFileRounded";
 import CalendarViewMonthRoundedIcon from "@mui/icons-material/CalendarViewMonthRounded";
@@ -7,10 +7,7 @@ import { getReportHTML } from "../Download/DLReport";
 import { downloadFullCSV } from "../Download/CSVReport";
 import { downloadWordReport } from "../Download/WordReport";
 import { supabase } from "../../../helper/Supabase";
-
-// dummy data
-const defaultClassOptions = ["BSIT 3A", "BSIT 3B", "BSIT 4A"];
-const defaultDateOptions = ["Last 7 days", "Last 30 days"];
+import { userContext } from "../../../App";
 const summaryData = {
   students: 40,
   quizzes: 10,
@@ -155,7 +152,8 @@ const taxonomyAnalysis = [
   { level: "Creating", count: 3, percent: "3.75%" },
 ];
 
-const FilterAnalytics = ({ filter, setFilter, generalData, analyticsData }) => {
+const FilterAnalytics = ({ filter, setFilter, hasResult }) => {
+  const { setSnackbar } = useContext(userContext);
   const [classOption, setClassOption] = useState([]);
 
   useEffect(() => {
@@ -170,12 +168,19 @@ const FilterAnalytics = ({ filter, setFilter, generalData, analyticsData }) => {
       .select("*")
       .eq("created_by", user_id);
     if (classErr) {
-      console, log("error fetch class option:", classErr);
+      setSnackbar({
+        open: true,
+        message: "Error fetching class options.",
+        severity: "error",
+      });
       return;
     }
     setClassOption(classOptionData);
     if (classOptionData.length > 0) {
       setFilter({ ...filter, class_id: classOptionData[0].id });
+    } else {
+      setFilter({ ...filter, class_id: "" });
+      // console.log("test no options");
     }
   };
 
@@ -230,16 +235,12 @@ const FilterAnalytics = ({ filter, setFilter, generalData, analyticsData }) => {
 
   return (
     <div
-      className="flex flex-wrap items-center w-full justify-between mt-4"
+      className="flex flex-wrap items-center w-full justify-end mt-4"
       style={{ minHeight: 32, paddingTop: 8 }}
     >
-      <span className="text-[14px] text-gray-600 ml-2 mb-2 sm:mb-0">
-        Monitor quiz performance and student engagement
-      </span>
-
       <div className="flex flex-wrap items-center gap-3">
         <Select
-          value={filter.class_id}
+          value={filter.class_id || ""}
           onChange={(e) => setFilter({ ...filter, class_id: e.target.value })}
           size="small"
           className="bg-gray-100 rounded-md"
@@ -282,51 +283,53 @@ const FilterAnalytics = ({ filter, setFilter, generalData, analyticsData }) => {
           <MenuItem value="30">last 30 days</MenuItem>
         </Select>
 
-        <Select
-          className="bg-gray-100 rounded-md"
-          labelId="export_label"
-          size="small"
-          sx={{
-            height: 36,
-            fontSize: 14,
-          }}
-          displayEmpty
-          value=""
-        >
-          <MenuItem value="" disabled>
-            Export as
-          </MenuItem>
-          <MenuItem
-            onClick={handleCSVDownload}
-            value="csv"
-            sx={{ justifyContent: "center", gap: 1 }}
+        {!hasResult && (
+          <Select
+            className="bg-gray-100 rounded-md"
+            labelId="export_label"
+            size="small"
+            sx={{
+              height: 36,
+              fontSize: 14,
+            }}
+            displayEmpty
+            value=""
           >
-            <CalendarViewMonthRoundedIcon
-              style={{ fontSize: 16 }}
-              color="success"
-            />
-            .csv
-          </MenuItem>
-          <MenuItem
-            onClick={handleWordDownload}
-            value="docx"
-            sx={{ justifyContent: "center", gap: 1 }}
-          >
-            <InsertDriveFileRoundedIcon
-              style={{ fontSize: 16 }}
-              color="primary"
-            />
-            .docx
-          </MenuItem>
-          <MenuItem
-            onClick={openQuickSummaryPDF}
-            value="pdf"
-            sx={{ justifyContent: "center", gap: 1 }}
-          >
-            <PictureAsPdfRoundedIcon style={{ fontSize: 16 }} color="error" />
-            .pdf
-          </MenuItem>
-        </Select>
+            <MenuItem value="" disabled>
+              Export as
+            </MenuItem>
+            <MenuItem
+              onClick={handleCSVDownload}
+              value="csv"
+              sx={{ justifyContent: "center", gap: 1 }}
+            >
+              <CalendarViewMonthRoundedIcon
+                style={{ fontSize: 16 }}
+                color="success"
+              />
+              .csv
+            </MenuItem>
+            <MenuItem
+              onClick={handleWordDownload}
+              value="docx"
+              sx={{ justifyContent: "center", gap: 1 }}
+            >
+              <InsertDriveFileRoundedIcon
+                style={{ fontSize: 16 }}
+                color="primary"
+              />
+              .docx
+            </MenuItem>
+            <MenuItem
+              onClick={openQuickSummaryPDF}
+              value="pdf"
+              sx={{ justifyContent: "center", gap: 1 }}
+            >
+              <PictureAsPdfRoundedIcon style={{ fontSize: 16 }} color="error" />
+              .pdf
+            </MenuItem>
+          </Select>
+        )}
       </div>
     </div>
   );

@@ -4,19 +4,10 @@ import { app } from "./Firebase";
 const ai = getAI(app, { backend: new VertexAIBackend() });
 
 const generationConfig = {
-  //   temperature: 0.5,
-  //   topP: 0.95,
-  //   topK: 40,
-  //   maxOutputTokens: 25000,
   responseMimeType: "application/json",
   responseSchema: {
     type: "object", // The root is now an object
     properties: {
-      status: {
-        type: "string",
-        description:
-          'Indicates the overall success or state of the question generation. "Failed" if the documents are irrelevant to the topics or no document at all, otherwise "Success" .',
-      },
       questions: {
         type: "array",
         description:
@@ -61,6 +52,11 @@ const generationConfig = {
                 required: ["answer", "is_correct"],
               },
             },
+            ai_generated: {
+              type: "boolean",
+              description:
+                "Indicates if the question was AI-generated. Always true.",
+            },
           },
           required: [
             "question",
@@ -68,18 +64,19 @@ const generationConfig = {
             "specification",
             "topic",
             "lesson_id",
+            "ai_generated",
           ],
         },
       },
     },
-    required: ["status", "questions"], // Both 'status' and 'questions' are required properties of the root object
+    required: ["questions"], // Both 'status' and 'questions' are required properties of the root object
   },
 };
 
 const model = getGenerativeModel(ai, {
   model: "gemini-2.5-flash",
   systemInstruction:
-    "You are an expert educational question designer specialized in crafting questions across all cognitive levels of Bloom's Taxonomy. Your goal is to generate questions that assess understanding, application, analysis, evaluation, and creation, using varied phrasing and keywords appropriate for each level. The structure of the quiz will be based on the specifications per lessons given in the prompt. Ensure that all of the contents in the questions are present in the files provided, but do not mention in the question that you are referring to some files. For each questions, provide 4 multiple choices with only one correct answer. Include the specification according to the Bloom's Taxonomy Cognitive Domain, and the lesson as well as the lesson id which the question came from. ",
+    "You are an expert educational question designer specialized in crafting questions across all cognitive levels of Bloom's Taxonomy. Your goal is to generate questions that assess understanding, application, analysis, evaluation, and creation, using varied phrasing and keywords appropriate for each level. The structure of the quiz will be based on the specifications per lessons given in the prompt. Ensure that all of the contents in the questions are present in the files provided, but do not mention in the question that you are referring to some files. For each questions, provide 4 multiple choices with only one correct answer. Include the specification according to the Bloom's Taxonomy Cognitive Domain, and the lesson as well as the lesson id which the question came from. Avoid using phrases like 'based on the provided documents' in the questions. Be concise and clear in your questions and answer choices.",
   generationConfig: generationConfig,
 });
 

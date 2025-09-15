@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import QuestionRepoModal from "./components/QuestionRepoModal";
 
-import { Box, Card, Container, Tab, Tabs } from "@mui/material";
+import { Box, Card, Container, Stack, Tab, Tabs } from "@mui/material";
 
 import MyQuestionTab from "./questionmanagementTabs/MyQuestionTab";
 import { supabase } from "../../helper/Supabase";
+import SharedQuestionTab from "./questionmanagementTabs/SharedQuestionTab";
 
 const QuestionManagementPage = () => {
   const [repoModalOpen, setRepoModalOpen] = useState(false);
@@ -21,41 +22,6 @@ const QuestionManagementPage = () => {
     totalUsage: 0,
     avgUsage: 0,
   });
-
-  useEffect(() => {
-    // const fetchStats = async () => {
-    //   // My Questions count
-    //   const { data: myQuestions } = await supabase
-    //     .from("questions")
-    //     .select("id", { count: "exact" })
-    //     .eq("owner_id", supabase.auth.user()?.id);
-    //   // Shared Questions count
-    //   const { data: sharedQuestions } = await supabase
-    //     .from("questions")
-    //     .select("id", { count: "exact" })
-    //     .eq("is_shared", true);
-    //   // Total Usage (sum of usage_count column)
-    //   const { data: usageData } = await supabase
-    //     .from("questions")
-    //     .select("usage_count");
-    //   // Calculate stats
-    //   const myQuestionsCount = myQuestions?.length || 0;
-    //   const sharedQuestionsCount = sharedQuestions?.length || 0;
-    //   const totalUsage = usageData ? usageData.reduce((sum, q) => sum + (q.usage_count || 0), 0) : 0;
-    //   const avgUsage = myQuestionsCount > 0
-    //     ? Math.round(totalUsage / myQuestionsCount)
-    //     : 0;
-    //   const myQuestionsDelta = 3;
-    //   setTetraStats({
-    //     myQuestions: myQuestionsCount,
-    //     myQuestionsDelta,
-    //     sharedQuestions: sharedQuestionsCount,
-    //     totalUsage,
-    //     avgUsage,
-    //   });
-    // };
-    // fetchStats();
-  }, []);
 
   return (
     <Container
@@ -148,110 +114,61 @@ const QuestionManagementPage = () => {
 
           {/* Pass backend stats to TetraBox */}
           {/* <TetraBox stats={tetraStats} /> */}
+          <Stack rowGap={4}>
+            {/* Custom Tabs (styled like ReportAndAnalytics) */}
+            <div className="w-full flex justify-center mb-2 mt-5">
+              <div
+                className="w-full rounded-full"
+                style={{
+                  background: "#f3f4f6",
+                  padding: "4px",
+                  display: "flex",
+                  border: "none",
+                  boxSizing: "border-box",
+                }}
+              >
+                {[
+                  { label: "My Questions", key: "MyQuestions" },
+                  { label: "Shared Questions", key: "SharedQuestions" },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
+                    ${activeTab === tab.key ? "bg-white text-black shadow-sm" : "text-gray-700"}
+                  `}
+                    style={{
+                      margin: "2px",
+                      background:
+                        activeTab === tab.key ? "#fff" : "transparent",
+                      border: "none",
+                      borderRadius: 9999,
+                      boxShadow:
+                        activeTab === tab.key
+                          ? "0 1px 4px rgba(0,0,0,0.03)"
+                          : "none",
+                      minWidth: 0,
+                    }}
+                    onClick={() => setActiveTab(tab.key)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          {/* Custom Tabs (styled like ReportAndAnalytics) */}
-          <div className="w-full flex justify-center mb-2 mt-5">
-            <div
-              className="w-full"
-              style={{
-                background: "#f3f4f6",
-                borderRadius: 16,
-                padding: "4px",
+            {/* Tab Content: Make table scrollable, page fixed */}
+            <Box
+              sx={{
+                flex: 1,
+                minHeight: 0,
                 display: "flex",
-                border: "none",
-                boxSizing: "border-box",
+                flexDirection: "column",
               }}
             >
-              {[
-                { label: "MY QUESTIONS", key: "MyQuestions" },
-                { label: "SHARED QUESTIONS", key: "SharedQuestions" },
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  className={`flex-1 text-center py-2 text-[15px] font-medium transition-colors rounded-full
-                    ${activeTab === tab.key ? "bg-white text-black" : "text-gray-700"}
-                  `}
-                  style={{
-                    margin: "2px",
-                    background: activeTab === tab.key ? "#fff" : "transparent",
-                    border: "none",
-                    borderRadius: 9999,
-                    boxShadow:
-                      activeTab === tab.key
-                        ? "0 1px 4px rgba(0,0,0,0.03)"
-                        : "none",
-                    minWidth: 0,
-                  }}
-                  onClick={() => setActiveTab(tab.key)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Tab Content: Make table scrollable, page fixed */}
-          <Box
-            sx={{
-              flex: 1,
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-            }}
-          >
-            {activeTab === "MyQuestions" && (
-              <Card
-                sx={{
-                  flex: 1,
-                  minHeight: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  overflow: "hidden",
-                }}
-              >
-                <Box
-                  sx={{
-                    width: "100%",
-                    flex: 1,
-                    minHeight: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    overflow: "hidden",
-                  }}
-                >
-                  <MyQuestionTab />
-                </Box>
-              </Card>
-            )}
-            {activeTab === "SharedQuestions" && (
-              <Card
-                variant="outlined"
-                sx={{
-                  flex: 1,
-                  minHeight: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  overflow: "hidden",
-                }}
-              >
-                <Box
-                  sx={{
-                    width: "100%",
-                    flex: 1,
-                    minHeight: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    overflow: "hidden",
-                  }}
-                >
-                  {/* Replace with your shared questions tab component */}
-                  Item Two
-                </Box>
-              </Card>
-            )}
-          </Box>
-
+              {activeTab === "MyQuestions" && <MyQuestionTab />}
+              {activeTab === "SharedQuestions" && <SharedQuestionTab />}
+            </Box>
+          </Stack>
           <QuestionRepoModal
             isOpen={repoModalOpen}
             onClose={() => setRepoModalOpen(false)}

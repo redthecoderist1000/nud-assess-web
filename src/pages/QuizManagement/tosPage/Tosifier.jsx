@@ -7,6 +7,7 @@ import {
   Divider,
   FormControl,
   Grid,
+  IconButton,
   InputLabel,
   LinearProgress,
   MenuItem,
@@ -25,13 +26,16 @@ import {
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { userContext } from "../../../App";
 import FileUpload from "../../../components/elements/FileUpload";
 import { aiRun } from "../../../helper/Gemini";
 import { supabase } from "../../../helper/Supabase";
 import { time } from "framer-motion";
+import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
+import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import relevanceCheck from "../../../helper/RelevanceCheck";
 
 // Styled components for design
 const SectionCard = styled(Paper)(({ theme }) => ({
@@ -80,7 +84,7 @@ const LegendItem = styled("span")(({ color }) => ({
 function Tosifier() {
   const location = useLocation();
   const { quizDetail: quizDetailState } = location.state;
-  const { user } = useContext(userContext);
+  const { user, setSnackbar } = useContext(userContext);
   const navigate = useNavigate();
   const [subjectOptions, setSubjectOptions] = useState([]);
   const [quizDetail, setQuizDetail] = useState({
@@ -118,16 +122,11 @@ function Tosifier() {
     evaluating: 0,
     totalItems: 0,
   });
-  const [loading, setLoading] = useState(false);
   const [lessonOption, setLessonOption] = useState([]);
-
   const [files, setFiles] = useState([]);
 
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(null);
 
   // calculate total hours when rows change
   useEffect(() => {
@@ -328,15 +327,26 @@ function Tosifier() {
   };
 
   const handleInputChange = (index, field, value) => {
+    if (field == "lesson_id") {
+      if (isLessonInRows(value)) {
+        setSnackbar({
+          open: true,
+          message: "Lesson is already exists in the table.",
+          severity: "error",
+        });
+        return;
+      }
+    }
+
     const updatedRows = [...rows];
     updatedRows[index][field] = value;
 
     setRows(updatedRows);
   };
 
-  const removeRow = () => {
-    rows.pop();
-    setRows([...rows]);
+  const removeRow = (index) => {
+    const updatedRows = rows.filter((_, i) => i !== index);
+    setRows(updatedRows);
   };
 
   const submitForm = (e) => {
@@ -376,6 +386,7 @@ function Tosifier() {
     // console.log(rows);
     // check if may avaialble questions
     setLoading(true);
+    setStatus("Checking available questions...");
 
     let isValid = true;
     await Promise.all(
@@ -416,6 +427,7 @@ function Tosifier() {
         message: "Generating quiz...",
         severity: "success",
       });
+      setStatus(null);
 
       // timeout 2s
       setTimeout(() => {
@@ -430,6 +442,7 @@ function Tosifier() {
       }, 2000);
     } else {
       // setError(true);
+      setStatus(null);
       setLoading(false);
       setSnackbar({
         open: true,
@@ -453,6 +466,57 @@ function Tosifier() {
     }
 
     setLoading(true);
+
+    // relevance check
+    const topics = rows.map((data) => ({
+      text: `${data.totalItems} questions in the topic of ${data.topic}`,
+    }));
+
+    try {
+      setStatus("Reviewing uploaded files...");
+      const result = await relevanceCheck(files, topics);
+
+      if (!result.status) {
+        setLoading(false);
+        setStatus(null);
+        setSnackbar({
+          open: true,
+          message:
+            "The uploaded documents are irrelevant to the topics. Please review and try again.",
+          severity: "error",
+        });
+        return;
+      }
+    } catch (error) {
+      setLoading(false);
+      setStatus(null);
+      setSnackbar({
+        open: true,
+        message: "There seems to be a problem on our side. Please try again.",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (rows.length === 0) {
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "There must be atleast 1 topic",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (total.hours <= 0) {
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "Hours cannot be equal or less than 0",
+        severity: "error",
+      });
+      return;
+    }
 
     // gawa ng array of texts
     const texts = rows.flatMap((data) => {
@@ -487,56 +551,28 @@ function Tosifier() {
       return compiled;
     });
 
-    if (rows.length === 0) {
-      setLoading(false);
-      setSnackbar({
-        open: true,
-        message: "There must be atleast 1 topic",
-        severity: "error",
-      });
-      return;
-    }
-
-    if (total.hours <= 0) {
-      setLoading(false);
-      setSnackbar({
-        open: true,
-        message: "Hours cannot be equal or less than 0",
-        severity: "error",
-      });
-      return;
-    }
-
     try {
+      setStatus("Generating questions. This may take a while...");
       const result = await aiRun(files, texts);
-      if (result.status == "Success") {
-        setSnackbar({
-          open: true,
-          message: "Questions generated successfully!",
-          severity: "success",
+      setStatus(null);
+      setSnackbar({
+        open: true,
+        message: "Questions generated successfully!",
+        severity: "success",
+      });
+      setTimeout(() => {
+        navigate("/quizsummary", {
+          state: {
+            quizDetail: quizDetail,
+            rows: rows,
+            total: total,
+            quiz: result.questions,
+          },
         });
-        setTimeout(() => {
-          navigate("/quizsummary", {
-            state: {
-              quizDetail: quizDetail,
-              rows: rows,
-              total: total,
-              quiz: result.questions,
-            },
-          });
-        }, 2000);
-      } else {
-        // success ai pero irrelevant ung pdf files
-        setSnackbar({
-          open: true,
-          message:
-            "The files you uploaded may have been irrelevant to the subject and topics.",
-          severity: "error",
-        });
-      }
-      setLoading(false);
+      }, 2000);
     } catch (error) {
       setLoading(false);
+      setStatus(null);
       setSnackbar({
         open: true,
         message: "There seems to be a problem on our side. Please try again.",
@@ -591,6 +627,18 @@ function Tosifier() {
     }
     setLessonOption(data);
   };
+
+  // check if lesson is already in the rows
+  const isLessonInRows = (lesson_id) => {
+    return rows.some((row) => row.lesson_id === lesson_id);
+  };
+
+  const filteredLessonOptions = useMemo(() => {
+    // console.log(lessonOption);
+    // console.log(lessonOption.filter((lesson) => !isLessonInRows(lesson.id)));
+
+    return lessonOption.filter((lesson) => !isLessonInRows(lesson.id));
+  }, [lessonOption, isLessonInRows]);
 
   return (
     <Container maxWidth="xl" className="my-5">
@@ -747,58 +795,26 @@ function Tosifier() {
             Bloom's Taxonomy
           </Typography>
           <Stack rowGap={2}>
-            <Stack
-              direction="row"
-              justifyContent="flex-end"
-              alignItems="center"
-              mb={2}
-              columnGap={2}
-            >
-              {/* <Typography fontWeight={500} mr={2}>
-                Total Items:
-              </Typography> */}
-              <OutlinedInput
-                size="small"
-                required
-                className="itemInput"
-                type="number"
-                placeholder="Total Items"
-                onChange={changeTotalItems}
-                sx={{
-                  // width: "80px",
-                  bgcolor: "#fafafa",
-                }}
-              />
-              <Button
-                variant="contained"
-                size="small"
-                onClick={addRow}
-                disableElevation
-                sx={{
-                  bgcolor: "#1976d2",
-                  color: "#fff",
-                }}
-              >
-                ADD TOPIC
-              </Button>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={removeRow}
-                disabled={rows.length === 0}
-                disableElevation
-                sx={{
-                  bgcolor: "#e0e0e0",
-                  color: "#333",
-                }}
-              >
-                REMOVE TOPIC
-              </Button>
-            </Stack>
             {/* file upload */}
             {quizDetail.mode == "AI-Generated" && (
               <FileUpload files={files} setFiles={setFiles} />
             )}
+            <TextField
+              label="Total Items"
+              size="small"
+              required
+              className="itemInput"
+              type="number"
+              inputProps={{
+                min: 1,
+                ...(quizDetail.mode === "AI-Generated" ? { max: 50 } : {}),
+              }}
+              onChange={changeTotalItems}
+              sx={{
+                width: { xs: "100%", sm: "150px" },
+                bgcolor: "#fafafa",
+              }}
+            />
             <Card sx={{ borderRadius: 3, boxShadow: "none" }}>
               <TableContainer
                 component={Paper}
@@ -808,6 +824,9 @@ function Tosifier() {
                 <Table>
                   <TableHead>
                     <TableRow>
+                      <TosTableCell rowSpan={2}>
+                        {/* <b>Lesson</b> */}
+                      </TosTableCell>
                       <TosTableCell rowSpan={2}>
                         <b>Lesson</b>
                       </TosTableCell>
@@ -855,6 +874,17 @@ function Tosifier() {
                     {rows.map((row, index) => (
                       <TableRow key={index}>
                         <TosTableCell>
+                          <IconButton
+                            onClick={() => removeRow(index)}
+                            size="small"
+                          >
+                            <HighlightOffRoundedIcon
+                              color="error"
+                              sx={{ fontSize: 20 }}
+                            />
+                          </IconButton>
+                        </TosTableCell>
+                        <TosTableCell>
                           <FormControl size="small" sx={{ width: "180px" }}>
                             <InputLabel id="lessonLabel" required>
                               Lesson
@@ -863,7 +893,11 @@ function Tosifier() {
                               fullWidth
                               labelId="lessonLabel"
                               label="Lesson"
-                              value={row.lesson_id || ""}
+                              value={
+                                lessonOption.some((l) => l.id === row.lesson_id)
+                                  ? row.lesson_id
+                                  : ""
+                              }
                               size="small"
                               required
                               name="lessonId"
@@ -909,6 +943,7 @@ function Tosifier() {
                             index={index}
                             type="number"
                             name="hoursInput"
+                            inputProps={{ min: 1 }}
                             value={row.hours || ""}
                             min={0}
                             placeholder="Hours"
@@ -940,6 +975,7 @@ function Tosifier() {
                       </TableRow>
                     ))}
                     <TableRow>
+                      <TosTableCell />
                       <TosTableCell>
                         <b>Total</b>
                       </TosTableCell>
@@ -971,19 +1007,28 @@ function Tosifier() {
                 </Table>
               </TableContainer>
             </Card>
-            {/* <LegendBox>
-              <LegendItem color="#e3f2fd">
-                Easy (50%) - Remembering & Understanding
-              </LegendItem>
-              <LegendItem color="#fffde7">
-                Medium (30%) - Applying & Analyzing
-              </LegendItem>
-              <LegendItem color="#ffebee">
-                Hard (20%) - Creating & Evaluating
-              </LegendItem>
-            </LegendBox> */}
+            <Button
+              fullWidth
+              size="small"
+              variant="contained"
+              color="primary"
+              disableElevation
+              onClick={addRow}
+              disabled={lessonOption.length === 0}
+              loading={loading}
+              startIcon={<AddCircleOutlineRoundedIcon />}
+            >
+              Add Topic
+            </Button>
+
             {loading ? (
-              <LinearProgress />
+              <Typography
+                color="text.secondary"
+                fontStyle="italic"
+                alignSelf={"center"}
+              >
+                {status}
+              </Typography>
             ) : (
               <Stack
                 direction="row"
@@ -993,7 +1038,6 @@ function Tosifier() {
               >
                 <Button
                   disabled={loading}
-                  variant="contained"
                   color="error"
                   onClick={() => navigate(-1)}
                   disableElevation
@@ -1014,23 +1058,6 @@ function Tosifier() {
           </Stack>
         </SectionCard>
       </form>
-
-      {/* snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Container>
   );
 }

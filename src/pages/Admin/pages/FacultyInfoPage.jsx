@@ -1,5 +1,6 @@
 import {
   Button,
+  Card,
   Container,
   Divider,
   Grid,
@@ -94,133 +95,143 @@ function FacultyInfo() {
   return (
     <Container maxWidth="xl" sx={{ my: 3 }}>
       <div className="mb-6">
-        {/* <Stack direction="row"> */}
-        {/* <IconButton size="small">
-          <ArrowBackIosNewRoundedIcon fontSize="small" />
-        </IconButton> */}
-        <h1 className="text-5xl font-semibold mb-2">Faculty Information</h1>
-        {/* </Stack> */}
-        {/* <p className="text-gray-600">
-          Organize class schedules, assignments, and analytics in one place.
-        </p> */}
+        <h1 className="text-2xl font-bold text-gray-900 mb-0">
+          Faculty Information
+        </h1>
+        <p className="text-sm text-gray-500 mt-1 mb-0">
+          Manage faculty and assign subjects.
+        </p>
       </div>
+      <Stack spacing={3}>
+        <Grid container spacing={2} m>
+          <Grid flex={2}>
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
+              <Typography variant="caption" fontWeight="bold">
+                Name
+              </Typography>
+              <Typography variant="body1">{`${info.suffix} ${info.f_name} ${info.m_name} ${info.l_name}`}</Typography>
+            </Paper>
+          </Grid>
+          <Grid flex={2}>
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
+              <Typography variant="caption" fontWeight="bold">
+                Email
+              </Typography>
+              <Typography variant="body1">{info.email}</Typography>
+            </Paper>
+          </Grid>
+          <Grid flex={1}>
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
+              <Typography variant="caption" fontWeight="bold">
+                Department
+              </Typography>
+              <Typography variant="body1">
+                {info.tbl_department?.shorthand_name ?? ""}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid flex={1}>
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
+              <Typography variant="caption" fontWeight="bold">
+                Role
+              </Typography>
+              <Typography variant="body1">{info.role}</Typography>
+            </Paper>
+          </Grid>
+          <Grid flex={1}>
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
+              <Typography variant="caption" fontWeight="bold">
+                Total Load
+              </Typography>
+              <Typography variant="body1">{load.length}</Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+        <Card variant="outlined" sx={{ p: 4, borderRadius: 4 }}>
+          <Stack direction="row" justifyContent="space-between" mb={1}>
+            <Typography variant="h5" fontWeight="bold">
+              Subject Load
+            </Typography>
+            <Stack direction="row" columnGap={2}>
+              <Button
+                variant="contained"
+                size="small"
+                color="success"
+                disableElevation
+                onClick={() => setAssignDialog(true)}
+              >
+                Add
+              </Button>
+              {load.length != 0 && (
+                <Button
+                  size="small"
+                  color="error"
+                  variant="contained"
+                  disableElevation
+                  onClick={() => setRemoveDialog(true)}
+                >
+                  Remove
+                </Button>
+              )}
+            </Stack>
+          </Stack>
+          {load.length == 0 ? (
+            <Typography align="center" variant="body2" color="textDisabled">
+              No assigned subject yet.
+            </Typography>
+          ) : (
+            <TableContainer component={Paper} variant="outlined">
+              <Table
+                sx={{ minWidth: 650 }}
+                aria-label="simple table"
+                size="small"
+              >
+                <TableHead>
+                  <TableRow>
+                    <TableCell>
+                      <b>Subject Code</b>
+                    </TableCell>
+                    <TableCell>
+                      <b>Name</b>
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {load.map((data, index) => (
+                    <TableRow
+                      key={index}
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                    >
+                      <TableCell>{data.subject_code}</TableCell>
+                      <TableCell>{data.name}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Card>
 
-      <Grid container spacing={2} mb={5}>
-        <Grid flex={2}>
-          <Paper variant="outlined" sx={{ p: 1 }}>
-            <Typography variant="caption" fontWeight="bold">
-              Name
-            </Typography>
-            <Typography variant="body1">{`${info.suffix} ${info.f_name} ${info.m_name} ${info.l_name}`}</Typography>
-          </Paper>
-        </Grid>
-        <Grid flex={2}>
-          <Paper variant="outlined" sx={{ p: 1 }}>
-            <Typography variant="caption" fontWeight="bold">
-              Email
-            </Typography>
-            <Typography variant="body1">{info.email}</Typography>
-          </Paper>
-        </Grid>
-        <Grid flex={1}>
-          <Paper variant="outlined" sx={{ p: 1 }}>
-            <Typography variant="caption" fontWeight="bold">
-              Department
-            </Typography>
-            <Typography variant="body1">
-              {info.tbl_department?.shorthand_name ?? ""}
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid flex={1}>
-          <Paper variant="outlined" sx={{ p: 1 }}>
-            <Typography variant="caption" fontWeight="bold">
-              Role
-            </Typography>
-            <Typography variant="body1">{info.role}</Typography>
-          </Paper>
-        </Grid>
-        <Grid flex={1}>
-          <Paper variant="outlined" sx={{ p: 1 }}>
-            <Typography variant="caption" fontWeight="bold">
-              Total Load
-            </Typography>
-            <Typography variant="body1">{load.length}</Typography>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      <Stack direction="row" justifyContent="space-between" mb={1} px={2}>
+        {/* <Divider />
         <Typography variant="h5" fontWeight="bold">
-          Subject Load
-        </Typography>
-        <Stack direction="row" columnGap={2}>
+          Created
+        </Typography> */}
+        {/* <Divider />
+        <Stack direction="row" columnGap={4} mt={2}>
+          <Typography variant="caption" color="textDisabled" alignSelf="center">
+            {!info.allow_ai ? "Enable" : "Disable"} AI privilage?
+          </Typography>
           <Button
             variant="contained"
             size="small"
-            color="success"
+            color={!info.allow_ai ? "success" : "error"}
             disableElevation
-            onClick={() => setAssignDialog(true)}
+            onClick={() => setDisableAi(true)}
           >
-            Add
+            {!info.allow_ai ? "Enable" : "Disable"}
           </Button>
-          {load.length != 0 && (
-            <Button
-              size="small"
-              color="error"
-              variant="contained"
-              disableElevation
-              onClick={() => setRemoveDialog(true)}
-            >
-              Remove
-            </Button>
-          )}
-        </Stack>
+        </Stack> */}
       </Stack>
-      <TableContainer component={Paper} variant="outlined">
-        <Table sx={{ minWidth: 650 }} aria-label="simple table" size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>
-                <b>Subject Code</b>
-              </TableCell>
-              <TableCell>
-                <b>Name</b>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {load.map((data, index) => (
-              <TableRow
-                key={index}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell>{data.subject_code}</TableCell>
-                <TableCell>{data.name}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {/* <Divider />
-      <Typography variant="h5" fontWeight="bold">
-        Created
-      </Typography> */}
-      {/* <Divider />
-      <Stack direction="row" columnGap={4} mt={2}>
-        <Typography variant="caption" color="textDisabled" alignSelf="center">
-          {!info.allow_ai ? "Enable" : "Disable"} AI privilage?
-        </Typography>
-        <Button
-          variant="contained"
-          size="small"
-          color={!info.allow_ai ? "success" : "error"}
-          disableElevation
-          onClick={() => setDisableAi(true)}
-        >
-          {!info.allow_ai ? "Enable" : "Disable"}
-        </Button>
-      </Stack> */}
 
       {/* dialogs */}
       <AssignSubjectDialog

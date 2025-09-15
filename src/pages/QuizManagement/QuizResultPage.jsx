@@ -16,7 +16,7 @@ import {
   TableRow,
   TextField,
 } from "@mui/material";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../helper/Supabase";
 
@@ -25,103 +25,27 @@ import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import QuestionBuilder from "./components/resultPage/QuestionBuilder";
+import { userContext } from "../../App";
 
 const QUESTION_TYPES = ["Multiple Choice", "True or False", "Identification"];
 
 const QuizResultPage = () => {
+  const { setSnackbar } = useContext(userContext);
   const location = useLocation();
   const navigate = useNavigate();
-  const formData = location.state?.formData || {};
   const { quizDetail, rows, total, quiz } = location.state;
   const [loading, setLoading] = useState(false);
-
-  // Default Sample Questions
-  const sampleQuestions = [
-    {
-      id: 1,
-      type: "Multiple Choice",
-      question:
-        "What is the area of a triangle with a base of 12 cm and a height of 5 cm?",
-      options: ["A) 30 cm²", "B) 60 cm²", "C) 25 cm²", "D) 20 cm²"],
-      answer: "A) 30 cm²",
-      tosPlacement: "Applying",
-    },
-    {
-      id: 2,
-      type: "True or False",
-      question: "The solution to the equation 2(x-3)=10 is x=8.",
-      answer: "False",
-      tosPlacement: "Understanding",
-    },
-    {
-      id: 3,
-      type: "Identification",
-      question: "Solve for x in the equation 3x+9=21.",
-      answer: "x=4",
-      tosPlacement: "Remembering",
-    },
-  ];
 
   // State for edit mode and editable data
   const [editQDetail, setEditQDetail] = useState(false);
   const [editQuestion, setEditQuestion] = useState(false);
 
-  const [quizDetails, setQuizDetails] = useState({ ...quizDetail });
+  const [quizDetails, setQuizDetails] = useState(quizDetail);
   const [quizResult, setQuizResult] = useState([...quiz]);
-
-  const [questions, setQuestions] = useState(
-    formData.questions && formData.questions.length > 0
-      ? formData.questions
-      : sampleQuestions
-  );
-
-  // State for adding new question
-  const [showAddQuestion, setShowAddQuestion] = useState(false);
-  const [newQuestion, setNewQuestion] = useState({
-    type: "Multiple Choice",
-    question: "",
-    options: ["", "", "", ""],
-    answer: "",
-    tosPlacement: "Applying",
-  });
 
   // Ref for print area
   const tosRef = useRef();
   const questionRef = useRef();
-
-  const handleNewOptionChange = (optIndex, value) => {
-    setNewQuestion((prev) => ({
-      ...prev,
-      options: prev.options.map((opt, i) => (i === optIndex ? value : opt)),
-    }));
-  };
-
-  const handleAddQuestion = () => {
-    if (
-      !newQuestion.question.trim() ||
-      (newQuestion.type === "Multiple Choice" &&
-        newQuestion.options.some((opt) => !opt.trim())) ||
-      !newQuestion.answer.trim()
-    ) {
-      alert("Please fill in all fields for the new question.");
-      return;
-    }
-    setQuestions((prev) => [
-      ...prev,
-      {
-        ...newQuestion,
-        id: prev.length ? prev[prev.length - 1].id + 1 : 1,
-      },
-    ]);
-    setShowAddQuestion(false);
-    setNewQuestion({
-      type: "Multiple Choice",
-      question: "",
-      options: ["", "", "", ""],
-      answer: "",
-      tosPlacement: "Applying",
-    });
-  };
 
   // Print handler: only print the printRef area
   const handlePrint = (target) => {
@@ -210,6 +134,7 @@ const QuizResultPage = () => {
                 type: "Multiple Choice",
                 blooms_category: data.specification,
                 repository: quizDetails.repository,
+                ai_generated: true,
               })
               .select("id")
               .single()
@@ -240,6 +165,7 @@ const QuizResultPage = () => {
               })
               .catch((querr) => {
                 console.log("failed to make question", querr);
+
                 setLoading(false);
                 return;
               });
@@ -248,6 +174,11 @@ const QuizResultPage = () => {
       })
       .catch((exerr) => {
         console.log("failed to make exam", exerr.error);
+        setSnackbar({
+          open: true,
+          message: "Failed to create quiz. Please try again.",
+          severity: "error",
+        });
         setLoading(false);
         return;
       });
@@ -285,7 +216,11 @@ const QuizResultPage = () => {
       .single();
 
     if (examErr) {
-      console.log("error creating exam:", examErr);
+      setSnackbar({
+        open: true,
+        message: "Failed to create exam. Please try again.",
+        severity: "error",
+      });
       return;
     }
 
@@ -300,30 +235,43 @@ const QuizResultPage = () => {
       .insert(payload);
 
     if (tosErr) {
-      console.log("error inserting tos:", tosErr);
+      const { error: delErr } = await supabase
+        .from("tbl_exam")
+        .delete()
+        .eq("id", examData.id);
+
+      setSnackbar({
+        open: true,
+        message: "Failed to create TOS. Please try again.",
+        severity: "error",
+      });
       return;
     }
   };
 
   const handleFinish = async () => {
-    setLoading(true);
+    if (!isAllChecked) {
+      setSnackbar({
+        message: "Please review all questions before finishing.",
+        severity: "warning",
+      });
+      return;
+    }
 
+    setLoading(true);
     switch (quizDetails.mode) {
       case "AI-Generated":
         AIGenerated();
         break;
-
       case "Random":
         randomQuiz();
         break;
-
       default:
         break;
     }
-
     // console.log("tos created:", tosres.data);
     navigate(-1);
-    setLoading(false);
+    // setLoading(false);
   };
 
   const handleEditDetail = (e) => {
@@ -344,26 +292,7 @@ const QuizResultPage = () => {
     }));
   };
 
-  const handleEditQuestion = (index, field, value) => {
-    // console.log("edit question", index, field, value);
-    setQuizResult((prev) =>
-      prev.map((q, i) => (i === index ? { ...q, [field]: value } : q))
-    );
-  };
-
-  const handleEditAnswer = (index, ansIndex, value) => {
-    setQuizResult((prev) =>
-      prev.map((q, i) => {
-        if (i === index) {
-          const updatedAnswers = q.answers.map((ans, j) =>
-            j === ansIndex ? { ...ans, answer: value } : ans
-          );
-          return { ...q, answers: updatedAnswers };
-        }
-        return q;
-      })
-    );
-  };
+  const isAllChecked = quizResult.every((q) => q.checked);
 
   return (
     <Container maxWidth="xl" sx={{ my: 5 }}>
@@ -613,7 +542,7 @@ const QuizResultPage = () => {
             onClick={handleFinish}
             disableElevation
             color="success"
-            // className="bg-[#35408E] text-white w-48 px-6 py-2 rounded-md hover:opacity-80 transition text-center shadow"
+            disabled={!isAllChecked}
           >
             Finish
           </Button>

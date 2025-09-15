@@ -9,6 +9,7 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -16,11 +17,14 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
 import { data } from "react-router-dom";
+import { userContext } from "../../../App";
+import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 
 function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
+  const { setSnackbar } = useContext(userContext);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [subjectOption, setSubjectOption] = useState([]);
@@ -32,7 +36,12 @@ function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
       .select("*");
 
     if (error) {
-      console.log("Error fetching subjects:", error);
+      setSnackbar({
+        open: true,
+        message: "Error fetching subjects",
+        severity: "error",
+      });
+      setOpen(false);
       return;
     }
 
@@ -42,16 +51,15 @@ function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
     );
 
     setSubjectOption(filteredData);
-    // console.log("Fetched subjects:", filteredData);
   };
 
   useEffect(() => {
     if (!open) {
+      setLoading(false);
+      setSearch("");
+      setSelectedSubject([]);
       return;
     }
-    setLoading(false);
-    setSearch("");
-    setSelectedSubject([]);
     fetchSubjects();
   }, [open]);
 
@@ -106,13 +114,21 @@ function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
       .insert(payload);
 
     if (error) {
-      console.log("Failed to assign subjects:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to assign subjects",
+        severity: "error",
+      });
       setLoading(false);
       return;
     }
 
-    setLoading(false);
     setOpen(false);
+    setSnackbar({
+      open: true,
+      message: "Subjects assigned successfully",
+      severity: "success",
+    });
   };
 
   return (
@@ -123,27 +139,29 @@ function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
       maxWidth="md"
     >
       <DialogTitle>Assign subject</DialogTitle>
-      <Divider />
       <DialogContent>
-        <Card sx={{ mb: 2, p: 2 }}>
+        <Card sx={{ mb: 2, p: 2 }} variant="outlined">
           <DialogContentText>Selected subjects:</DialogContentText>
           <List dense disablePadding sx={{ width: "100%" }}>
             {selectedSubject.map((data, index) => {
               return (
-                <ListItem key={index} onClick={() => removeSelected(index)}>
-                  <Stack direction="row" spacing={1}>
-                    <ListItemText>
-                      {data.name} ({data.subject_code})
-                    </ListItemText>
-                  </Stack>
-
-                  <Button
-                    size="small"
-                    color="error"
-                    onClick={() => removeSelected(index)}
-                  >
-                    remove
-                  </Button>
+                <ListItem
+                  key={index}
+                  onClick={() => removeSelected(index)}
+                  secondaryAction={
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => removeSelected(index)}
+                    >
+                      <HighlightOffRoundedIcon fontSize="20" />
+                    </IconButton>
+                  }
+                >
+                  <ListItemText
+                    primary={data.name}
+                    secondary={data.subject_code}
+                  />
                 </ListItem>
               );
             })}
@@ -156,19 +174,19 @@ function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <List>
+        <List dense sx={{ maxHeight: 300, overflowY: "auto" }}>
           {visibleSubject.map((data, index) => {
             return (
               <ListItemButton key={index} onClick={() => addSelected(data)}>
-                <ListItemText>
-                  {data.name} ({data.subject_code})
-                </ListItemText>
+                <ListItemText
+                  primary={data.name}
+                  secondary={data.subject_code}
+                />
               </ListItemButton>
             );
           })}
         </List>
       </DialogContent>
-      <Divider />
 
       <DialogActions>
         <Stack direction="row" justifyContent="space-between" width="100%">
@@ -181,6 +199,8 @@ function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
           </Button>
           <Button
             variant="contained"
+            color="success"
+            disableElevation
             onClick={confirmAssign}
             loading={loading}
             disabled={selectedSubject.length == 0}

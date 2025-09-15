@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Class from "./tabs/Class";
 import Quiz from "./tabs/Quiz";
@@ -7,11 +7,13 @@ import FilterAnalytics from "./components/FilterAnalytics";
 import TetraBox from "./components/TetraBox";
 import { Box, CircularProgress, Container, Typography } from "@mui/material";
 import { supabase } from "../../helper/Supabase";
+import { userContext } from "../../App";
 
 const ReportAndAnalyticsPage = () => {
+  const { setSnackbar } = useContext(userContext);
   const [activeTab, setActiveTab] = useState("quiz");
   const [filter, setFilter] = useState({
-    class_id: "",
+    // class_id: "",
     start_time: "all",
   });
   const [generalData, setGeneralData] = useState({});
@@ -103,7 +105,11 @@ const ReportAndAnalyticsPage = () => {
         .single();
 
       if (error) {
-        console.log("error fetching analytics:", error);
+        setSnackbar({
+          open: true,
+          message: "Error fetching quiz analytics.",
+          severity: "error",
+        });
         return;
       }
       setAnalyticsData(data);
@@ -122,7 +128,11 @@ const ReportAndAnalyticsPage = () => {
         .single();
 
       if (error) {
-        console.log("error fetching analytics:", error);
+        setSnackbar({
+          open: true,
+          message: "Error fetching quiz analytics.",
+          severity: "error",
+        });
         return;
       }
       setAnalyticsData(data);
@@ -148,7 +158,11 @@ const ReportAndAnalyticsPage = () => {
         .single();
 
       if (error) {
-        console.log("error fetching analytics:", error);
+        setSnackbar({
+          open: true,
+          message: "Error fetching question analytics.",
+          severity: "error",
+        });
         return;
       }
       setAnalyticsData(data);
@@ -167,7 +181,11 @@ const ReportAndAnalyticsPage = () => {
         .single();
 
       if (error) {
-        console.log("error fetching analytics:", error);
+        setSnackbar({
+          open: true,
+          message: "Error fetching question analytics.",
+          severity: "error",
+        });
         return;
       }
       setAnalyticsData(data);
@@ -177,6 +195,10 @@ const ReportAndAnalyticsPage = () => {
   };
 
   const checkHasResult = async () => {
+    if (filter.class_id == "" || !filter.class_id) {
+      return false;
+    }
+
     const { data: classExamId, error: classExamErr } = await supabase
       .from("tbl_class_exam")
       .select("id")
@@ -195,7 +217,11 @@ const ReportAndAnalyticsPage = () => {
       .limit(1);
 
     if (error) {
-      console.log("error checking results:", error);
+      setSnackbar({
+        open: true,
+        message: "Error checking results.",
+        severity: "error",
+      });
       return false;
     }
 
@@ -231,13 +257,18 @@ const ReportAndAnalyticsPage = () => {
   };
 
   return (
-    <Container maxWidth="xl" className="my-5">
+    <Container maxWidth="xl" sx={{ my: 5 }}>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 pt-6 pb-2">
-        <h1 className="text-5xl font-bold mb-4">Reports & Analytics</h1>
-        <p className="text-sm text-gray-500 mt-1 mb-0">
-          Analytics and performance insights
-        </p>
+
+      <div className="w-full bg-white border-b border-gray-200 py-3 mb-3 flex items-center justify-between mt-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-0">
+            Reports & Analytics
+          </h1>
+          <p className="text-sm text-gray-500 mt-1 mb-0">
+            Analytics and performance insights
+          </p>
+        </div>
       </div>
 
       <FilterAnalytics
@@ -245,6 +276,7 @@ const ReportAndAnalyticsPage = () => {
         setFilter={setFilter}
         generalData={generalData}
         analyticsData={analyticsData}
+        hasResult={checkHasResult}
       />
       {generalLoading ? (
         <></>
@@ -255,7 +287,7 @@ const ReportAndAnalyticsPage = () => {
       )}
 
       {/* Custom Tabs */}
-      <div className="w-full flex justify-center mt-8">
+      <div className="w-full flex justify-center mt-5">
         <div
           className="w-full"
           style={{
@@ -273,8 +305,8 @@ const ReportAndAnalyticsPage = () => {
           ].map((tab) => (
             <button
               key={tab.key}
-              className={`flex-1 text-center py-2 text-[15px] font-medium transition-colors rounded-full
-                ${activeTab === tab.key ? "bg-white text-black" : "text-gray-700"}
+              className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
+                ${activeTab === tab.key ? "bg-white text-black shadow-sm" : "text-gray-700"}
               `}
               style={{
                 margin: "2px",

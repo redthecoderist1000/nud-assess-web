@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Button, List, Snackbar } from "@mui/material";
+import { Button, List } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import AddMemberDialog from "../../components/AddMemberDialog";
 import PersonListItem from "../../components/PersonListItem";
@@ -8,11 +8,6 @@ import RemMemberDialog from "../../components/RemMemberDialog";
 const PeopleTab = ({ people = [], classData }) => {
   const [addMembDia, setAddMemDia] = useState(false);
   const [remMembDia, setRemMemDia] = useState(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
 
   return (
     <div>
@@ -75,22 +70,6 @@ const PeopleTab = ({ people = [], classData }) => {
         setOpen={setAddMemDia}
         classId={classData.id}
       />
-      {/* snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </div>
   );
 };

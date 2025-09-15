@@ -55,6 +55,8 @@ export const signupContext = createContext();
 
 // Wrapper to use location inside AnimatePresence
 const AnimatedRoutes = () => {
+  const env = import.meta.env;
+
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState({});
@@ -69,7 +71,7 @@ const AnimatedRoutes = () => {
   const signupVal = { signupData, setSignupData };
 
   const [lastActivity, setLastActivity] = useState(Date.now());
-  const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
+  const INACTIVITY_TIMEOUT = 20 * 60 * 1000; // 20 minutes in milliseconds
   // const INACTIVITY_TIMEOUT = 60 * 10000; // 10 minutes in milliseconds
   const SESSION_CHECK_INTERVAL = 60 * 1000; // Check every minute
   const [autoSignOut, setAutoSignOut] = useState(false);
@@ -89,10 +91,14 @@ const AnimatedRoutes = () => {
 
       // Sign out if user has been inactive for too long
       if (timeInactive > INACTIVITY_TIMEOUT) {
-        console.log("Signing out due to inactivity");
+        // console.log("Signing out due to inactivity");
         // setUser({});
         setAutoSignOut(true);
-        // await supabase.auth.signOut();
+        if (env.VITE_ENVIRONMENT === "deployed") {
+          await supabase.auth.signOut();
+        }
+        // get env variable
+
         return;
       }
 

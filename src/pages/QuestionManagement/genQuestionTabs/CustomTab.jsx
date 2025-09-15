@@ -1,12 +1,14 @@
 import { Box, Button, LinearProgress, Stack } from "@mui/material";
-import { createContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AnswerCard from "./components/AnswerCard";
 import { supabase } from "../../../helper/Supabase";
+import { userContext } from "../../../App";
 
 export const questionContext = createContext();
 
 function CustomTab(props) {
+  const { setSnackbar } = useContext(userContext);
   const { subject, lesson } = props;
   const location = useLocation();
   const repository = location.state.repository;
@@ -105,7 +107,11 @@ function CustomTab(props) {
     // console.log("items to upload:", items);
 
     if (!subject || !lesson) {
-      console.error("select subject and lesson first");
+      setSnackbar({
+        open: true,
+        message: "Please select a subject and lesson.",
+        severity: "error",
+      });
       setLoading(false);
 
       return;

@@ -134,6 +134,7 @@ const QuizResultPage = () => {
                 type: "Multiple Choice",
                 blooms_category: data.specification,
                 repository: quizDetails.repository,
+                ai_generated: true,
               })
               .select("id")
               .single()

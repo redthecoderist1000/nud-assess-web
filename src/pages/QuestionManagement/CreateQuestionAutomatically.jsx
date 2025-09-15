@@ -33,11 +33,13 @@ function CustomTabPanel(props) {
 
 const CreateQuestionAutomatically = () => {
   const navigate = useNavigate();
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(1);
   const [subjectOptions, setSubjectOption] = useState([]);
   const [lessonOptions, setLessonOptions] = useState([]);
   const [subject, setSubject] = useState("");
   const [lesson, setLesson] = useState("");
+  const [lessonName, setLessonName] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -139,7 +141,11 @@ const CreateQuestionAutomatically = () => {
               Select a lesson
             </MenuItem>
             {lessonOptions.map((lesson, index) => (
-              <MenuItem key={index} value={lesson.id}>
+              <MenuItem
+                key={index}
+                value={lesson.id}
+                onClick={() => setLessonName(lesson.title)}
+              >
                 {lesson.title}
               </MenuItem>
             ))}
@@ -161,7 +167,7 @@ const CreateQuestionAutomatically = () => {
         </CustomTabPanel>
         {/* ai */}
         <CustomTabPanel value={tab} index={1}>
-          <AutoTab />
+          <AutoTab subject={subject} lesson={lessonName} lessonId={lesson} />
         </CustomTabPanel>
       </Box>
     </Container>

@@ -20,7 +20,7 @@ export default function FileUpload({ files, setFiles }) {
   const inputRef = useRef(null);
 
   const MAX_FILES = 3; // maximum number of files
-  const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+  const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 
   const addFiles = useCallback((fileList) => {
     setError("");
@@ -255,8 +255,8 @@ export default function FileUpload({ files, setFiles }) {
               <br />
               Accepted:
               <ul>
-                <li>- 10mb per file</li>
-                <li>- Maximum of 3 files</li>
+                <li>- {MAX_BYTES / 1024 / 1024}mb per file</li>
+                <li>- Maximum of {MAX_FILES} files</li>
                 <li>- pdf file </li>
               </ul>
             </Typography>

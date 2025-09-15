@@ -35,6 +35,7 @@ import { supabase } from "../../../helper/Supabase";
 import { time } from "framer-motion";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import relevanceCheck from "../../../helper/RelevanceCheck";
 
 // Styled components for design
 const SectionCard = styled(Paper)(({ theme }) => ({
@@ -121,10 +122,11 @@ function Tosifier() {
     evaluating: 0,
     totalItems: 0,
   });
-  const [loading, setLoading] = useState(false);
   const [lessonOption, setLessonOption] = useState([]);
-
   const [files, setFiles] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(null);
 
   // calculate total hours when rows change
   useEffect(() => {
@@ -384,6 +386,7 @@ function Tosifier() {
     // console.log(rows);
     // check if may avaialble questions
     setLoading(true);
+    setStatus("Checking available questions...");
 
     let isValid = true;
     await Promise.all(
@@ -424,6 +427,7 @@ function Tosifier() {
         message: "Generating quiz...",
         severity: "success",
       });
+      setStatus(null);
 
       // timeout 2s
       setTimeout(() => {
@@ -438,6 +442,7 @@ function Tosifier() {
       }, 2000);
     } else {
       // setError(true);
+      setStatus(null);
       setLoading(false);
       setSnackbar({
         open: true,
@@ -461,6 +466,57 @@ function Tosifier() {
     }
 
     setLoading(true);
+
+    // relevance check
+    const topics = rows.map((data) => ({
+      text: `${data.totalItems} questions in the topic of ${data.topic}`,
+    }));
+
+    try {
+      setStatus("Reviewing uploaded files...");
+      const result = await relevanceCheck(files, topics);
+
+      if (!result.status) {
+        setLoading(false);
+        setStatus(null);
+        setSnackbar({
+          open: true,
+          message:
+            "The uploaded documents are irrelevant to the topics. Please review and try again.",
+          severity: "error",
+        });
+        return;
+      }
+    } catch (error) {
+      setLoading(false);
+      setStatus(null);
+      setSnackbar({
+        open: true,
+        message: "There seems to be a problem on our side. Please try again.",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (rows.length === 0) {
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "There must be atleast 1 topic",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (total.hours <= 0) {
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "Hours cannot be equal or less than 0",
+        severity: "error",
+      });
+      return;
+    }
 
     // gawa ng array of texts
     const texts = rows.flatMap((data) => {
@@ -495,56 +551,28 @@ function Tosifier() {
       return compiled;
     });
 
-    if (rows.length === 0) {
-      setLoading(false);
-      setSnackbar({
-        open: true,
-        message: "There must be atleast 1 topic",
-        severity: "error",
-      });
-      return;
-    }
-
-    if (total.hours <= 0) {
-      setLoading(false);
-      setSnackbar({
-        open: true,
-        message: "Hours cannot be equal or less than 0",
-        severity: "error",
-      });
-      return;
-    }
-
     try {
+      setStatus("Generating questions. This may take a while...");
       const result = await aiRun(files, texts);
-      if (result.status == "Success") {
-        setSnackbar({
-          open: true,
-          message: "Questions generated successfully!",
-          severity: "success",
+      setStatus(null);
+      setSnackbar({
+        open: true,
+        message: "Questions generated successfully!",
+        severity: "success",
+      });
+      setTimeout(() => {
+        navigate("/quizsummary", {
+          state: {
+            quizDetail: quizDetail,
+            rows: rows,
+            total: total,
+            quiz: result.questions,
+          },
         });
-        setTimeout(() => {
-          navigate("/quizsummary", {
-            state: {
-              quizDetail: quizDetail,
-              rows: rows,
-              total: total,
-              quiz: result.questions,
-            },
-          });
-        }, 2000);
-      } else {
-        // success ai pero irrelevant ung pdf files
-        setSnackbar({
-          open: true,
-          message:
-            "The files you uploaded may have been irrelevant to the subject and topics.",
-          severity: "error",
-        });
-        setLoading(false);
-      }
+      }, 2000);
     } catch (error) {
       setLoading(false);
+      setStatus(null);
       setSnackbar({
         open: true,
         message: "There seems to be a problem on our side. Please try again.",
@@ -992,19 +1020,15 @@ function Tosifier() {
             >
               Add Topic
             </Button>
-            {/* <LegendBox>
-              <LegendItem color="#e3f2fd">
-                Easy (50%) - Remembering & Understanding
-              </LegendItem>
-              <LegendItem color="#fffde7">
-                Medium (30%) - Applying & Analyzing
-              </LegendItem>
-              <LegendItem color="#ffebee">
-                Hard (20%) - Creating & Evaluating
-              </LegendItem>
-            </LegendBox> */}
+
             {loading ? (
-              <LinearProgress />
+              <Typography
+                color="text.secondary"
+                fontStyle="italic"
+                alignSelf={"center"}
+              >
+                {status}
+              </Typography>
             ) : (
               <Stack
                 direction="row"

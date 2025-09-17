@@ -1,10 +1,11 @@
 import { TextField } from "@mui/material";
 import { useContext } from "react";
-import { questionContext } from "../../CustomTab";
+import { questionContext as AutoContext } from "../../AutoTab";
 
 function IndentificationArea(props) {
   const { index } = props;
-  const { items, setItems } = useContext(questionContext);
+  const context = useContext(AutoContext);
+  const { items, setItems, lesson } = context;
 
   const setAnswer = (e) => {
     const newAnswer = items.map((d, i) =>

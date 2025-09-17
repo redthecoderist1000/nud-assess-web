@@ -30,12 +30,12 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { userContext } from "../../../App";
 import FileUpload from "../../../components/elements/FileUpload";
-import { aiRun } from "../../../helper/Gemini";
+import { aiRun, aiAbort } from "../../../helper/Gemini";
 import { supabase } from "../../../helper/Supabase";
 import { time } from "framer-motion";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
-import relevanceCheck from "../../../helper/RelevanceCheck";
+import { relevanceCheck, relevanceAbort } from "../../../helper/RelevanceCheck";
 
 // Styled components for design
 const SectionCard = styled(Paper)(({ theme }) => ({

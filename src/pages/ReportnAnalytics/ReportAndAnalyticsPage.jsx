@@ -289,13 +289,11 @@ const ReportAndAnalyticsPage = () => {
       {/* Custom Tabs */}
       <div className="w-full flex justify-center mt-5">
         <div
-          className="w-full"
+          className="w-full rounded-full"
           style={{
             background: "#f3f3f7",
-            borderRadius: 16,
             padding: "4px",
             display: "flex",
-            border: "none",
             boxSizing: "border-box",
           }}
         >

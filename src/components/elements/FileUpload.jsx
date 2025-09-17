@@ -218,14 +218,6 @@ export default function FileUpload({ files, setFiles }) {
             ))}
             {files.length <= 4 && (
               <Stack direction="row" spacing={2}>
-                {/* <Button
-                  size="small"
-                  variant="contained"
-                  disableElevation
-                  onClick={() => inputRef.current && inputRef.current.click()}
-                >
-                  + add files
-                </Button> */}
                 <Button
                   size="small"
                   color="error"
@@ -239,26 +231,28 @@ export default function FileUpload({ files, setFiles }) {
           </Stack>
         ) : (
           <Stack alignItems="center" justifyContent="center">
-            <DriveFolderUploadRoundedIcon
-              fontSize="large"
-              sx={{ color: "grey.700" }}
-            />
-            <Typography variant="subtitle1">
-              Drag & drop PDF files here
-            </Typography>
+            <Stack direction={"row"} spacing={2} alignItems="center">
+              <DriveFolderUploadRoundedIcon
+                fontSize="large"
+                sx={{ color: "grey.700" }}
+              />
+              <div>
+                <Typography variant="subtitle1">
+                  Upload PDF files here
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Drag and drop your files or click to select files
+                </Typography>
+              </div>
+            </Stack>
+
             <Typography
               variant="caption"
               color="text.secondary"
               textAlign="center"
             >
-              Click to select files or drop them into this area.
-              <br />
-              Accepted:
-              <ul>
-                <li>- {MAX_BYTES / 1024 / 1024}mb per file</li>
-                <li>- Maximum of {MAX_FILES} files</li>
-                <li>- pdf file </li>
-              </ul>
+              Files must be: maximum of {MAX_FILES} files, each up to{" "}
+              {MAX_BYTES / 1024 / 1024}mb. Only PDF files are accepted.
             </Typography>
           </Stack>
         )}

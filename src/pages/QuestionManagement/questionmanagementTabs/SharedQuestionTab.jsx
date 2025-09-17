@@ -4,6 +4,7 @@ import {
   Box,
   FormControl,
   Grid,
+  IconButton,
   InputLabel,
   MenuItem,
   Paper,
@@ -17,9 +18,11 @@ import {
   TablePagination,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { supabase } from "../../../helper/Supabase";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -135,6 +138,16 @@ function SharedQuestionTab() {
     );
   }
 
+  const resetFilters = () => {
+    setFilter({
+      subject: "All",
+      repository: "All",
+      search: "",
+      type: "All",
+      cognitive: "All",
+    });
+  };
+
   return (
     <>
       <Grid container spacing={2} mt={2}>
@@ -232,6 +245,11 @@ function SharedQuestionTab() {
             </Select>
           </FormControl>
         </Grid>
+        <Tooltip title="Clear Filters" placement="top" arrow>
+          <IconButton onClick={resetFilters} size="small">
+            <RestartAltRoundedIcon size="small" color="error" />
+          </IconButton>
+        </Tooltip>
       </Grid>
       <TableContainer
         component={Paper}

@@ -6,6 +6,8 @@ import {
   CircularProgress,
   Divider,
   FormControl,
+  FormControlLabel,
+  FormGroup,
   Grid,
   InputLabel,
   LinearProgress,
@@ -13,11 +15,12 @@ import {
   Select,
   Snackbar,
   Stack,
+  Switch,
   Tab,
   Tabs,
   Typography,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ContentItem from "./ContentItem";
 import { supabase } from "../../../helper/Supabase";
@@ -25,8 +28,10 @@ import QuestionDetailItem from "./QuestionDetailItem";
 import QuestionBankItem from "./QuestionBankItem";
 import YourExamItem from "./YourExamItem";
 import NewQuestionTab from "./NewQuestionTab";
+import { userContext } from "../../../App";
 
 function CartPage() {
+  const { user, setSnackbar } = useContext(userContext);
   const navigate = useNavigate();
   const location = useLocation();
   const { quizDetail, tosDetail } = location.state;
@@ -35,6 +40,7 @@ function CartPage() {
     lesson: "",
     cognitive_level: "",
     type: "",
+    owned: false,
   });
   const [lessonOptions, setLessonOptions] = useState([]);
   const [optionLoading, setOptionLoading] = useState(false);
@@ -42,16 +48,12 @@ function CartPage() {
 
   const [yourExam, setYourExam] = useState([]);
   const [tabVal, setTabVal] = useState(0);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchQuestions();
-  }, [filter]);
+  }, [filter.cognitive_level, filter.lesson, filter.type]);
 
   const fetchQuestions = async () => {
     setOptionLoading(true);
@@ -348,23 +350,15 @@ function CartPage() {
     }, 2000);
   };
 
+  const visibleOptionQuestions = useMemo(() => {
+    if (filter.owned) {
+      return optionQuestion.filter((q) => q.creator_id === user.id);
+    }
+    return optionQuestion;
+  }, [filter.owned, optionQuestion]);
+
   return (
     <Stack p={2} spacing={2} height={"100%"}>
-      {/* {loading && (
-        <Box
-          sx={{
-            height: "100vh",
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: "background.default",
-          }}
-        >
-          <CircularProgress />
-        </Box>
-      )} */}
-
       {/* title */}
       <div className="bg-white border-b border-gray-200  pb-2 ">
         <h1 className="text-2xl font-bold text-gray-900">Quiz Creation</h1>
@@ -522,16 +516,35 @@ function CartPage() {
               >
                 <CircularProgress />
               </Stack>
-            ) : optionQuestion.length === 0 ? (
-              <Typography variant="body2" color="textDisabled" mt={2}>
-                No questions found.
-              </Typography>
             ) : (
+              //  : visibleOptionQuestions.length === 0 ? (
+              //   <Typography variant="body2" color="textDisabled" mt={2}>
+              //     No questions found.
+              //   </Typography>
+              // )
               <Stack maxHeight={"70vh"} overflow="auto" mt={2} spacing={1}>
-                <Typography variant="body2" color="textDisabled" mt={2}>
-                  {optionQuestion.length} results found
-                </Typography>
-                {optionQuestion.map((data, index) => (
+                <Stack direction="row" justifyContent={"space-between"}>
+                  <Typography variant="body2" color="textDisabled">
+                    {visibleOptionQuestions.length} results found
+                  </Typography>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={filter.owned}
+                          onClick={() =>
+                            setFilter({ ...filter, owned: !filter.owned })
+                          }
+                        />
+                      }
+                      label={
+                        <Typography variant="caption">Owned only</Typography>
+                      }
+                    />
+                  </FormGroup>
+                </Stack>
+                {visibleOptionQuestions.map((data, index) => (
                   <QuestionBankItem
                     key={index}
                     data={data}
@@ -562,23 +575,6 @@ function CartPage() {
           </Button>
         </Stack>
       )}
-
-      {/* snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Stack>
   );
 }

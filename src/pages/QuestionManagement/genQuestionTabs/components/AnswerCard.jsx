@@ -4,82 +4,47 @@ import {
   Box,
   Button,
   Card,
-  CardContent,
-  CardHeader,
   CircularProgress,
   Collapse,
   FormControl,
   Grid,
   IconButton,
   InputLabel,
-  List,
-  ListItem,
   MenuItem,
-  Paper,
   Select,
-  Snackbar,
   Stack,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import MultipleChoiceArea from "./answerArea/MultipleChoiceArea";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { questionContext } from "../CustomTab";
+import { questionContext as AutoContext } from "../AutoTab";
+
 import TFArea from "./answerArea/TFArea";
-import JoditEditor from "jodit-react";
 import IndentificationArea from "./answerArea/IndentificationArea";
-import AcUnitRoundedIcon from "@mui/icons-material/AcUnitRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import axiosInstance from "../../../../helper/axios";
 import AddPhotoAlternateRoundedIcon from "@mui/icons-material/AddPhotoAlternateRounded";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import { userContext } from "../../../../App";
+import { similarityCheck } from "../../../../helper/SimlarityChecker";
 
 function AnswerCard(props) {
-  const { items, setItems } = useContext(questionContext);
-  const { index, data, handleChangeItem, lesson_id } = props;
-  const editor = useRef(null);
-  const config = useMemo(
-    () => ({
-      readonly: false,
-      placeholder: "Start typing...",
-      toolbarAdaptive: false,
-      uploader: { insertImageAsBase64URI: true }, // configure image upalods
-      addNewLine: false,
-      statusbar: false,
-      buttons: [
-        "bold",
-        "italic",
-        "underline",
-        // "|",
-        // "strikethrough",
-        // "superscript",
-        // "subscript",
-        // "|",
-        // "ul",
-        // "ol",
-        // "|",
-        // "font",
-        // "align",
-        // "|",
-        // "link",
-        // "image",
-      ],
-    }),
-    []
-  );
+  const { setSnackbar } = useContext(userContext);
+
+  const context = useContext(AutoContext);
+  const { items, setItems, lessonId } = context;
+
+  const { index } = props;
   const [checkLoading, setCheckLoading] = useState(false);
   const [checkerRes, setCheckerRes] = useState({});
-  const [imgPreview, setImgPreview] = useState(data?.image || null);
+  const [imgPreview, setImgPreview] = useState(null);
   const fileInputRef = useRef(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
 
   let qType;
+  const data = items[index];
 
+  // for answer area
   switch (data.type) {
     case "Multiple Choice":
       qType = <MultipleChoiceArea index={index} />;
@@ -91,7 +56,7 @@ function AnswerCard(props) {
       qType = <TFArea index={index} />;
       break;
     default:
-      qType = <p>nothing</p>;
+      qType = <MultipleChoiceArea index={index} />;
       break;
   }
 
@@ -101,7 +66,7 @@ function AnswerCard(props) {
   };
 
   useEffect(() => {
-    if (data.question && data.blooms_category && data.type && lesson_id) {
+    if (data.question && data.specification && data.type && lessonId) {
       setCheckLoading(true);
       setCheckerRes({});
 
@@ -115,24 +80,95 @@ function AnswerCard(props) {
     }
     setCheckerRes({});
     setCheckLoading(false);
-  }, [data.question, data.blooms_category, data.type, lesson_id]);
+  }, [data.question, data.specification, data.type, lessonId]);
 
-  const check = () => {
-    axiosInstance
-      .post("/similarity", {
-        question: data.question,
-        blooms_category: data.blooms_category,
-        repository: items[index].repository,
-        lesson_id: lesson_id,
-      })
-      .then((res) => {
-        // console.log("sakses checking:", res.data);
-        setCheckLoading(false);
-        setCheckerRes(res.data);
-      })
-      .catch((err) => {
-        console.log("error checking:", err);
-      });
+  const handleChangeItem = (e, index) => {
+    let newItems = items;
+
+    // if type ung changes
+    if (e.target.name == "type") {
+      let newAnswer;
+      switch (e.target.value) {
+        case "T/F":
+          newAnswer = {
+            answer: "True",
+          };
+          break;
+        case "Multiple Choice":
+          newAnswer = [
+            {
+              answer: "",
+              is_correct: true,
+            },
+          ];
+          break;
+        case "Identification":
+          newAnswer = {
+            answer: "",
+          };
+          break;
+        default:
+          break;
+      }
+
+      newItems = items.map((d, i) =>
+        index == i
+          ? {
+              ...d,
+              type: e.target.value,
+              answers: newAnswer,
+            }
+          : d
+      );
+
+      setItems(newItems);
+      return;
+    }
+
+    // not type
+    newItems = items.map((d, i) =>
+      index == i ? { ...d, [e.target.name]: e.target.value } : d
+    );
+    setItems(newItems);
+  };
+
+  const check = async () => {
+    const { data: similarityData, error: similarityError } =
+      await similarityCheck(
+        data.question,
+        data.specification,
+        data.repository,
+        lessonId
+      );
+
+    if (similarityError) {
+      setCheckerRes({ status: "failed" });
+      setCheckLoading(false);
+      return;
+    }
+    setCheckLoading(false);
+    setCheckerRes({
+      status: "success",
+      count: similarityData.length,
+      results: similarityData,
+    });
+    // set is_checked to true in the item
+    setItems((prev) => {
+      const hasSimilar = similarityData.length > 0;
+      const updated = [...(Array.isArray(prev) ? prev : [])];
+      updated[index] = {
+        ...updated[index],
+        is_checked: true,
+        has_similar: hasSimilar,
+      };
+      return updated;
+    });
+  };
+
+  const retryCheck = () => {
+    setCheckLoading(true);
+    setCheckerRes({});
+    check();
   };
 
   const alertBuilder = () => {
@@ -168,10 +204,30 @@ function AnswerCard(props) {
       );
     }
 
+    if (checkerRes.status == "failed") {
+      return (
+        <Alert
+          severity="error"
+          sx={{
+            py: 0.5,
+            px: 1,
+            fontSize: "0.875rem",
+          }}
+          action={
+            <IconButton color="inherit" size="small" onClick={retryCheck}>
+              <RestartAltRoundedIcon size="small" />
+            </IconButton>
+          }
+        >
+          Error! Failed to check for similar question.
+        </Alert>
+      );
+    }
+
     // if wala
   };
 
-  const MAX_FILE_SIZE = 1024 * 1024; // 1MB in bytes
+  const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB in bytes
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -218,7 +274,11 @@ function AnswerCard(props) {
 
   return (
     <Stack>
-      <Collapse in={checkLoading || checkerRes.count == 0}>
+      <Collapse
+        in={
+          checkLoading || checkerRes.status == "failed" || checkerRes.count >= 0
+        }
+      >
         {alertBuilder()}
       </Collapse>
       <Grid container direction="row" columnGap={1}>
@@ -251,8 +311,8 @@ function AnswerCard(props) {
                     <Select
                       labelId="selectSpecLabel"
                       label="Cognitive Level"
-                      value={data.blooms_category}
-                      name="blooms_category"
+                      value={data.specification}
+                      name="specification"
                       onChange={(e) => handleChangeItem(e, index)}
                     >
                       <MenuItem value="Remembering">Remembering</MenuItem>
@@ -270,6 +330,7 @@ function AnswerCard(props) {
                     <Select
                       labelId="selectTypeLabel"
                       label="Type"
+                      defaultValue="Multiple Choice"
                       value={data.type}
                       name="type"
                       onChange={(e) => handleChangeItem(e, index)}
@@ -335,7 +396,6 @@ function AnswerCard(props) {
                 const bg = alpha(theme.palette.info.main, 0.08);
                 return {
                   bgcolor: bg,
-                  // color: theme.palette.getContrastText(bg), // compute readable text color
                   border: "none",
                 };
               }}
@@ -377,21 +437,6 @@ function AnswerCard(props) {
           </Grid>
         )}
       </Grid>
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Stack>
   );
 }

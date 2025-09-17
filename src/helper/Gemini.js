@@ -1,6 +1,9 @@
 import { getAI, getGenerativeModel, VertexAIBackend } from "firebase/ai";
 import { app } from "./Firebase";
 
+const controller = new AbortController();
+const signal = controller.signal;
+
 const ai = getAI(app, { backend: new VertexAIBackend() });
 
 const generationConfig = {
@@ -104,9 +107,12 @@ async function aiRun(files, prompt) {
 
   // Call generateContent with the multimodal input
   try {
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: parts }],
-    });
+    const result = await model.generateContent(
+      {
+        contents: [{ role: "user", parts: parts }],
+      },
+      { requestOptions: { signal } }
+    );
 
     const text = result.response.text();
     try {
@@ -117,8 +123,14 @@ async function aiRun(files, prompt) {
     }
   } catch (error) {
     console.log("error generating:", error);
+
     throw error;
   }
 }
 
-export { aiRun };
+const aiAbort = () => {
+  console.log("aborting ai generation...");
+  controller.abort();
+};
+
+export { aiRun, aiAbort };

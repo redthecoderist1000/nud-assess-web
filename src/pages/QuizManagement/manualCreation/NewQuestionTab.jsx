@@ -26,7 +26,6 @@ import AddPhotoAlternateRoundedIcon from "@mui/icons-material/AddPhotoAlternateR
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
-import axiosInstance from "../../../helper/axios";
 import { userContext } from "../../../App";
 import { similarityCheck } from "../../../helper/SimlarityChecker";
 import GenQuestionDialog from "../../QuestionManagement/genQuestionTabs/GenQuestionDialog";

@@ -1,99 +1,84 @@
-import { useRef, useState, useCallback, useContext } from "react";
+import { useState, useContext, createContext } from "react";
 import {
   Box,
-  Paper,
   Typography,
   Stack,
   Button,
   IconButton,
-  List,
-  ListItem,
-  ListItemText,
   TextField,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  LinearProgress,
+  Divider,
+  Tooltip,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
+  FormLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
 import FileUpload from "../../../components/elements/FileUpload";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
-import DriveFolderUploadRoundedIcon from "@mui/icons-material/DriveFolderUploadRounded";
 
 import { userContext } from "../../../App";
-import relevanceCheck from "../../../helper/RelevanceCheck";
-import { aiRun } from "../../../helper/Gemini";
-import AutoAnswerCard from "./components/AutoAnswerCard";
+import { relevanceCheck, relevanceAbort } from "../../../helper/RelevanceCheck";
+import { aiRun, aiAbort } from "../../../helper/Gemini";
+import AnswerCard from "./components/AnswerCard";
+import { useLocation, useNavigate } from "react-router-dom";
+import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
+import { supabase } from "../../../helper/Supabase";
+import GenQuestionDialog from "./GenQuestionDialog";
+
+export const questionContext = createContext();
 
 export default function AutoTab(props) {
+  const navigate = useNavigate();
   const { subject, lesson, lessonId } = props;
-
   const { setSnackbar } = useContext(userContext);
+
+  const location = useLocation();
+  const repository = location.state.repository;
+
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [files, setFiles] = useState([]);
-  const [questions, setQuestions] = useState([
-    // {
-    //   question:
-    //     "If a web application allows an attacker to alter the 'userId' parameter in a URL to view or modify another user's account data without proper authorization, which OWASP Top 10 vulnerability is primarily being exploited?",
-    //   answers: [
-    //     { answer: "A03:2021 - Injection", is_correct: false },
-    //     {
-    //       answer: "A01:2021 - Broken Access Control",
-    //       is_correct: true,
-    //     },
-    //     {
-    //       answer: "A05:2021 - Security Misconfiguration",
-    //       is_correct: false,
-    //     },
-    //     {
-    //       answer: "A07:2021 - Identification and Authentication Failures",
-    //       is_correct: false,
-    //     },
-    //   ],
-    //   specification: "Analyzing",
-    //   topic: "OWASP Top Vulnerabilities",
-    //   lesson_id: "230fc74b-4e69-478a-a0bd-b4d2ce012f87",
-    // },
-    // {
-    //   question:
-    //     "A development team decides to use HTTP for transmitting sensitive user data and implements a custom, untested hashing algorithm for passwords. Which two OWASP Top 10 vulnerabilities are directly highlighted by these practices, and how are they related?",
-    //   answers: [
-    //     {
-    //       answer:
-    //         "A03:2021 - Injection (custom algorithm) and A10:2021 - Server-Side Request Forgery (HTTP transmission)",
-    //       is_correct: false,
-    //     },
-    //     {
-    //       answer:
-    //         "A05:2021 - Security Misconfiguration (custom algorithm) and A09:2021 - Security Logging and Monitoring Failures (HTTP transmission)",
-    //       is_correct: false,
-    //     },
-    //     {
-    //       answer:
-    //         "A02:2021 - Cryptographic Failures (custom algorithm, HTTP transmission) and A07:2021 - Identification and Authentication Failures (password handling)",
-    //       is_correct: true,
-    //     },
-    //     {
-    //       answer:
-    //         "A01:2021 - Broken Access Control (HTTP transmission) and A08:2021 - Software and Data Integrity Failures (custom algorithm)",
-    //       is_correct: false,
-    //     },
-    //   ],
-    //   specification: "Analyzing",
-    //   topic: "OWASP Top Vulnerabilities",
-    //   lesson_id: "230fc74b-4e69-478a-a0bd-b4d2ce012f87",
-    // },
+  const [cognitive_levels, setCognitiveLevels] = useState([
+    { label: "Remembering", isSelected: false },
+    { label: "Understanding", isSelected: false },
+    { label: "Applying", isSelected: false },
+    { label: "Analyzing", isSelected: false },
+    { label: "Evaluating", isSelected: false },
+    { label: "Creating", isSelected: false },
+  ]);
+  const [items, setItems] = useState([
+    {
+      question: "",
+      type: "Multiple Choice",
+      specification: "",
+      repository: repository,
+      ai_generated: false,
+      answers: [
+        {
+          answer: "",
+          is_correct: true,
+        },
+      ],
+    },
   ]);
   const [formData, setFormData] = useState({
     total_items: "",
     cognitive_level: "",
   });
+  const [dialog, setDialog] = useState({
+    open: false,
+    title: "",
+    content: "",
+    action: null,
+  });
 
-  const submit = async (e) => {
+  const generateQuestion = async (e) => {
     e.preventDefault();
 
     if (!subject || !lesson) {
@@ -114,6 +99,15 @@ export default function AutoTab(props) {
       return;
     }
 
+    if (!cognitive_levels.some((level) => level.isSelected)) {
+      setSnackbar({
+        open: true,
+        message: "Please select at least one cognitive level.",
+        severity: "error",
+      });
+      return;
+    }
+
     //  const topics = rows.map((data) => ({
     //   text: `${data.totalItems} questions in the topic of ${data.topic}`,
     // }));
@@ -124,6 +118,7 @@ export default function AutoTab(props) {
       },
     ];
 
+    // relevance check
     try {
       setStatus("Reviewing uploaded files...");
       setLoading(true);
@@ -141,6 +136,7 @@ export default function AutoTab(props) {
         return;
       }
     } catch (error) {
+      console.log(error);
       setLoading(false);
       setStatus(null);
       setSnackbar({
@@ -151,15 +147,18 @@ export default function AutoTab(props) {
       return;
     }
 
-    const prompt = [
-      {
-        text: `In the topic of ${lesson} with a lesson_id of ${lessonId}, generate ${formData.total_items} question/s at the '${formData.cognitive_level}' level.`,
-      },
-    ];
+    // generate question
+
+    const prompt = cognitive_levels
+      .filter((level) => level.isSelected)
+      .map((level) => ({
+        text: `In the topic of ${lesson} with a lesson_id of ${lessonId}, generate ${formData.total_items} question/s at the '${level.label}' level.`,
+      }));
 
     try {
       setStatus("Generating questions. This may take a while...");
       const result = await aiRun(files, prompt);
+
       setStatus(null);
       setSnackbar({
         open: true,
@@ -167,9 +166,32 @@ export default function AutoTab(props) {
         severity: "success",
       });
       setLoading(false);
-      setQuestions(result.questions);
-      console.log(result.questions);
+
+      const newitems = result.questions.map((q) => ({
+        ...q,
+        lesson_id: lessonId,
+        type: "Multiple Choice",
+        repository: repository,
+      }));
+      setItems((prev) => [...prev, ...newitems]);
+      //
+
+      // setItems(result.questions);
+      // console.log(result.questions);
     } catch (error) {
+      console.log(error);
+      if (error instanceof Error && error.name === "AbortError") {
+        console.log("Request was aborted by the user.");
+        setLoading(false);
+        setStatus(null);
+        setSnackbar({
+          open: true,
+          message: "Question generation was aborted.",
+          severity: "info",
+        });
+        return;
+      }
+      console.error(error);
       setLoading(false);
       setStatus(null);
       setSnackbar({
@@ -180,56 +202,238 @@ export default function AutoTab(props) {
     }
   };
 
-  const cognitive_levels = [
-    "Remembering",
-    "Understanding",
-    "Applying",
-    "Analyzing",
-    "Evaluating",
-    "Creating",
-  ];
+  const stopAi = () => {
+    relevanceAbort();
+    aiAbort();
+    //
+    console.log("aborting request...");
+    // setLoading(false);
+    // setStatus(null);
+  };
 
-  if (questions.length <= 0) {
-    return (
-      <Box component="form" onSubmit={submit}>
+  const addItem = () => {
+    setItems([
+      ...items,
+      {
+        question: "",
+        type: "Multiple Choice",
+        specification: "",
+        repository: repository,
+        ai_generated: false,
+        answers: [
+          {
+            answer: "",
+            is_correct: true,
+          },
+        ],
+      },
+    ]);
+  };
+
+  const handleCognitiveLevelChange = (index) => {
+    // only  one can be selected
+
+    const updatedLevels = cognitive_levels.map((level, i) =>
+      i === index
+        ? { ...level, isSelected: !level.isSelected }
+        : { ...level, isSelected: false }
+    );
+
+    // const updatedLevels = cognitive_levels.map((level, i) =>
+    //   i === index ? { ...level, isSelected: !level.isSelected } : level
+    // );
+    setCognitiveLevels(updatedLevels);
+  };
+
+  const isAllChecked = () => {
+    const checked = items.filter((item) => item.is_checked);
+    return checked.length === items.length;
+  };
+
+  const hasSimilar = () => {
+    const similar = items.filter((item) => item.is_checked && item.has_similar);
+
+    return similar.length > 0;
+  };
+
+  const validate = (e) => {
+    e.preventDefault();
+    if (!subject || !lesson) {
+      setSnackbar({
+        open: true,
+        message: "Please select a subject and lesson.",
+        severity: "error",
+      });
+
+      return;
+    }
+
+    if (items.length === 0) {
+      setSnackbar({
+        open: true,
+        message: "No questions to upload.",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (!isAllChecked()) {
+      setDialog({
+        open: true,
+        title: "Unverified Questions",
+        content:
+          "Some questions haven't been checked. Do you want to continue?",
+        action: () => {
+          uploadQuestion();
+        },
+      });
+      return;
+    }
+
+    if (hasSimilar()) {
+      setDialog({
+        open: true,
+        title: "Similar Questions",
+        content:
+          "Some questions have similar content. Do you want to continue?",
+        action: () => {
+          uploadQuestion();
+        },
+      });
+      return;
+    }
+  };
+
+  const uploadQuestion = () => {
+    // console.log("items to upload:", items);
+
+    setLoading(true);
+    items.map(async (d, i) => {
+      // check if it has image
+      const hasImage = d.image && d.image != null;
+
+      if (hasImage) {
+        const fileName = `${Math.random()}-${d.image.name}`;
+        const { data: storageData, error: storageErr } = await supabase.storage
+          .from("question_image")
+          .upload(fileName, d.image);
+        if (storageErr) {
+          console.error("error uploading image:", storageErr);
+        } else {
+          d.image_url = storageData.path;
+        }
+      }
+
+      const { data: question_id, error: questionError } = await supabase
+        .from("tbl_question")
+        .insert({
+          question: d.question,
+          type: d.type,
+          blooms_category: d.specification,
+          repository: d.repository,
+          lesson_id: lessonId,
+          image: d.image_url ?? null,
+          ai_generated: d.ai_generated ?? false,
+        })
+        .select("id")
+        .single();
+
+      if (questionError) {
+        console.error("error inserting question:", questionError);
+      }
+
+      if (Array.isArray(d.answers)) {
+        d.answers.map(async (ans, _) => {
+          await supabase.from("tbl_answer").insert({
+            question_id: question_id.id,
+            answer: ans.answer,
+            is_correct: ans.is_correct,
+          });
+        });
+      } else {
+        await supabase
+          .from("tbl_answer")
+          .insert({ question_id: question_id.id, answer: d.answers.answer });
+      }
+    });
+
+    setSnackbar({
+      open: true,
+      message: "Questions uploaded successfully.",
+      severity: "success",
+    });
+    setDialog({ ...dialog, open: false });
+    setItems([]);
+
+    setLoading(false);
+  };
+
+  return (
+    <>
+      <Box component="form" onSubmit={generateQuestion}>
         <FileUpload files={files} setFiles={setFiles} />
-        <Stack direction={"row"} spacing={2} mt={2} mb={2}>
+        <Stack
+          direction={"row"}
+          spacing={2}
+          mt={2}
+          mb={2}
+          justifyContent={"space-between"}
+          alignItems={"center"}
+        >
           <TextField
             fullWidth
             size="small"
             label="Total Items"
             type="number"
             required
-            inputProps={{ min: 1, max: 10 }}
+            inputProps={{ min: 1, max: 100 }}
             value={formData.total_items}
+            sx={{ maxWidth: "150px" }}
             onChange={(e) =>
               setFormData({ ...formData, total_items: e.target.value })
             }
           />
-          <FormControl fullWidth size="small">
-            <InputLabel id="cognitive-label">Cognitive Level</InputLabel>
-            <Select
-              required
-              labelId="cognitive-label"
-              label="Cognitive Level"
-              defaultValue=""
-              value={formData.cognitive_level}
-              onChange={(e) =>
-                setFormData({ ...formData, cognitive_level: e.target.value })
-              }
-            >
-              <MenuItem value="" disabled />
+          <FormControl
+            component={"fieldset"}
+            variant="filled"
+            size="small"
+            required
+          >
+            <FormLabel>Cognitive Levels</FormLabel>
+            <FormGroup row>
               {cognitive_levels.map((level, index) => (
-                <MenuItem key={index} value={level}>
-                  {level}
-                </MenuItem>
+                <FormControlLabel
+                  key={index}
+                  control={
+                    <Checkbox
+                      checked={level.isSelected}
+                      onClick={() => handleCognitiveLevelChange(index)}
+                    />
+                  }
+                  label={
+                    <Typography variant="caption">{level.label}</Typography>
+                  }
+                  labelPlacement="bottom"
+                />
               ))}
-            </Select>
+            </FormGroup>
           </FormControl>
+
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            size="medium"
+            disableElevation
+            disabled={loading}
+            startIcon={<AutoAwesomeRoundedIcon />}
+            sx={{ textTransform: "none", minWidth: "200px" }}
+          >
+            {loading ? "Generating..." : "Generate with AI"}
+          </Button>
         </Stack>
-        {loading ? (
+        {loading && (
           <>
-            <LinearProgress />
             <Typography
               color="text.secondary"
               fontStyle="italic"
@@ -238,41 +442,56 @@ export default function AutoTab(props) {
               {status}
             </Typography>
           </>
-        ) : (
-          <Button
-            fullWidth
-            type="submit"
-            variant="contained"
-            color="primary"
-            size="small"
-            disableElevation
-            loading={loading}
-            startIcon={<AddCircleOutlineRoundedIcon />}
-          >
-            Submit
-          </Button>
         )}
+        <Divider sx={{ my: 5 }}>
+          <Typography variant="caption" color="text.secondary">
+            or add manually
+          </Typography>
+        </Divider>
       </Box>
-    );
-  }
+      <Box component="form" onSubmit={validate}>
+        <Stack rowGap={3} mt={2} mb={2}>
+          <questionContext.Provider value={{ items, setItems, lessonId }}>
+            {items.map((_, index) => {
+              return <AnswerCard key={index} index={index} />;
+            })}
+          </questionContext.Provider>
+          {/* <Stack> */}
+          <div>
+            <Tooltip title="Add a new question" placement="top" arrow>
+              <IconButton size="small" onClick={addItem}>
+                <AddCircleOutlineRoundedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </div>
+          {/* </Stack> */}
+          <Stack direction="row" justifyContent="space-between">
+            <Button
+              variant="contained"
+              color="error"
+              loading={loading}
+              disableElevation
+              onClick={() => navigate(-1)}
+            >
+              cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              loading={loading}
+              disableElevation
+              sx={{
+                backgroundColor: "#1E3A8A",
+                "&:hover": { backgroundColor: "#1E40AF" },
+              }}
+            >
+              upload questions
+            </Button>
+          </Stack>
+        </Stack>
+      </Box>
 
-  return (
-    <Box component="form">
-      <Button
-        size="small"
-        variant="contained"
-        color="error"
-        disableElevation
-        startIcon={<DriveFolderUploadRoundedIcon />}
-        onClick={() => setQuestions([])}
-      >
-        Upload Again
-      </Button>
-      <Stack rowGap={3} mt={2} mb={2}>
-        {questions.map((q, index) => (
-          <AutoAnswerCard key={index} question={q} index={index} />
-        ))}
-      </Stack>
-    </Box>
+      <GenQuestionDialog dialog={dialog} setDialog={setDialog} />
+    </>
   );
 }

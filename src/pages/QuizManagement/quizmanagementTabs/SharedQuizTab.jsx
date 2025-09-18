@@ -4,6 +4,7 @@ import {
   Box,
   FormControl,
   Grid,
+  IconButton,
   InputLabel,
   MenuItem,
   Paper,
@@ -18,8 +19,11 @@ import {
   TablePagination,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+
 import { supabase } from "../../../helper/Supabase";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
@@ -133,6 +137,14 @@ function SharedQuizTab() {
     setPage(0);
   };
 
+  const resetFilters = () => {
+    setFilter({
+      subject: "All",
+      repository: "All",
+      search: "",
+    });
+  };
+
   if (rows.length <= 0) {
     return (
       <Typography color="textDisabled" align="center" variant="body2">
@@ -155,6 +167,7 @@ function SharedQuizTab() {
             }}
             size="small"
             label="Search exams..."
+            value={filter.search}
             onChange={(e) => setFilter({ ...filter, search: e.target.value })}
           />
         </Grid>
@@ -210,6 +223,11 @@ function SharedQuizTab() {
             </Select>
           </FormControl>
         </Grid>
+        <Tooltip title="Clear Filters" placement="top" arrow>
+          <IconButton onClick={resetFilters} size="small">
+            <RestartAltRoundedIcon size="small" color="error" />
+          </IconButton>
+        </Tooltip>
       </Grid>
 
       <TableContainer

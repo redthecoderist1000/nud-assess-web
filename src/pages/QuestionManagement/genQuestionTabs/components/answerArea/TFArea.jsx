@@ -1,5 +1,4 @@
 import React, { useContext } from "react";
-import { questionContext } from "../../CustomTab";
 import {
   FormControl,
   FormControlLabel,
@@ -9,10 +8,12 @@ import {
   Stack,
 } from "@mui/material";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import { questionContext as AutoContext } from "../../AutoTab";
 
 function TFArea(props) {
   const { index } = props;
-  const { items, setItems } = useContext(questionContext);
+  const context = useContext(AutoContext);
+  const { items, setItems } = context;
 
   const setAnswer = (e) => {
     console.log("event:", e.target.value);

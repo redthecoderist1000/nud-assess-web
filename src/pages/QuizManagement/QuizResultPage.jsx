@@ -315,8 +315,9 @@ const QuizResultPage = () => {
             variant={editQDetail ? "contained" : "outlined"}
             onClick={() => setEditQDetail(!editQDetail)}
             color="warning"
+            disableElevation
           >
-            {editQDetail ? "Editing " : "Edit "} <PrintRoundedIcon />
+            {editQDetail ? "Editing " : "Edit "} <ModeEditRoundedIcon />
           </Button>
         </Stack>
         <div className="grid grid-cols-3 gap-4">
@@ -410,13 +411,13 @@ const QuizResultPage = () => {
                 <TableCell align="center" rowSpan={2}>
                   <b>Percentage</b>
                 </TableCell>
-                <TableCell align="center" colSpan={2}>
+                <TableCell align="center" colSpan={2} bgcolor="#e3f2fd">
                   <b>EASY</b>
                 </TableCell>
-                <TableCell align="center" colSpan={2}>
+                <TableCell align="center" colSpan={2} bgcolor="#fffde7">
                   <b>MEDIUM</b>
                 </TableCell>
-                <TableCell align="center" colSpan={2}>
+                <TableCell align="center" colSpan={2} bgcolor="#ffebee">
                   <b>HARD</b>
                 </TableCell>
                 <TableCell align="center" rowSpan={2}>
@@ -424,22 +425,22 @@ const QuizResultPage = () => {
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell align="center">
+                <TableCell align="center" bgcolor="#e3f2fd">
                   <b>Remembering (30%)</b>
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" bgcolor="#e3f2fd">
                   <b>Understanding (20%)</b>
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" bgcolor="#fffde7">
                   <b>Applying (20%)</b>
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center " bgcolor="#fffde7">
                   <b>Analyzing (10%)</b>
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" bgcolor="#ffebee">
                   <b>Creating (10%)</b>
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" bgcolor="#ffebee">
                   <b>Evaluating (10%)</b>
                 </TableCell>
               </TableRow>
@@ -450,12 +451,24 @@ const QuizResultPage = () => {
                   <TableCell align="center">{row.topic}</TableCell>
                   <TableCell align="center">{row.hours}</TableCell>
                   <TableCell align="center">{row.percentage} %</TableCell>
-                  <TableCell align="center">{row.remembering}</TableCell>
-                  <TableCell align="center">{row.understanding}</TableCell>
-                  <TableCell align="center">{row.applying}</TableCell>
-                  <TableCell align="center">{row.analyzing}</TableCell>
-                  <TableCell align="center">{row.creating}</TableCell>
-                  <TableCell align="center">{row.evaluating}</TableCell>
+                  <TableCell align="center" bgcolor="#e3f2fd">
+                    {row.remembering}
+                  </TableCell>
+                  <TableCell align="center" bgcolor="#e3f2fd">
+                    {row.understanding}
+                  </TableCell>
+                  <TableCell align="center" bgcolor="#fffde7">
+                    {row.applying}
+                  </TableCell>
+                  <TableCell align="center" bgcolor="#fffde7">
+                    {row.analyzing}
+                  </TableCell>
+                  <TableCell align="center" bgcolor="#ffebee">
+                    {row.creating}
+                  </TableCell>
+                  <TableCell align="center" bgcolor="#ffebee">
+                    {row.evaluating}
+                  </TableCell>
                   <TableCell align="center">{row.totalItems}</TableCell>
                 </TableRow>
               ))}
@@ -465,12 +478,24 @@ const QuizResultPage = () => {
                 </TableCell>
                 <TableCell align="center">{total.hours}</TableCell>
                 <TableCell align="center">{total.percentage} %</TableCell>
-                <TableCell align="center">{total.remembering}</TableCell>
-                <TableCell align="center">{total.understanding}</TableCell>
-                <TableCell align="center">{total.applying}</TableCell>
-                <TableCell align="center">{total.analyzing}</TableCell>
-                <TableCell align="center">{total.creating}</TableCell>
-                <TableCell align="center">{total.evaluating}</TableCell>
+                <TableCell align="center" bgcolor="#e3f2fd">
+                  {total.remembering}
+                </TableCell>
+                <TableCell align="center" bgcolor="#e3f2fd">
+                  {total.understanding}
+                </TableCell>
+                <TableCell align="center" bgcolor="#fffde7">
+                  {total.applying}
+                </TableCell>
+                <TableCell align="center" bgcolor="#fffde7">
+                  {total.analyzing}
+                </TableCell>
+                <TableCell align="center" bgcolor="#ffebee">
+                  {total.creating}
+                </TableCell>
+                <TableCell align="center" bgcolor="#ffebee">
+                  {total.evaluating}
+                </TableCell>
                 <TableCell align="center">{total.totalItems}</TableCell>
               </TableRow>
             </TableBody>
@@ -496,14 +521,6 @@ const QuizResultPage = () => {
                 onClick={() => handlePrint("question")}
               >
                 Print <PrintRoundedIcon />
-              </Button>
-              <Button
-                size="small"
-                variant={editQuestion ? "contained" : "outlined"}
-                color="warning"
-                onClick={() => setEditQuestion(!editQuestion)}
-              >
-                Edit <ModeEditRoundedIcon />
               </Button>
             </Stack>
           </Stack>

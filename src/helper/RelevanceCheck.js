@@ -2,6 +2,7 @@ import { getAI, getGenerativeModel, VertexAIBackend } from "firebase/ai";
 import { app } from "./Firebase";
 
 const ai = getAI(app, { backend: new VertexAIBackend() });
+let controller = new AbortController();
 
 const generationConfig = {
   responseMimeType: "application/json",
@@ -35,6 +36,12 @@ function getBase64(file) {
 }
 
 const relevanceCheck = async (files, topics) => {
+  if (controller) {
+    controller.abort();
+  }
+  controller = new AbortController();
+  const signal = controller.signal;
+
   const base64List = await Promise.all(files.map((f) => getBase64(f)));
 
   const parts = base64List.map((b64, i) => ({
@@ -47,9 +54,12 @@ const relevanceCheck = async (files, topics) => {
   parts.push(...topics);
 
   try {
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: parts }],
-    });
+    const result = await model.generateContent(
+      {
+        contents: [{ role: "user", parts: parts }],
+      },
+      { requestOptions: { signal: signal } }
+    );
 
     const text = result.response.text();
     try {
@@ -61,7 +71,14 @@ const relevanceCheck = async (files, topics) => {
   } catch (error) {
     console.log("error generating:", error);
     throw error;
+  } finally {
+    controller = null;
   }
 };
 
-export default relevanceCheck;
+const relevanceAbort = () => {
+  console.log("aborting relevance check...");
+  controller.abort();
+};
+
+export { relevanceCheck, relevanceAbort };

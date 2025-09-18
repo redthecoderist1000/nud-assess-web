@@ -16,6 +16,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import SettingsSuggestRoundedIcon from "@mui/icons-material/SettingsSuggestRounded";
+import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 
 const QuizModal = (props) => {
   const { isOpen, onClose, onSelectOption } = props;
@@ -116,7 +117,7 @@ const QuizModal = (props) => {
             }}
           >
             <Avatar sx={{ bgcolor: "#059669", width: 40, height: 40 }}>
-              <PsychologyIcon />
+              <AutoAwesomeRoundedIcon />
             </Avatar>
             <Box>
               <Typography

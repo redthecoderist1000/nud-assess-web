@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, use, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
 import { supabase } from "../../helper/Supabase";
 import {
   Box,
@@ -12,7 +11,6 @@ import {
   Tab,
   Tabs,
 } from "@mui/material";
-import CustomTab from "./genQuestionTabs/CustomTab";
 import AutoTab from "./genQuestionTabs/AutoTab";
 
 function CustomTabPanel(props) {
@@ -101,7 +99,7 @@ const CreateQuestionAutomatically = () => {
         Input basic details and upload your file to generate questions
       </p>
 
-      <div className="grid grid-cols-2 gap-4 mb-2">
+      <div className="grid grid-cols-2 gap-4 mb-4">
         {/* <label className="block text-xs text-gray-700 mb-1">Subject</label> */}
         <FormControl fullWidth size="small">
           <InputLabel id="subjectSelect" required>
@@ -153,23 +151,7 @@ const CreateQuestionAutomatically = () => {
         </FormControl>
       </div>
 
-      <Box sx={{ width: "100%" }}>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs value={tab} onChange={handleChange}>
-            <Tab label="Custom" />
-            <Tab label="Auto" />
-          </Tabs>
-        </Box>
-
-        {/* custom */}
-        <CustomTabPanel value={tab} index={0}>
-          <CustomTab subject={subject} lesson={lesson} />
-        </CustomTabPanel>
-        {/* ai */}
-        <CustomTabPanel value={tab} index={1}>
-          <AutoTab subject={subject} lesson={lessonName} lessonId={lesson} />
-        </CustomTabPanel>
-      </Box>
+      <AutoTab subject={subject} lesson={lessonName} lessonId={lesson} />
     </Container>
   );
 };

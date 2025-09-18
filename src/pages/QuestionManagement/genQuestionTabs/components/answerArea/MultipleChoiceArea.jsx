@@ -11,13 +11,16 @@ import {
 } from "@mui/material";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 
 import { useContext, useMemo, useRef } from "react";
-import { questionContext } from "../../CustomTab";
+import { questionContext as AutoContext } from "../../AutoTab";
 
 function MultipleChoiceArea(props) {
   const { index } = props; // question index
-  const { items, setItems } = useContext(questionContext);
+
+  const context = useContext(AutoContext);
+  const { items, setItems } = context;
 
   const addOption = () => {
     setItems(
@@ -86,7 +89,12 @@ function MultipleChoiceArea(props) {
         <Stack spacing={1}>
           {items[index].answers.map((data, a_index) => {
             return (
-              <Stack direction="row" key={a_index}>
+              <Stack
+                direction="row"
+                key={a_index}
+                spacing={1}
+                alignItems="center"
+              >
                 <Radio
                   checked={data.is_correct}
                   onClick={() => changeSelected(a_index)}
@@ -96,9 +104,11 @@ function MultipleChoiceArea(props) {
                 />
                 <TextField
                   required
+                  fullWidth
                   label={"option " + (a_index + 1)}
                   size="small"
                   value={data.answer}
+                  sx={{ maxWidth: "50%" }}
                   onChange={(e) => {
                     changeOption(e.target.value, a_index);
                   }}
@@ -107,7 +117,7 @@ function MultipleChoiceArea(props) {
                   size="small"
                   onClick={() => removeOption(index, a_index)}
                 >
-                  <DeleteOutlineRoundedIcon />
+                  <DeleteOutlineRoundedIcon size="small" />
                 </IconButton>
               </Stack>
             );
@@ -116,8 +126,14 @@ function MultipleChoiceArea(props) {
       </FormControl>
 
       <div>
-        <Button variant="text" size="small" onClick={addOption}>
-          add option
+        <Button
+          variant="text"
+          size="small"
+          onClick={addOption}
+          sx={{ textTransform: "none" }}
+          startIcon={<AddCircleOutlineRoundedIcon />}
+        >
+          New Option
         </Button>
       </div>
     </Stack>

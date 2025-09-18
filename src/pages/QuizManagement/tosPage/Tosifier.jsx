@@ -30,12 +30,12 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { userContext } from "../../../App";
 import FileUpload from "../../../components/elements/FileUpload";
-import { aiRun } from "../../../helper/Gemini";
+import { aiRun, aiAbort } from "../../../helper/Gemini";
 import { supabase } from "../../../helper/Supabase";
 import { time } from "framer-motion";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
-import relevanceCheck from "../../../helper/RelevanceCheck";
+import { relevanceCheck, relevanceAbort } from "../../../helper/RelevanceCheck";
 
 // Styled components for design
 const SectionCard = styled(Paper)(({ theme }) => ({
@@ -53,32 +53,6 @@ const TosTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   borderRight: "1px solid #eee",
   fontSize: "15px",
   padding: "12px 8px",
-}));
-
-const LegendBox = styled("div")({
-  display: "flex",
-  gap: "24px",
-  marginTop: "16px",
-  alignItems: "center",
-  fontSize: "15px",
-});
-
-const LegendItem = styled("span")(({ color }) => ({
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  fontWeight: 500,
-  color: "#333",
-  "&:before": {
-    content: '""',
-    display: "inline-block",
-    width: "18px",
-    height: "18px",
-    borderRadius: "4px",
-    background: color,
-    marginRight: "6px",
-    border: "1px solid #ccc",
-  },
 }));
 
 function Tosifier() {
@@ -352,6 +326,15 @@ function Tosifier() {
   const submitForm = (e) => {
     e.preventDefault();
 
+    if (rows.length === 0) {
+      setSnackbar({
+        open: true,
+        message: "Please add at least one topic.",
+        severity: "error",
+      });
+      return;
+    }
+
     switch (quizDetail.mode) {
       case "AI-Generated":
         generateQuestion();
@@ -468,35 +451,35 @@ function Tosifier() {
     setLoading(true);
 
     // relevance check
-    const topics = rows.map((data) => ({
-      text: `${data.totalItems} questions in the topic of ${data.topic}`,
-    }));
+    // const topics = rows.map((data) => ({
+    //   text: `${data.totalItems} questions in the topic of ${data.topic}`,
+    // }));
 
-    try {
-      setStatus("Reviewing uploaded files...");
-      const result = await relevanceCheck(files, topics);
+    // try {
+    //   setStatus("Reviewing uploaded files...");
+    //   const result = await relevanceCheck(files, topics);
 
-      if (!result.status) {
-        setLoading(false);
-        setStatus(null);
-        setSnackbar({
-          open: true,
-          message:
-            "The uploaded documents are irrelevant to the topics. Please review and try again.",
-          severity: "error",
-        });
-        return;
-      }
-    } catch (error) {
-      setLoading(false);
-      setStatus(null);
-      setSnackbar({
-        open: true,
-        message: "There seems to be a problem on our side. Please try again.",
-        severity: "error",
-      });
-      return;
-    }
+    //   if (!result.status) {
+    //     setLoading(false);
+    //     setStatus(null);
+    //     setSnackbar({
+    //       open: true,
+    //       message:
+    //         "The uploaded documents are irrelevant to the topics. Please review and try again.",
+    //       severity: "error",
+    //     });
+    //     return;
+    //   }
+    // } catch (error) {
+    //   setLoading(false);
+    //   setStatus(null);
+    //   setSnackbar({
+    //     open: true,
+    //     message: "There seems to be a problem on our side. Please try again.",
+    //     severity: "error",
+    //   });
+    //   return;
+    // }
 
     if (rows.length === 0) {
       setLoading(false);
@@ -1014,7 +997,7 @@ function Tosifier() {
               color="primary"
               disableElevation
               onClick={addRow}
-              disabled={lessonOption.length === 0}
+              disabled={lessonOption.length === 0 || total.items <= rows.length}
               loading={loading}
               startIcon={<AddCircleOutlineRoundedIcon />}
             >

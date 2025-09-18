@@ -16,11 +16,15 @@ import {
   Paper,
   Grid,
   Stack,
+  Button,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
 import styled from "@emotion/styled";
 import { userContext } from "../../../App";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -127,6 +131,13 @@ function MyQuestionTab() {
     );
   }
 
+  const resetFilters = () => {
+    setSearch("");
+    setSearchBloom("");
+    setSearchSubject("");
+    setSearchType("");
+  };
+
   return (
     <>
       <Grid container spacing={2}>
@@ -220,6 +231,11 @@ function MyQuestionTab() {
             </Select>
           </FormControl>
         </Grid>
+        <Tooltip title="Clear Filters" placement="top" arrow>
+          <IconButton onClick={resetFilters} size="small">
+            <RestartAltRoundedIcon size="small" color="error" />
+          </IconButton>
+        </Tooltip>
       </Grid>
 
       <TableContainer

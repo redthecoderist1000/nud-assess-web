@@ -20,14 +20,19 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import AddPhotoAlternateRoundedIcon from "@mui/icons-material/AddPhotoAlternateRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import axiosInstance from "../../../helper/axios";
+import { userContext } from "../../../App";
+import { similarityCheck } from "../../../helper/SimlarityChecker";
+import GenQuestionDialog from "../../QuestionManagement/genQuestionTabs/GenQuestionDialog";
 
 function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
+  const { setSnackbar } = useContext(userContext);
   const [newItem, setNewItem] = useState({
     question: "",
     cognitive_level: "",
@@ -36,16 +41,20 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
     lesson_name: "",
     image: null,
     answer: [],
+    is_checked: false,
+    has_similar: false,
   });
   const [imgPreview, setImgPreview] = useState(null);
   const fileInputRef = useRef(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+
   const [checkLoading, setCheckLoading] = useState(false);
   const [checkerRes, setCheckerRes] = useState({});
+  const [dialog, setDialog] = useState({
+    open: false,
+    title: "",
+    content: "",
+    action: null,
+  });
 
   const handleChangeItem = (e) => {
     const { name, value } = e.target;
@@ -272,8 +281,32 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
     }
   };
 
-  const submit = (e) => {
+  const validateForm = (e) => {
     e.preventDefault();
+    if (!newItem.is_checked) {
+      setDialog({
+        open: true,
+        title: "Unverified Questions",
+        content:
+          "This question hasn't been checked for similarity. Are you sure you want to add this question?",
+        action: () => submit(),
+      });
+      return;
+    }
+
+    if (newItem.has_similar) {
+      setDialog({
+        open: true,
+        title: "Similar Questions Found",
+        content:
+          "Similar questions were found. Are you sure you want to add this question?",
+        action: () => submit(),
+      });
+      return;
+    }
+  };
+
+  const submit = () => {
     addToExam(newItem);
     resetForm();
   };
@@ -286,6 +319,11 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
       newItem.lesson_id
     ) {
       // all required fields are filled
+      setNewItem((prev) => ({
+        ...prev,
+        is_checked: false,
+        has_similar: false,
+      }));
       setCheckLoading(true);
       setCheckerRes({});
       // console.log("checking...");
@@ -304,22 +342,31 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
     newItem.lesson_id,
   ]);
 
-  const check = () => {
-    axiosInstance
-      .post("/similarity", {
-        question: newItem.question,
-        blooms_category: newItem.cognitive_level,
-        repository: repository,
-        lesson_id: newItem.lesson_id,
-      })
-      .then((res) => {
-        console.log("sakses checking:", res.data);
-        setCheckLoading(false);
-        setCheckerRes(res.data);
-      })
-      .catch((err) => {
-        console.log("error checking:", err);
-      });
+  const check = async () => {
+    const { data: similarityData, error: similarityError } =
+      await similarityCheck(
+        newItem.question,
+        newItem.cognitive_level,
+        repository,
+        newItem.lesson_id
+      );
+
+    if (similarityError) {
+      setCheckerRes({ status: "failed" });
+      setCheckLoading(false);
+      return;
+    }
+    setCheckLoading(false);
+    setCheckerRes({
+      status: "success",
+      count: similarityData.length,
+      results: similarityData,
+    });
+    setNewItem((prev) => ({
+      ...prev,
+      has_similar: similarityData.length > 0,
+      is_checked: true,
+    }));
   };
 
   const alertBuilder = () => {
@@ -355,13 +402,32 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
       );
     }
 
-    // if wala
+    // if error
+    if (checkerRes.status == "failed") {
+      return (
+        <Alert
+          severity="error"
+          sx={{
+            py: 0.5,
+            px: 1,
+            fontSize: "0.875rem",
+          }}
+          action={
+            <IconButton color="inherit" size="small" onClick={retryCheck}>
+              <RestartAltRoundedIcon size="small" />
+            </IconButton>
+          }
+        >
+          Error! Failed to check for similar question.
+        </Alert>
+      );
+    }
   };
 
   return (
     <div hidden={hidden} style={{ paddingTop: "20px" }}>
       <Typography variant="h6">Create a new question</Typography>
-      <form onSubmit={submit}>
+      <form onSubmit={validateForm}>
         <Stack rowGap={5} mt={1}>
           <Grid container columnGap={1}>
             {/* question */}
@@ -495,57 +561,63 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
           {/* similarity checker */}
           {alertBuilder()}
 
-          {!!checkerRes && checkerRes.count > 0 && (
-            <Grid flex={1}>
-              <Card
-                variant="outlined"
-                sx={(theme) => {
-                  const bg = alpha(theme.palette.info.main, 0.08);
-                  return {
-                    bgcolor: bg,
-                    // color: theme.palette.getContrastText(bg), // compute readable text color
-                    border: "none",
-                  };
-                }}
-              >
-                <Box p={2}>
-                  <Typography variant="body2">Similar Question/s:</Typography>
-                  <Stack
-                    direction="row"
-                    width="100%"
-                    columnGap={2}
-                    mt={1}
-                    justifyContent="space-between"
-                  >
-                    <Typography variant="caption" fontWeight="bold">
-                      Question
-                    </Typography>
-                    <Typography variant="caption" fontWeight="bold">
-                      Similarity %
-                    </Typography>
-                  </Stack>
-                  {checkerRes.results.map((data, index) => {
-                    return (
+          {checkLoading ||
+            checkerRes.status == "failed" ||
+            (checkerRes.count >= 0 && (
+              <Grid flex={1}>
+                <Card
+                  variant="outlined"
+                  sx={(theme) => {
+                    const bg = alpha(theme.palette.info.main, 0.08);
+                    return {
+                      bgcolor: bg,
+                      // color: theme.palette.getContrastText(bg), // compute readable text color
+                      border: "none",
+                    };
+                  }}
+                >
+                  {checkerRes.count > 0 && (
+                    <Box p={2}>
+                      <Typography variant="body2">
+                        Similar Question/s:
+                      </Typography>
                       <Stack
-                        key={index}
                         direction="row"
                         width="100%"
                         columnGap={2}
+                        mt={1}
                         justifyContent="space-between"
                       >
-                        <Typography variant="caption">
-                          {data.question}
+                        <Typography variant="caption" fontWeight="bold">
+                          Question
                         </Typography>
-                        <Typography variant="caption">
-                          {(data.similarity * 100).toFixed(0)}
+                        <Typography variant="caption" fontWeight="bold">
+                          Similarity %
                         </Typography>
                       </Stack>
-                    );
-                  })}
-                </Box>
-              </Card>
-            </Grid>
-          )}
+                      {checkerRes.results.map((data, index) => {
+                        return (
+                          <Stack
+                            key={index}
+                            direction="row"
+                            width="100%"
+                            columnGap={2}
+                            justifyContent="space-between"
+                          >
+                            <Typography variant="caption">
+                              {data.question}
+                            </Typography>
+                            <Typography variant="caption">
+                              {(data.similarity * 100).toFixed(0)}
+                            </Typography>
+                          </Stack>
+                        );
+                      })}
+                    </Box>
+                  )}
+                </Card>
+              </Grid>
+            ))}
 
           {/* action button */}
           <Stack direction={"row"} justifyContent={"space-between"}>
@@ -572,22 +644,7 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
           </Stack>
         </Stack>
       </form>
-
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <GenQuestionDialog dialog={dialog} setDialog={setDialog} />
     </div>
   );
 }

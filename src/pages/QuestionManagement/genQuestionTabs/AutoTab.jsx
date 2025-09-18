@@ -26,7 +26,7 @@ import { userContext } from "../../../App";
 import { relevanceCheck, relevanceAbort } from "../../../helper/RelevanceCheck";
 import { aiRun, aiAbort } from "../../../helper/Gemini";
 import AnswerCard from "./components/AnswerCard";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 import { supabase } from "../../../helper/Supabase";
 import GenQuestionDialog from "./GenQuestionDialog";
@@ -34,6 +34,7 @@ import GenQuestionDialog from "./GenQuestionDialog";
 export const questionContext = createContext();
 
 export default function AutoTab(props) {
+  const navigate = useNavigate();
   const { subject, lesson, lessonId } = props;
   const { setSnackbar } = useContext(userContext);
 
@@ -470,6 +471,7 @@ export default function AutoTab(props) {
               color="error"
               loading={loading}
               disableElevation
+              onClick={() => navigate(-1)}
             >
               cancel
             </Button>
@@ -488,31 +490,6 @@ export default function AutoTab(props) {
           </Stack>
         </Stack>
       </Box>
-
-      {/* <Dialog
-        open={dialog.open}
-        onClose={() => setDialog({ ...dialog, open: false })}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          {"Use Google's location service?"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Let Google help apps determine location. This means sending
-            anonymous location data to Google, even when no apps are running.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialog({ ...dialog, open: false })}>
-            Disagree
-          </Button>
-          <Button onClick={() => {}} autoFocus>
-            Agree
-          </Button>
-        </DialogActions>
-      </Dialog> */}
 
       <GenQuestionDialog dialog={dialog} setDialog={setDialog} />
     </>

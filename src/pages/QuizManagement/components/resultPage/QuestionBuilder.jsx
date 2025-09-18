@@ -20,10 +20,11 @@ import {
 
 import { useEffect, useState } from "react";
 import MCArea from "./MCArea";
-import axiosInstance from "../../../../helper/axios";
 import { supabase } from "../../../../helper/Supabase";
 import TFArea from "./TFArea";
 import IdArea from "./IdArea";
+import { similarityCheck } from "../../../../helper/SimlarityChecker";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 
 function QuestionBuilder(props) {
   const { items, setItems, index, repository } = props;
@@ -68,25 +69,28 @@ function QuestionBuilder(props) {
     setCheckLoading(false);
   }, [data.question]);
 
-  const check = () => {
-    axiosInstance
-      .post("/similarity", {
-        question: data.question,
-        blooms_category: data.specification,
-        repository: repository,
-        lesson_id: data.lesson_id,
-      })
-      .then((res) => {
-        // console.log("sakses checking:", res.data);
-        setCheckLoading(false);
-        setCheckerRes(res.data);
-        setIsChecked(true);
-      })
-      .catch((err) => {
-        setIsChecked(false);
-        setCheckLoading(false);
-        setCheckerRes({ status: "failed" });
-      });
+  const check = async () => {
+    const { data: similarityData, error: similarityError } =
+      await similarityCheck(
+        data.question,
+        data.specification,
+        repository,
+        data.lesson_id
+      );
+
+    if (similarityError) {
+      setIsChecked(false);
+      setCheckLoading(false);
+      setCheckerRes({ status: "failed" });
+      return;
+    }
+    setCheckLoading(false);
+    setCheckerRes({
+      status: "success",
+      count: similarityData.length,
+      results: similarityData,
+    });
+    setIsChecked(true);
   };
 
   // const testCheck = () => {
@@ -333,9 +337,15 @@ function QuestionBuilder(props) {
                   </Grid>
                   {hasId && (
                     <Grid flex={1}>
-                      <Button onClick={undo} size="small" variant="outlined">
-                        undo
-                      </Button>
+                      <IconButton onClick={undo} size="small" color="primary">
+                        <Tooltip
+                          title="undo to previous question"
+                          placement="top"
+                          arrow
+                        >
+                          <RestartAltRoundedIcon />
+                        </Tooltip>
+                      </IconButton>
                     </Grid>
                   )}
                 </Grid>

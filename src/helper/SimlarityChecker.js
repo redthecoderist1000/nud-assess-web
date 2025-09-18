@@ -42,6 +42,11 @@ function calculateCosineSimilarity(vectorA, vectorB) {
 }
 
 const fetchQuestions = async (blooms_category, repository, lesson_id) => {
+  // console.log({
+  //   specification: blooms_category,
+  //   repository: repository,
+  //   lesson_id: lesson_id,
+  // });
   const { data: questionData, error: questionError } = await supabase
     .from("tbl_question")
     .select("id, question")
@@ -52,7 +57,7 @@ const fetchQuestions = async (blooms_category, repository, lesson_id) => {
   if (questionError) {
     return { error: questionError };
   }
-
+  // console.log(questionData);
   const questionsWithEmbeddings = await Promise.all(
     questionData.map(async (question) => {
       const embedding = await embeddingModel.embedContent({
@@ -64,6 +69,7 @@ const fetchQuestions = async (blooms_category, repository, lesson_id) => {
       return { ...question, embedding };
     })
   );
+  // console.log(questionsWithEmbeddings);
 
   return { data: questionsWithEmbeddings, error: null };
 };
@@ -96,6 +102,8 @@ const similarityCheck = async (
     taskType: "RETRIEVAL_QUERY",
   });
 
+  // console.log({ question: question, embedding: baseEmbedding });
+
   const questionWithCosine = await Promise.all(
     questions.map(async (q) => {
       const similarity = calculateCosineSimilarity(
@@ -106,11 +114,15 @@ const similarityCheck = async (
     })
   );
 
+  // console.log(questionWithCosine);
+
   const threshold = 0.7;
 
-  const filteredQuestions = questionWithCosine.filter(
-    (q) => q.similarity >= threshold
-  );
+  const filteredQuestions = questionWithCosine
+    .filter((q) => q.similarity >= threshold)
+    .sort((a, b) => b.similarity - a.similarity);
+
+  // console.log(filteredQuestions);
 
   return { data: filteredQuestions, error: null };
 };

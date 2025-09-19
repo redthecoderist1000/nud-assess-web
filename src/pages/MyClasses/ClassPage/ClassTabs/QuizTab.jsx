@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Alert, Button, Snackbar, Stack } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -12,20 +12,37 @@ import { useNavigate } from "react-router-dom";
 import QuizItem from "../../components/QuizItem";
 import DeleteQuiz from "../../components/DeleteQuiz";
 import EditQuiz from "../../components/EditQuiz";
+import { userContext } from "../../../../App";
+import { supabase } from "../../../../helper/Supabase";
 
 const dateFormat = (dateTime) => {
   return dayjs(dateTime).format("MMM DD, YYYY");
 };
 
-const QuizTab = ({ quizzes, classData }) => {
+const QuizTab = ({ quizzes, class_id }) => {
+  const { setSnackbar } = useContext(userContext);
   const [assignQuiz, setAssignQuiz] = useState(false);
   const [deleteQuiz, setDeleteQuiz] = useState(null);
   const [editQuiz, setEditQuiz] = useState(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  const [is_active, set_IsActive] = useState(true);
+
+  const fetchData = async () => {
+    const { data, error } = await supabase
+      .from("tbl_class")
+      .select("is_active")
+      .eq("id", class_id)
+      .single();
+
+    if (error) {
+      console.log("fail to fetch class status:", error);
+      return;
+    }
+    set_IsActive(data.is_active);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [class_id]);
 
   return (
     <div>
@@ -50,7 +67,7 @@ const QuizTab = ({ quizzes, classData }) => {
             minWidth: "140px",
             padding: "6px 16px",
           }}
-          disabled={classData.is_active === false}
+          disabled={!is_active}
           onClick={() => setAssignQuiz(true)}
         >
           Assign Quiz
@@ -81,7 +98,7 @@ const QuizTab = ({ quizzes, classData }) => {
             <QuizItem
               key={index}
               quiz={quiz}
-              classId={classData.id}
+              classId={class_id}
               setDeleteQuiz={() => setDeleteQuiz(quiz)}
               setEditQuiz={() => setEditQuiz(quiz)}
             />
@@ -99,7 +116,7 @@ const QuizTab = ({ quizzes, classData }) => {
       <AssignQuizDialog
         open={assignQuiz}
         setOpen={setAssignQuiz}
-        classId={classData.id}
+        classId={class_id}
         setSnackbar={setSnackbar}
       />
 
@@ -109,23 +126,6 @@ const QuizTab = ({ quizzes, classData }) => {
         quiz={editQuiz}
         setSnackbar={setSnackbar}
       />
-
-      {/* snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </div>
   );
 };

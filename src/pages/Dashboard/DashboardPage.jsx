@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const userCon = useContext(userContext);
+  const { user } = useContext(userContext);
 
   const [quizModalOpen, setQuizModalOpen] = useState(false);
   const [repoModalOpen, setRepoModalOpen] = useState(false);
@@ -82,7 +82,7 @@ const DashboardPage = () => {
     };
 
     fetchStats();
-  }, [userCon?.user?.user_id]);
+  }, [user?.user_id]);
 
   const handleCreateQuiz = () => {
     navigate("/quizzes");
@@ -110,14 +110,6 @@ const DashboardPage = () => {
   const handleCreateClassSave = () => {
     setCreateClassOpen(false);
   };
-
-  if (!userCon?.user?.user_id) {
-    return (
-      <p className="text-red-500">
-        User is not logged in. Please log in to access the dashboard.
-      </p>
-    );
-  }
 
   const leadStats = [
     {
@@ -215,21 +207,12 @@ const DashboardPage = () => {
       </div>
 
       <div className="mt-6">
-        <DashboardLead
-          userName={userCon?.user?.full_name || "User"}
-          activeExams={stats.totalQuizzes}
-          newSubmissions={stats.totalStudents}
-          classCount={stats.totalClasses}
-          stats={leadStats}
-          onCreateQuiz={handleCreateQuiz}
-          onCreateQuestions={handleCreateQuestions}
-          onCreateClass={handleCreateClass}
-        />
+        <DashboardLead />
       </div>
 
       <PerfOverview />
 
-      <div className="mt-6">
+      {/* <div className="mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col h-full">
             <TOSPlacement />
@@ -267,7 +250,7 @@ const DashboardPage = () => {
             <ExamCompletionRate />
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">

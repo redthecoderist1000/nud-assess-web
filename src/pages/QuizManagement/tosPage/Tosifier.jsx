@@ -1,20 +1,14 @@
 import {
-  Alert,
   Button,
   Card,
-  CircularProgress,
   Container,
-  Divider,
   FormControl,
   Grid,
   IconButton,
   InputLabel,
-  LinearProgress,
   MenuItem,
-  OutlinedInput,
   Paper,
   Select,
-  Snackbar,
   Stack,
   Table,
   TableBody,
@@ -27,15 +21,15 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useContext, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { userContext } from "../../../App";
 import FileUpload from "../../../components/elements/FileUpload";
-import { aiRun, aiAbort } from "../../../helper/Gemini";
+import { aiRun } from "../../../helper/Gemini";
 import { supabase } from "../../../helper/Supabase";
-import { time } from "framer-motion";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
-import { relevanceCheck, relevanceAbort } from "../../../helper/RelevanceCheck";
+
+const env = import.meta.env;
 
 // Styled components for design
 const SectionCard = styled(Paper)(({ theme }) => ({
@@ -56,13 +50,16 @@ const TosTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
 }));
 
 function Tosifier() {
-  const location = useLocation();
-  const { quizDetail: quizDetailState } = location.state;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const modeParam = searchParams.get("mode");
+  const repoParam = searchParams.get("repository");
+
   const { user, setSnackbar } = useContext(userContext);
   const navigate = useNavigate();
   const [subjectOptions, setSubjectOptions] = useState([]);
   const [quizDetail, setQuizDetail] = useState({
-    ...quizDetailState,
+    mode: modeParam,
+    repository: repoParam,
     subject_id: "",
     subject_name: "",
     is_random: false,
@@ -229,8 +226,6 @@ function Tosifier() {
 
   //   fetch subjects by user department
   const fetchSubjects = async () => {
-    // console.log(props.quizDetail);
-
     if (quizDetail.repository == "Final Exam") {
       // only get subject incharge
       // console.log(user);
@@ -259,6 +254,30 @@ function Tosifier() {
   };
 
   useEffect(() => {
+    // check params
+    const allowedModes = ["AI-Generated", "Random", "Manual"];
+    const allowedRepos = ["Final Exam", "Quiz"];
+
+    if (!allowedModes.includes(quizDetail.mode)) {
+      setSnackbar({
+        open: true,
+        message: "Invalid quiz mode.",
+        severity: "error",
+      });
+      navigate(-1);
+      return;
+    }
+
+    if (!allowedRepos.includes(quizDetail.repository)) {
+      setSnackbar({
+        open: true,
+        message: "Invalid quiz repository.",
+        severity: "error",
+      });
+      navigate(-1);
+      return;
+    }
+
     fetchSubjects();
   }, []);
 
@@ -449,37 +468,38 @@ function Tosifier() {
     }
 
     setLoading(true);
+    if (env.VITE_ENVIRONMENT === "deployed") {
+      // relevance check
+      const topics = rows.map((data) => ({
+        text: `${data.totalItems} questions in the topic of ${data.topic}`,
+      }));
 
-    // relevance check
-    // const topics = rows.map((data) => ({
-    //   text: `${data.totalItems} questions in the topic of ${data.topic}`,
-    // }));
+      try {
+        setStatus("Reviewing uploaded files...");
+        const result = await relevanceCheck(files, topics);
 
-    // try {
-    //   setStatus("Reviewing uploaded files...");
-    //   const result = await relevanceCheck(files, topics);
-
-    //   if (!result.status) {
-    //     setLoading(false);
-    //     setStatus(null);
-    //     setSnackbar({
-    //       open: true,
-    //       message:
-    //         "The uploaded documents are irrelevant to the topics. Please review and try again.",
-    //       severity: "error",
-    //     });
-    //     return;
-    //   }
-    // } catch (error) {
-    //   setLoading(false);
-    //   setStatus(null);
-    //   setSnackbar({
-    //     open: true,
-    //     message: "There seems to be a problem on our side. Please try again.",
-    //     severity: "error",
-    //   });
-    //   return;
-    // }
+        if (!result.status) {
+          setLoading(false);
+          setStatus(null);
+          setSnackbar({
+            open: true,
+            message:
+              "The uploaded documents are irrelevant to the topics. Please review and try again.",
+            severity: "error",
+          });
+          return;
+        }
+      } catch (error) {
+        setLoading(false);
+        setStatus(null);
+        setSnackbar({
+          open: true,
+          message: "There seems to be a problem on our side. Please try again.",
+          severity: "error",
+        });
+        return;
+      }
+    }
 
     if (rows.length === 0) {
       setLoading(false);
@@ -544,14 +564,18 @@ function Tosifier() {
         severity: "success",
       });
       setTimeout(() => {
-        navigate("/quizsummary", {
-          state: {
+        // store in localstorage
+        localStorage.setItem(
+          "quizsummary",
+          JSON.stringify({
             quizDetail: quizDetail,
             rows: rows,
             total: total,
             quiz: result.questions,
-          },
-        });
+          })
+        );
+        // navigate to quiz summary
+        navigate("/quizsummary");
       }, 2000);
     } catch (error) {
       setLoading(false);

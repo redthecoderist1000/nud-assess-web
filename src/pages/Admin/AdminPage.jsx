@@ -4,13 +4,23 @@ import { Box, Container } from "@mui/material";
 import SubjectTab from "./tabs/SubjectTab";
 import FacultyTab from "./tabs/FacultyTab";
 import AnnouncementTab from "./tabs/AnnouncementTab";
+import { useSearchParams } from "react-router-dom";
 
 function AdminPage() {
-  const [value, setValue] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab") ?? 0;
+  const [value, setValue] = useState(parseInt(tabParam, 10));
+
+  const changeTab = (tabKey) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("tab", tabKey);
+    setValue(tabKey);
+    setSearchParams(params, { replace: true });
+  };
 
   return (
     <>
-      <AdminNav setValue={setValue} value={value} />
+      <AdminNav value={value} setTab={changeTab} />
       <Container maxWidth="xl" sx={{ my: 5 }}>
         <div role="tabpanel" hidden={value !== 0} className="p-5">
           <SubjectTab />

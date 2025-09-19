@@ -4,9 +4,7 @@ import {
   Checkbox,
   CircularProgress,
   Container,
-  Divider,
   FormControlLabel,
-  Grid,
   Stack,
   Table,
   TableBody,
@@ -16,32 +14,36 @@ import {
   TableRow,
   TextField,
 } from "@mui/material";
-import React, { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../helper/Supabase";
 
 import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
 import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
-import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import QuestionBuilder from "./components/resultPage/QuestionBuilder";
 import { userContext } from "../../App";
-
-const QUESTION_TYPES = ["Multiple Choice", "True or False", "Identification"];
+import GenQuestionDialog from "../QuestionManagement/genQuestionTabs/GenQuestionDialog";
 
 const QuizResultPage = () => {
   const { setSnackbar } = useContext(userContext);
-  const location = useLocation();
   const navigate = useNavigate();
-  const { quizDetail, rows, total, quiz } = location.state;
+  const { quizDetail, rows, total, quiz } = JSON.parse(
+    localStorage.getItem("quizsummary")
+  );
   const [loading, setLoading] = useState(false);
 
   // State for edit mode and editable data
   const [editQDetail, setEditQDetail] = useState(false);
-  const [editQuestion, setEditQuestion] = useState(false);
 
   const [quizDetails, setQuizDetails] = useState(quizDetail);
   const [quizResult, setQuizResult] = useState([...quiz]);
+
+  const [dialog, setDialog] = useState({
+    open: false,
+    title: "",
+    content: "",
+    action: null,
+  });
 
   // Ref for print area
   const tosRef = useRef();
@@ -79,6 +81,8 @@ const QuizResultPage = () => {
 
   const AIGenerated = async () => {
     // create exam
+    setLoading(true);
+
     await supabase
       .from("tbl_exam")
       .insert({
@@ -182,6 +186,13 @@ const QuizResultPage = () => {
         setLoading(false);
         return;
       });
+    setSnackbar({
+      open: true,
+      message: "Quiz created successfully!",
+      severity: "success",
+    });
+
+    navigate(-1);
   };
 
   const randomQuiz = async () => {
@@ -197,6 +208,7 @@ const QuizResultPage = () => {
     //     name: 'Red Zinfandel Ochavillo'
 
     // insert exam
+    setLoading(true);
 
     const { data: examData, error: examErr } = await supabase
       .from("tbl_exam")
@@ -247,31 +259,56 @@ const QuizResultPage = () => {
       });
       return;
     }
+
+    setSnackbar({
+      open: true,
+      message: "Quiz created successfully!",
+      severity: "success",
+    });
+
+    navigate(-1);
   };
 
-  const handleFinish = async () => {
-    if (!isAllChecked) {
-      setSnackbar({
-        message: "Please review all questions before finishing.",
-        severity: "warning",
+  const validate = () => {
+    if (!isAllChecked && quizDetails.mode === "AI-Generated") {
+      setDialog({
+        open: true,
+        title: "Unchecked Questions",
+        content:
+          "Some questions haven't been checked for similarity. Do you want to proceed?",
+        action: () => handleFinish(),
+      });
+      return;
+    }
+    if (hasSimilarity) {
+      setDialog({
+        open: true,
+        title: "Similar Questions Found",
+        content: "Some questions have similar content. Do you want to proceed?",
+        action: () => handleFinish(),
       });
       return;
     }
 
-    setLoading(true);
-    switch (quizDetails.mode) {
-      case "AI-Generated":
-        AIGenerated();
-        break;
-      case "Random":
-        randomQuiz();
-        break;
-      default:
-        break;
-    }
-    // console.log("tos created:", tosres.data);
-    navigate(-1);
-    // setLoading(false);
+    handleFinish();
+  };
+
+  const handleFinish = async () => {
+    setDialog({ ...dialog, open: false });
+    // console.log(quizDetails.mode);
+
+    const actions = {
+      "AI-Generated": AIGenerated,
+      Random: randomQuiz,
+    };
+
+    setDialog({
+      open: true,
+      title: "Create Quiz",
+      content:
+        "Are you sure you want to create this quiz? The quiz cannot be edited later.",
+      action: actions[quizDetails.mode],
+    });
   };
 
   const handleEditDetail = (e) => {
@@ -293,6 +330,8 @@ const QuizResultPage = () => {
   };
 
   const isAllChecked = quizResult.every((q) => q.checked);
+
+  const hasSimilarity = quizResult.some((q) => q.hasSimilar);
 
   return (
     <Container maxWidth="xl" sx={{ my: 5 }}>
@@ -556,7 +595,7 @@ const QuizResultPage = () => {
           <Button
             variant="contained"
             size="large"
-            onClick={handleFinish}
+            onClick={validate}
             disableElevation
             color="success"
             disabled={!isAllChecked}
@@ -565,6 +604,8 @@ const QuizResultPage = () => {
           </Button>
         </div>
       )}
+
+      <GenQuestionDialog dialog={dialog} setDialog={setDialog} />
     </Container>
   );
 };

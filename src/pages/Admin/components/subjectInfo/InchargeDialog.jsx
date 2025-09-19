@@ -99,6 +99,7 @@ function InchargeDialog(props) {
       });
       return;
     }
+
     setOpen(false);
   };
 

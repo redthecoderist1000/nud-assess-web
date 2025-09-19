@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import QuizModal from "./components/QuizModal";
 import QuestionRepoModal from "../QuestionManagement/components/QuestionRepoModal";
@@ -27,9 +27,11 @@ function CustomTabPanel(props) {
 }
 
 const QuizmanagementPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [isRepoModalOpen, setIsRepoModalOpen] = useState(false);
-  const [value, setValue] = useState(0);
+  const tabParam = searchParams.get("tab") ?? 0;
+  const [value, setValue] = useState(parseInt(tabParam, 10));
 
   const [quizDetail, setQuizDetail] = useState({
     repository: "",
@@ -47,15 +49,17 @@ const QuizmanagementPage = () => {
   const handleRepoModalSelect = (repo) => {
     setQuizDetail({ ...quizDetail, repository: repo });
     setIsRepoModalOpen(false);
-    // setShowTOS(true);
-    // navigate tos
-    navigate("/quiz-detail", {
-      state: { quizDetail: { ...quizDetail, repository: repo } },
+
+    const params = new URLSearchParams({
+      mode: quizDetail.mode,
+      repository: repo,
     });
+    navigate(`/quiz-detail?${params.toString()}`);
   };
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (newValue) => {
     setValue(newValue);
+    setSearchParams({ tab: newValue }, { replace: true });
   };
 
   return (
@@ -159,7 +163,7 @@ const QuizmanagementPage = () => {
                           : "none",
                       minWidth: 0,
                     }}
-                    onClick={() => setValue(tab.key)}
+                    onClick={() => handleChange(tab.key)}
                   >
                     {tab.label}
                   </button>

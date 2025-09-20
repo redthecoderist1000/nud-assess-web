@@ -4,6 +4,8 @@ import AdminPic from "../../../assets/images/nu-pic-admin.png";
 import { Container } from "@mui/material";
 
 const AdminNav = (props) => {
+  const { value, setTab } = props;
+
   return (
     <div className="relative w-full m-0 p-0">
       {/* <img
@@ -15,21 +17,17 @@ const AdminNav = (props) => {
       <div className="bg-[#35408E] text-white flex  py-3 m-0">
         <Container maxWidth="xl">
           <span
-            onClick={() => {
-              props.setValue(0);
-            }}
+            onClick={() => setTab(0)}
             className={`cursor-pointer ml-15 hover:underline ${
-              props.value === 0 ? "text-amber-400 font-bold" : ""
+              value === 0 ? "text-amber-400 font-bold" : ""
             }`}
           >
             Subjects
           </span>
           <span
-            onClick={() => {
-              props.setValue(1);
-            }}
+            onClick={() => setTab(1)}
             className={`cursor-pointer ml-15 hover:underline ${
-              props.value === 1 ? "text-amber-400 font-bold" : ""
+              value === 1 ? "text-amber-400 font-bold" : ""
             }`}
           >
             Faculty

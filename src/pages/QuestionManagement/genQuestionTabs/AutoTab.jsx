@@ -1,4 +1,4 @@
-import { useState, useContext, createContext } from "react";
+import { useState, useContext, createContext, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -13,34 +13,27 @@ import {
   FormControlLabel,
   Checkbox,
   FormLabel,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
 } from "@mui/material";
 import FileUpload from "../../../components/elements/FileUpload";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 
 import { userContext } from "../../../App";
-import { relevanceCheck, relevanceAbort } from "../../../helper/RelevanceCheck";
-import { aiRun, aiAbort } from "../../../helper/Gemini";
+import { relevanceCheck } from "../../../helper/RelevanceCheck";
+import { aiRun } from "../../../helper/Gemini";
 import AnswerCard from "./components/AnswerCard";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 import { supabase } from "../../../helper/Supabase";
-import GenQuestionDialog from "./GenQuestionDialog";
+import GeneralDialog from "../../../components/elements/GeneralDialog";
 
 export const questionContext = createContext();
 
 export default function AutoTab(props) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const repository = searchParams.get("repository");
   const { subject, lesson, lessonId } = props;
   const { setSnackbar } = useContext(userContext);
-
-  const location = useLocation();
-  const repository = location.state.repository;
-
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [files, setFiles] = useState([]);
@@ -77,6 +70,20 @@ export default function AutoTab(props) {
     content: "",
     action: null,
   });
+
+  useEffect(() => {
+    const allowedRepo = ["Quiz", "Final Exam"];
+
+    if (!repository || !allowedRepo.includes(repository)) {
+      setSnackbar({
+        open: true,
+        message: "Invalid repository selected.",
+        severity: "error",
+      });
+      navigate(-1);
+      return;
+    }
+  }, [repository]);
 
   const generateQuestion = async (e) => {
     e.preventDefault();
@@ -200,15 +207,6 @@ export default function AutoTab(props) {
         severity: "error",
       });
     }
-  };
-
-  const stopAi = () => {
-    relevanceAbort();
-    aiAbort();
-    //
-    console.log("aborting request...");
-    // setLoading(false);
-    // setStatus(null);
   };
 
   const addItem = () => {
@@ -491,7 +489,7 @@ export default function AutoTab(props) {
         </Stack>
       </Box>
 
-      <GenQuestionDialog dialog={dialog} setDialog={setDialog} />
+      <GeneralDialog dialog={dialog} setDialog={setDialog} />
     </>
   );
 }

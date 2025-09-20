@@ -1,27 +1,21 @@
-import React, { useState } from "react";
+import { useContext, useState } from "react";
 import {
   Button,
   Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
-  Typography,
-  Snackbar,
-  Alert,
 } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import TableChartIcon from "@mui/icons-material/TableChart";
-import DescriptionIcon from "@mui/icons-material/Description";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import GradeBookTable from "../component/GradeBookTable";
+import { userContext } from "../../../../App";
 
-const GradeTab = ({ classData }) => {
+const GradeTab = ({ class_id }) => {
+  const { setSnackbar } = useContext(userContext);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+
   const [allowExport, setAllowExport] = useState(false);
 
   const handleExportClick = (event) => {
@@ -98,27 +92,10 @@ const GradeTab = ({ classData }) => {
         </div>
       </div>
       <GradeBookTable
-        classId={classData.id}
+        classId={class_id}
         setSnackbar={setSnackbar}
         setAllowExport={setAllowExport}
       />
-
-      {/* snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </div>
   );
 };

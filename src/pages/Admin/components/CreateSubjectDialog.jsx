@@ -15,7 +15,7 @@ import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
 
 function CreateSubjectDialog({ open, onClose }) {
-  const { user } = useContext(userContext);
+  const { user, setSnackbar } = useContext(userContext);
   const [loading, setLoading] = useState(false);
   const [subForm, setSubForm] = useState({});
 
@@ -25,7 +25,7 @@ function CreateSubjectDialog({ open, onClose }) {
 
   const submitForm = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
     const { data: subjectData, error } = await supabase
       .from("tbl_subject")
       .insert({
@@ -37,7 +37,14 @@ function CreateSubjectDialog({ open, onClose }) {
       .single();
 
     if (error) {
-      console.log("Error inserting data:", error);
+      setSnackbar({
+        open: true,
+        message: "Error creating subject. Please try again.",
+        severity: "error",
+      });
+      onClose();
+      setLoading(false);
+      setSubForm({});
       return;
     }
 
@@ -54,7 +61,22 @@ function CreateSubjectDialog({ open, onClose }) {
         program_id: programData.id,
         subject_id: subjectData.id,
       });
+    setSnackbar({
+      open: true,
+      message: "Subject created successfully",
+      severity: "success",
+    });
+    onClose();
+    setLoading(false);
+    setSubForm({});
   };
+
+  useState(() => {
+    if (!open) {
+      setSubForm({});
+      setLoading(false);
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth={true} maxWidth="sm">
@@ -81,26 +103,29 @@ function CreateSubjectDialog({ open, onClose }) {
             />
           </Stack>
         </DialogContent>
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          <DialogActions>
-            <Stack direction="row" width="100%" justifyContent="space-between">
-              <Button onClick={onClose} color="error" size="small">
-                Cancel
-              </Button>
-              <Button
-                disableElevation
-                size="small"
-                type="submit"
-                color="success"
-                variant="contained"
-              >
-                Confirm
-              </Button>
-            </Stack>
-          </DialogActions>
-        )}
+
+        <DialogActions>
+          <Stack direction="row" width="100%" justifyContent="space-between">
+            <Button
+              onClick={onClose}
+              color="error"
+              size="small"
+              loading={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              disableElevation
+              size="small"
+              type="submit"
+              color="success"
+              variant="contained"
+              loading={loading}
+            >
+              Confirm
+            </Button>
+          </Stack>
+        </DialogActions>
       </form>
     </Dialog>
   );

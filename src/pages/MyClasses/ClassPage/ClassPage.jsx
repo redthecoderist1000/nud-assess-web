@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../../helper/Supabase";
 import { Button, Grid, Stack } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
@@ -15,33 +15,39 @@ import AnnouncementIcon from "@mui/icons-material/Announcement";
 import BarChartIcon from "@mui/icons-material/BarChart";
 
 const tabList = [
-  { key: "quiz", label: "Quizzes", icon: <QuizIcon fontSize="small" /> },
-  { key: "people", label: "People", icon: <GroupIcon fontSize="small" /> },
+  { key: 0, label: "Quizzes", icon: <QuizIcon fontSize="small" /> },
+  { key: 1, label: "People", icon: <GroupIcon fontSize="small" /> },
   {
-    key: "announcement",
+    key: 2,
     label: "Announcements",
     icon: <AnnouncementIcon fontSize="small" />,
   },
-  { key: "grade", label: "Grades", icon: <BarChartIcon fontSize="small" /> },
+  { key: 3, label: "Grades", icon: <BarChartIcon fontSize="small" /> },
 ];
 
 const ClassPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParams = searchParams.get("tab") ?? 0;
+
+  const class_id = searchParams.get("class_id");
+
   const location = useLocation();
   const navigate = useNavigate();
-  const classData = location.state;
+  // const classData = location.state;
+  const [classData, setClassData] = useState({});
 
   const [dropdownVisible, setDropdownVisible] = useState(null);
   const [people, setPeople] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
 
   // Tab state: "quiz", "people", "announcement", "grade"
-  const [activeTab, setActiveTab] = useState("quiz");
+  const [activeTab, setActiveTab] = useState(parseInt(tabParams, 10));
 
   const fetchQuizzes = async () => {
     const { data, error } = await supabase
       .from("vw_quizzesperclass")
       .select("*")
-      .eq("class_id", classData.id);
+      .eq("class_id", class_id);
 
     if (error) {
       console.log("fail to fetch quizzes:", error);
@@ -55,7 +61,7 @@ const ClassPage = () => {
     const { data, error } = await supabase
       .from("vw_membersperclass")
       .select("*")
-      .eq("class_id", classData.id);
+      .eq("class_id", class_id);
 
     if (error) {
       console.log("fail to fetch members:", error);
@@ -64,12 +70,26 @@ const ClassPage = () => {
     return data;
   };
 
+  const fetchDetails = async () => {
+    const { data, error } = await supabase
+      .from("tbl_class")
+      .select("*")
+      .eq("id", class_id)
+      .single();
+    if (error) {
+      console.log("fail to fetch class details:", error);
+      return;
+    }
+
+    setClassData(data);
+  };
+
   // Fetch and calculate average score per student
   const fetchStudentAverages = async () => {
     const { data, error } = await supabase
       .from("vw_studentlistperquiz")
       .select("name, score, total_items, class_id")
-      .eq("class_id", classData.id);
+      .eq("class_id", class_id);
 
     if (error) {
       console.log("fail to fetch student averages:", error);
@@ -118,10 +138,17 @@ const ClassPage = () => {
     setPeople(merged);
   };
 
+  const changeTab = (tabKey) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("tab", tabKey);
+    setActiveTab(tabKey);
+    setSearchParams(params, { replace: true });
+  };
+
   useEffect(() => {
     fetchQuizzes();
     fetchAllPeople();
-
+    fetchDetails();
     const classChannel = supabase
       .channel("class_member_channel")
       .on(
@@ -149,7 +176,7 @@ const ClassPage = () => {
         (payload) => {
           const event = payload.eventType;
           const row = payload.new || payload.old;
-          if (row.class_id === classData.id || event === "DELETE") {
+          if (row.class_id === class_id || event === "DELETE") {
             fetchQuizzes();
           }
         }
@@ -159,7 +186,7 @@ const ClassPage = () => {
     return () => {
       supabase.removeChannel(classChannel);
     };
-  }, [classData.id]);
+  }, [class_id]);
 
   return (
     <div className="flex flex-col h-screen bg-[#f8f9fb] overflow-y-auto">
@@ -208,7 +235,7 @@ const ClassPage = () => {
                     cursor: "pointer",
                     marginRight: "8px",
                   }}
-                  onClick={() => setActiveTab(tab.key)}
+                  onClick={() => changeTab(tab.key)}
                 >
                   {tab.icon}
                   {tab.label}
@@ -216,16 +243,14 @@ const ClassPage = () => {
               ))}
             </div>
             {/* Content Section */}
-            {activeTab === "quiz" && (
-              <QuizTab quizzes={quizzes} classData={classData} />
+            {activeTab === 0 && (
+              <QuizTab quizzes={quizzes} class_id={class_id} />
             )}
-            {activeTab === "people" && (
-              <PeopleTab people={people} classData={classData} />
+            {activeTab === 1 && (
+              <PeopleTab people={people} class_id={class_id} />
             )}
-            {activeTab === "announcement" && (
-              <AnnouncementTab classData={classData} />
-            )}
-            {activeTab === "grade" && <GradeTab classData={classData} />}
+            {activeTab === 2 && <AnnouncementTab class_id={class_id} />}
+            {activeTab === 3 && <GradeTab class_id={class_id} />}
           </Stack>
         </Grid>
 

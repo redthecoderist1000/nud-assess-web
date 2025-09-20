@@ -1,34 +1,27 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import QuestionRepoModal from "./components/QuestionRepoModal";
 
-import { Box, Card, Container, Stack, Tab, Tabs } from "@mui/material";
+import { Box, Container, Stack } from "@mui/material";
 
 import MyQuestionTab from "./questionmanagementTabs/MyQuestionTab";
-import { supabase } from "../../helper/Supabase";
 import SharedQuestionTab from "./questionmanagementTabs/SharedQuestionTab";
+import CreateDialog from "../../components/elements/CreateDialog";
 
 const QuestionManagementPage = () => {
-  const [repoModalOpen, setRepoModalOpen] = useState(false);
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("MyQuestions");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [createDialog, setCreateDialog] = useState(false);
+  const tabParam = searchParams.get("tab") ?? 0;
 
-  // Backend stats for TetraBox
-  const [tetraStats, setTetraStats] = useState({
-    myQuestions: 0,
-    myQuestionsDelta: 0,
-    sharedQuestions: 0,
-    totalUsage: 0,
-    avgUsage: 0,
-  });
+  const [activeTab, setActiveTab] = useState(parseInt(tabParam, 10));
+
+  const changeTab = (event) => {
+    setActiveTab(event);
+    setSearchParams({ tab: event }, { replace: true });
+  };
 
   return (
-    <Container
-      maxWidth="xl"
-      className="my-5"
-      sx={{ height: "100vh", display: "flex", flexDirection: "column" }}
-    >
+    <Container maxWidth="xl" className="my-5">
       <motion.div
         className="flex flex-col h-full overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
@@ -65,7 +58,7 @@ const QuestionManagementPage = () => {
                 boxShadow: "none",
                 transition: "background 0.2s",
               }}
-              onClick={() => setRepoModalOpen(true)}
+              onClick={() => setCreateDialog(true)}
             >
               <svg
                 className="w-4 h-4"
@@ -128,8 +121,8 @@ const QuestionManagementPage = () => {
                 }}
               >
                 {[
-                  { label: "My Questions", key: "MyQuestions" },
-                  { label: "Shared Questions", key: "SharedQuestions" },
+                  { label: "My Questions", key: 0 },
+                  { label: "Shared Questions", key: 1 },
                 ].map((tab) => (
                   <button
                     key={tab.key}
@@ -148,7 +141,7 @@ const QuestionManagementPage = () => {
                           : "none",
                       minWidth: 0,
                     }}
-                    onClick={() => setActiveTab(tab.key)}
+                    onClick={() => changeTab(tab.key)}
                   >
                     {tab.label}
                   </button>
@@ -165,22 +158,18 @@ const QuestionManagementPage = () => {
                 flexDirection: "column",
               }}
             >
-              {activeTab === "MyQuestions" && <MyQuestionTab />}
-              {activeTab === "SharedQuestions" && <SharedQuestionTab />}
+              {activeTab === 0 && <MyQuestionTab />}
+              {activeTab === 1 && <SharedQuestionTab />}
             </Box>
           </Stack>
-          <QuestionRepoModal
-            isOpen={repoModalOpen}
-            onClose={() => setRepoModalOpen(false)}
-            onSelect={(selectedRepo) => {
-              setRepoModalOpen(false); // Close the modal
-              navigate("/GenerateQuestion", {
-                state: { repository: selectedRepo }, // Pass the selected repository
-              });
-            }}
-          />
         </main>
       </motion.div>
+
+      <CreateDialog
+        open={createDialog}
+        onClose={() => setCreateDialog(false)}
+        type="question"
+      />
     </Container>
   );
 };

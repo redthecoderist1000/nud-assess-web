@@ -103,12 +103,6 @@ function SubjectTab() {
   const handleSearch = (e) => setSearch(e.target.value);
   const clearSearch = () => setSearch("");
 
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
-  };
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -125,7 +119,6 @@ function SubjectTab() {
   const visibleRows = useMemo(
     () =>
       [...rows]
-        .sort(getComparator(order, orderBy))
         .filter((value) => {
           const matchSubName = value.tbl_subject.name
             .toLowerCase()
@@ -187,6 +180,14 @@ function SubjectTab() {
     }
     // console.log("data", data);
     setRows(data.tbl_program_subject);
+  };
+
+  const goToSubject = (subjectId, progSubId) => {
+    const params = new URLSearchParams({
+      subjectId: subjectId,
+      progSubId: progSubId,
+    });
+    navigate(`/admin/subject?${params.toString()}`);
   };
 
   return (
@@ -266,14 +267,7 @@ function SubjectTab() {
                   hover
                   tabIndex={-1}
                   sx={{ cursor: "pointer" }}
-                  onClick={() => {
-                    navigate("subject", {
-                      state: {
-                        subjectId: row.tbl_subject.id,
-                        progSubId: row.id,
-                      },
-                    });
-                  }}
+                  onClick={() => goToSubject(row.tbl_subject.id, row.id)}
                 >
                   <StyledTableCell component="th" scope="row">
                     {row.tbl_subject.subject_code}

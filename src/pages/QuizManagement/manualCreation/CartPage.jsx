@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -13,15 +12,15 @@ import {
   LinearProgress,
   MenuItem,
   Select,
-  Snackbar,
   Stack,
   Switch,
   Tab,
   Tabs,
+  TextField,
   Typography,
 } from "@mui/material";
 import { useContext, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ContentItem from "./ContentItem";
 import { supabase } from "../../../helper/Supabase";
 import QuestionDetailItem from "./QuestionDetailItem";
@@ -29,18 +28,18 @@ import QuestionBankItem from "./QuestionBankItem";
 import YourExamItem from "./YourExamItem";
 import NewQuestionTab from "./NewQuestionTab";
 import { userContext } from "../../../App";
+import GeneralDialog from "../../../components/elements/GeneralDialog";
 
 function CartPage() {
   const { user, setSnackbar } = useContext(userContext);
   const navigate = useNavigate();
-  const location = useLocation();
-  const { quizDetail, tosDetail } = location.state;
   const [requirements, setRequirements] = useState([]);
   const [filter, setFilter] = useState({
     lesson: "",
     cognitive_level: "",
     type: "",
     owned: false,
+    search: "",
   });
   const [lessonOptions, setLessonOptions] = useState([]);
   const [optionLoading, setOptionLoading] = useState(false);
@@ -50,6 +49,27 @@ function CartPage() {
   const [tabVal, setTabVal] = useState(0);
 
   const [loading, setLoading] = useState(false);
+
+  const [dialog, setDialog] = useState({
+    open: false,
+    title: "",
+    content: "",
+    action: null,
+  });
+
+  const { quizDetail, tosDetail } = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("manual_requirements"));
+    } catch {
+      setSnackbar({
+        open: true,
+        message: "Error loading quiz requirements. Please try again.",
+        severity: "error",
+      });
+      navigate(-1);
+      return {};
+    }
+  }, []);
 
   useEffect(() => {
     fetchQuestions();
@@ -204,7 +224,27 @@ function CartPage() {
     );
   }, [requirements]);
 
-  const submit = async () => {
+  const getNextAvailableName = (baseName, existingNames) => {
+    const usedNumbers = new Set();
+
+    existingNames.forEach((name) => {
+      const match = name.match(new RegExp(`^${baseName}(?:\\((\\d+)\\))?$`));
+      if (match) {
+        const num = match[1] ? parseInt(match[1]) : 0;
+        usedNumbers.add(num);
+      }
+    });
+
+    // Find the smallest unused number starting from 0
+    let nextNum = 0;
+    while (usedNumbers.has(nextNum)) {
+      nextNum++;
+    }
+
+    return nextNum === 0 ? baseName : `${baseName}(${nextNum})`;
+  };
+
+  const validate = () => {
     if (!allRequirementsMet) {
       setSnackbar({
         open: true,
@@ -214,10 +254,47 @@ function CartPage() {
       return;
     }
 
+    setDialog({
+      open: true,
+      title: "Confirm Quiz Creation",
+      content:
+        "Are you sure you want to create this quiz? You cannot edit the contents later.",
+      action: submit,
+    });
+  };
+
+  const submit = async () => {
     setLoading(true);
+    setDialog({ open: false, title: "", content: "", action: null });
+    // check name
+    const { data: nameCheck, error: checkError } = await supabase
+      .from("tbl_exam")
+      .select("name")
+      .eq("created_by", user.user_id)
+      .like("name", quizDetail.name + "%");
+    if (checkError) {
+      setSnackbar({
+        open: true,
+        message: "Failed to create quiz. Please try again.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const baseName = quizDetail.name;
+    const pattern = new RegExp(`^${baseName}(?:\\(\\d+\\))?$`);
+
+    const filtered = nameCheck
+      .map((item) => item.name)
+      .filter((name) => pattern.test(name));
+
+    const final_name =
+      filtered.length > 0 ? getNextAvailableName(baseName, filtered) : baseName;
+
     // insert tbl_exam
     const examPayload = {
-      name: quizDetail.name,
+      name: final_name,
       desc: quizDetail.desc ?? null,
       objective: quizDetail.objective ?? null,
       subject_id: quizDetail.subject_id,
@@ -347,18 +424,35 @@ function CartPage() {
     // navigate back to quiz management after 2 seconds
     setTimeout(() => {
       navigate("/quizzes", { replace: true });
+      localStorage.removeItem("manual_requirements");
     }, 2000);
   };
 
-  const visibleOptionQuestions = useMemo(() => {
-    if (filter.owned) {
-      return optionQuestion.filter((q) => q.creator_id === user.id);
-    }
-    return optionQuestion;
-  }, [filter.owned, optionQuestion]);
+  const visibleOptionQuestions = useMemo(
+    () =>
+      optionQuestion.filter((q) => {
+        const matchQuestion = q.question
+          .toLowerCase()
+          .includes(filter.search.toLowerCase());
+
+        const owned = q.creator_id === user.id;
+
+        if (filter.owned) {
+          return matchQuestion && owned;
+        }
+
+        return matchQuestion;
+      }),
+    [filter.owned, optionQuestion, filter.search]
+  );
+
+  const onCancel = () => {
+    localStorage.removeItem("manual_requirements");
+    navigate(-1);
+  };
 
   return (
-    <Stack p={2} spacing={2} height={"100%"}>
+    <Stack p={2} spacing={2} height={"100%"} my={2}>
       {/* title */}
       <div className="bg-white border-b border-gray-200  pb-2 ">
         <h1 className="text-2xl font-bold text-gray-900">Quiz Creation</h1>
@@ -507,6 +601,15 @@ function CartPage() {
                 </Select>
               </FormControl>
             </Stack>
+            <TextField
+              size="small"
+              fullWidth
+              placeholder="Search question..."
+              sx={{ mt: 1 }}
+              value={filter.search}
+              onChange={(e) => setFilter({ ...filter, search: e.target.value })}
+            />
+
             {/* list of questions */}
             {optionLoading ? (
               <Stack
@@ -539,7 +642,9 @@ function CartPage() {
                         />
                       }
                       label={
-                        <Typography variant="caption">Owned only</Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          Owned only
+                        </Typography>
                       }
                     />
                   </FormGroup>
@@ -561,20 +666,21 @@ function CartPage() {
         <LinearProgress />
       ) : (
         <Stack direction="row" justifyContent={"space-between"}>
-          <Button color="error" onClick={() => navigate(-1)} disabled={loading}>
+          <Button color="error" onClick={onCancel} disabled={loading}>
             Cancel
           </Button>
           <Button
             variant="contained"
             color="success"
             disableElevation
-            onClick={submit}
+            onClick={validate}
             disabled={!allRequirementsMet || loading}
           >
             Continue
           </Button>
         </Stack>
       )}
+      <GeneralDialog dialog={dialog} setDialog={setDialog} />
     </Stack>
   );
 }

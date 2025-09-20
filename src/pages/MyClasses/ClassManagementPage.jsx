@@ -1,13 +1,11 @@
 import { useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import ClassAnalyticsChart from "./components/ClassAnalyticsChart";
 import CreateClass from "./components/CreateClass";
 import ClassGrid from "./components/ClassGrid";
 import { supabase } from "../../helper/Supabase";
 import { userContext } from "../../App";
 import {
-  Alert,
   Button,
   Container,
   Dialog,
@@ -16,15 +14,17 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
-  Snackbar,
   Stack,
   Typography,
 } from "@mui/material";
 
 const ClassManagementPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab") ?? 0;
+
   const { user, setSnackbar } = useContext(userContext);
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("active");
+  const [activeTab, setActiveTab] = useState(parseInt(tabParam, 10));
   const [classes, setClasses] = useState([]);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -164,15 +164,23 @@ const ClassManagementPage = () => {
   };
 
   const filteredClasses = classes.filter((cls) => {
-    if (activeTab === "active") {
+    if (activeTab === 0) {
       return cls.is_active;
     } else {
       return !cls.is_active;
     }
   });
 
+  const changeTab = (event) => {
+    setActiveTab(event);
+    setSearchParams({ tab: event }, { replace: true });
+  };
+
   const handleClassClick = (cls) => {
-    navigate("/class", { state: cls });
+    const params = new URLSearchParams({
+      class_id: cls.id,
+    });
+    navigate(`/class?${params.toString()}`);
   };
 
   return (
@@ -209,33 +217,29 @@ const ClassManagementPage = () => {
           >
             <button
               className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
-                ${activeTab === "active" ? "bg-white text-black shadow-sm" : "text-gray-700"}
+                ${activeTab === 0 ? "bg-white text-black shadow-sm" : "text-gray-700"}
               `}
               style={{
                 border: "none",
-                background: activeTab === "active" ? "#fff" : "transparent",
+                background: activeTab === 0 ? "#fff" : "transparent",
                 boxShadow:
-                  activeTab === "active"
-                    ? "0 1px 4px rgba(0,0,0,0.03)"
-                    : "none",
+                  activeTab === 0 ? "0 1px 4px rgba(0,0,0,0.03)" : "none",
               }}
-              onClick={() => setActiveTab("active")}
+              onClick={() => changeTab(0)}
             >
               Active
             </button>
             <button
               className={`flex-1 py-2 text-center rounded-full font-bold transition-colors
-                ${activeTab === "archived" ? "bg-white text-black shadow-sm" : "text-gray-700"}
+                ${activeTab === 1 ? "bg-white text-black shadow-sm" : "text-gray-700"}
               `}
               style={{
                 border: "none",
-                background: activeTab === "archived" ? "#fff" : "transparent",
+                background: activeTab === 1 ? "#fff" : "transparent",
                 boxShadow:
-                  activeTab === "archived"
-                    ? "0 1px 4px rgba(0,0,0,0.03)"
-                    : "none",
+                  activeTab === 1 ? "0 1px 4px rgba(0,0,0,0.03)" : "none",
               }}
-              onClick={() => setActiveTab("archived")}
+              onClick={() => changeTab(1)}
             >
               Archive
             </button>

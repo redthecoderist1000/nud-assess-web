@@ -14,7 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { supabase } from "../../../helper/Supabase";
 import InchargeDialog from "../components/subjectInfo/InchargeDialog";
 import AddLessonDialog from "../components/subjectInfo/AddLessonDialog";
@@ -24,18 +24,15 @@ import AddAssigned from "../components/subjectInfo/AddAssigned";
 import RemoveAssignedDialog from "../components/subjectInfo/RemoveAssignedDialog";
 import styled from "@emotion/styled";
 
-const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
-  background: bgcolor || "inherit",
-  fontWeight: 500,
-  textAlign: "center",
-  borderRight: "1px solid #eee",
-  fontSize: "15px",
-  padding: "12px 8px",
-}));
-
 function SubjectInfoPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const subjectId = searchParams.get("subjectId");
+  const progSubId = searchParams.get("progSubId");
+  // console.log("subjectId:", subjectId);
+  // console.log("progSubId:", progSubId);
+  //
   const location = useLocation();
-  const { subjectId, progSubId } = location.state;
+  // const { subjectId, progSubId } = location.state;
 
   const [info, setInfo] = useState({});
   const [assigned, setAssigned] = useState([]);

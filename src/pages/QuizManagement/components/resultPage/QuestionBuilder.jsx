@@ -90,6 +90,7 @@ function QuestionBuilder(props) {
       count: similarityData.length,
       results: similarityData,
     });
+    setHasSimilar(similarityData.length > 0);
     setIsChecked(true);
   };
 
@@ -259,6 +260,14 @@ function QuestionBuilder(props) {
     setItems((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], checked: value };
+      return next;
+    });
+  };
+
+  const setHasSimilar = (value) => {
+    setItems((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], hasSimilar: value };
       return next;
     });
   };

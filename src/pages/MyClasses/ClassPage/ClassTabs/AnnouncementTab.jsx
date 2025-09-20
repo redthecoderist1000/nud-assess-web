@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   TextField,
@@ -19,18 +19,16 @@ import { supabase } from "../../../../helper/Supabase";
 import AnnouncementItem from "../../components/AnnouncementItem";
 import DeleteAnnounce from "../../components/DeleteAnnounce";
 import EditAnnounce from "../../components/EditAnnounce";
+import { userContext } from "../../../../App";
 
-const AnnouncementTab = ({ classData }) => {
+const AnnouncementTab = ({ class_id }) => {
+  const { setSnackbar } = useContext(userContext);
   const [formData, setFormData] = useState({
     content: "",
     title: "",
     start_date: null,
   });
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
   const [announcementList, setAnnouncementList] = useState([]);
@@ -86,7 +84,7 @@ const AnnouncementTab = ({ classData }) => {
     const payload = {
       title: formData.title,
       content: formData.content,
-      class_id: classData.id,
+      class_id: class_id,
       ...(formData.start_date && { start_date: formData.start_date }),
       ...(formData.start_date &&
         new Date(formData.start_date) > new Date() && { status: "Scheduled" }),
@@ -134,7 +132,7 @@ const AnnouncementTab = ({ classData }) => {
           event: "*",
           schema: "public",
           table: "tbl_announcement",
-          filter: `class_id=eq.${classData.id}`,
+          filter: `class_id=eq.${class_id}`,
         },
         (payload) => {
           fetchAnnouncements();
@@ -145,13 +143,13 @@ const AnnouncementTab = ({ classData }) => {
     return () => {
       supabase.removeChannel(announcementChannel);
     };
-  }, [classData.id]);
+  }, [class_id]);
 
   const fetchAnnouncements = async () => {
     const { data, error } = await supabase
       .from("tbl_announcement")
       .select("*, tbl_users ( f_name, l_name )")
-      .eq("class_id", classData.id)
+      .eq("class_id", class_id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -294,23 +292,6 @@ const AnnouncementTab = ({ classData }) => {
         announcement={toEdit}
         setSnackbar={setSnackbar}
       />
-
-      {/* snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </div>
   );
 };

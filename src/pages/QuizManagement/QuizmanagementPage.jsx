@@ -1,20 +1,10 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import QuizModal from "./components/QuizModal";
-import QuestionRepoModal from "../QuestionManagement/components/QuestionRepoModal";
-import Tosifier from "./tosPage/Tosifier";
-import {
-  Box,
-  Card,
-  Container,
-  Stack,
-  Tab,
-  Tabs,
-  Typography,
-} from "@mui/material";
+import { Container, Stack } from "@mui/material";
 import MyQuizTab from "./quizmanagementTabs/MyQuizTab";
 import SharedQuizTab from "./quizmanagementTabs/SharedQuizTab";
+import CreateDialog from "../../components/elements/CreateDialog";
 
 function CustomTabPanel(props) {
   const { children, value, index } = props;
@@ -27,35 +17,14 @@ function CustomTabPanel(props) {
 }
 
 const QuizmanagementPage = () => {
-  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
-  const [isRepoModalOpen, setIsRepoModalOpen] = useState(false);
-  const [value, setValue] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [createDialog, setCreateDialog] = useState(false);
+  const tabParam = searchParams.get("tab") ?? 0;
+  const [value, setValue] = useState(parseInt(tabParam, 10));
 
-  const [quizDetail, setQuizDetail] = useState({
-    repository: "",
-    mode: "",
-  });
-
-  const navigate = useNavigate();
-
-  const handleQuizModalSelect = (mode) => {
-    setQuizDetail({ ...quizDetail, mode: mode });
-    setIsQuizModalOpen(false);
-    setIsRepoModalOpen(true);
-  };
-
-  const handleRepoModalSelect = (repo) => {
-    setQuizDetail({ ...quizDetail, repository: repo });
-    setIsRepoModalOpen(false);
-    // setShowTOS(true);
-    // navigate tos
-    navigate("/quiz-detail", {
-      state: { quizDetail: { ...quizDetail, repository: repo } },
-    });
-  };
-
-  const handleChange = (event, newValue) => {
+  const handleChange = (newValue) => {
     setValue(newValue);
+    setSearchParams({ tab: newValue }, { replace: true });
   };
 
   return (
@@ -76,7 +45,7 @@ const QuizmanagementPage = () => {
               </p>
             </div>
             <button
-              onClick={() => setIsQuizModalOpen(true)}
+              onClick={() => setCreateDialog(true)}
               className="flex items-center gap-2 bg-[#4854a3] hover:bg-[#2C388F] text-white font-medium py-1.5 px-3 rounded-lg text-sm"
             >
               <svg
@@ -159,7 +128,7 @@ const QuizmanagementPage = () => {
                           : "none",
                       minWidth: 0,
                     }}
-                    onClick={() => setValue(tab.key)}
+                    onClick={() => handleChange(tab.key)}
                   >
                     {tab.label}
                   </button>
@@ -178,21 +147,13 @@ const QuizmanagementPage = () => {
 
           {/* </Card> */}
         </main>
-
-        {/* Quiz Modal */}
-        <QuizModal
-          isOpen={isQuizModalOpen}
-          onClose={() => setIsQuizModalOpen(false)}
-          onSelectOption={handleQuizModalSelect}
-        />
-
-        {/* Question Repository Modal */}
-        <QuestionRepoModal
-          isOpen={isRepoModalOpen}
-          onClose={() => setIsRepoModalOpen(false)}
-          onSelect={handleRepoModalSelect}
-        />
       </motion.div>
+
+      <CreateDialog
+        open={createDialog}
+        onClose={() => setCreateDialog(false)}
+        type="quiz"
+      />
     </Container>
   );
 };

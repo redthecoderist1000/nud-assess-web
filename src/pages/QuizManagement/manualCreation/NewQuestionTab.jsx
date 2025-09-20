@@ -28,7 +28,8 @@ import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import { userContext } from "../../../App";
 import { similarityCheck } from "../../../helper/SimlarityChecker";
-import GenQuestionDialog from "../../QuestionManagement/genQuestionTabs/GenQuestionDialog";
+import GenQuestionDialog from "../../../components/elements/GeneralDialog";
+import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 
 function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
   const { setSnackbar } = useContext(userContext);
@@ -230,8 +231,9 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
               onClick={addAnswer}
               size="small"
               sx={{ textTransform: "none" }}
+              startIcon={<AddCircleOutlineRoundedIcon />}
             >
-              + Add Option
+              Add Option
             </Button>
           </div>
         </Stack>

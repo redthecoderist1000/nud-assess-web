@@ -7,9 +7,8 @@ import {
   DialogTitle,
   Stack,
 } from "@mui/material";
-import React from "react";
 
-function GenQuestionDialog({ dialog, setDialog }) {
+function GeneralDialog({ dialog, setDialog }) {
   return (
     <Dialog
       open={dialog.open}
@@ -46,4 +45,4 @@ function GenQuestionDialog({ dialog, setDialog }) {
   );
 }
 
-export default GenQuestionDialog;
+export default GeneralDialog;

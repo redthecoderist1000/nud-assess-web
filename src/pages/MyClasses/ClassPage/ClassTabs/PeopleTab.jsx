@@ -1,13 +1,32 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, List } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import AddMemberDialog from "../../components/AddMemberDialog";
 import PersonListItem from "../../components/PersonListItem";
 import RemMemberDialog from "../../components/RemMemberDialog";
+import { supabase } from "../../../../helper/Supabase";
 
-const PeopleTab = ({ people = [], classData }) => {
+const PeopleTab = ({ people = [], class_id }) => {
   const [addMembDia, setAddMemDia] = useState(false);
   const [remMembDia, setRemMemDia] = useState(null);
+  const [isActive, setIsActive] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, [class_id]);
+
+  const fetchData = async () => {
+    const { data, error } = await supabase
+      .from("tbl_class")
+      .select("is_active")
+      .eq("id", class_id)
+      .single();
+    if (error) {
+      console.log("fail to fetch members:", error);
+      return;
+    }
+    setIsActive(data.is_active);
+  };
 
   return (
     <div>
@@ -32,7 +51,7 @@ const PeopleTab = ({ people = [], classData }) => {
             minWidth: "140px",
             padding: "6px 16px",
           }}
-          disabled={!classData.is_active}
+          disabled={!isActive}
           onClick={() => setAddMemDia(true)}
         >
           Add Member
@@ -68,7 +87,7 @@ const PeopleTab = ({ people = [], classData }) => {
       <AddMemberDialog
         open={addMembDia}
         setOpen={setAddMemDia}
-        classId={classData.id}
+        classId={class_id}
       />
     </div>
   );

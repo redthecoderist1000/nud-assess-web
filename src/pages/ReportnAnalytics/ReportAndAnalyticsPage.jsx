@@ -8,10 +8,14 @@ import TetraBox from "./components/TetraBox";
 import { Box, CircularProgress, Container, Typography } from "@mui/material";
 import { supabase } from "../../helper/Supabase";
 import { userContext } from "../../App";
+import { useSearchParams } from "react-router-dom";
 
 const ReportAndAnalyticsPage = () => {
   const { setSnackbar } = useContext(userContext);
-  const [activeTab, setActiveTab] = useState("quiz");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab") ?? "quiz";
+
+  const [activeTab, setActiveTab] = useState(tabParam);
   const [filter, setFilter] = useState({
     // class_id: "",
     start_time: "all",
@@ -256,6 +260,13 @@ const ReportAndAnalyticsPage = () => {
     }
   };
 
+  const changeTab = (tabKey) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("tab", tabKey);
+    setActiveTab(tabKey);
+    setSearchParams(params, { replace: true });
+  };
+
   return (
     <Container maxWidth="xl" sx={{ my: 5 }}>
       {/* Header */}
@@ -315,7 +326,7 @@ const ReportAndAnalyticsPage = () => {
                   activeTab === tab.key ? "0 1px 4px rgba(0,0,0,0.03)" : "none",
                 minWidth: 0,
               }}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => changeTab(tab.key)}
             >
               {tab.label}
             </button>

@@ -1,5 +1,12 @@
-import React, { useState, useRef, useEffect, use, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  use,
+  useMemo,
+  useContext,
+} from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { supabase } from "../../helper/Supabase";
 import {
   Box,
@@ -12,84 +19,103 @@ import {
   Tabs,
 } from "@mui/material";
 import AutoTab from "./genQuestionTabs/AutoTab";
-
-function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
+import { userContext } from "../../App";
 
 const CreateQuestionAutomatically = () => {
   const navigate = useNavigate();
-  const [tab, setTab] = useState(1);
+  const [searchParams] = useSearchParams();
+  const repository = searchParams.get("repository");
+  const { setSnackbar } = useContext(userContext);
   const [subjectOptions, setSubjectOption] = useState([]);
   const [lessonOptions, setLessonOptions] = useState([]);
   const [subject, setSubject] = useState("");
   const [lesson, setLesson] = useState("");
   const [lessonName, setLessonName] = useState("");
 
-  const [isLoading, setIsLoading] = useState(false);
-
   useEffect(() => {
-    const fetchSubjects = async () => {
-      // fix para assigned subject lang makita
-      const { data, error } = await supabase
-        .from("vw_assignedsubject")
-        .select("*");
+    const allowedRepo = ["Quiz", "Final Exam"];
 
-      if (error) {
-        console.error("Error fetching subjects:", error);
-        return;
-      }
+    if (!repository || !allowedRepo.includes(repository)) {
+      setSnackbar({
+        open: true,
+        message: "Invalid repository.",
+        severity: "error",
+      });
+      navigate(-1);
+      return;
+    }
 
-      setSubjectOption(data);
-    };
+    if (repository === "Quiz") {
+      fetchSubjects();
+    }
+    if (repository === "Final Exam") {
+      fetchInchargeSubjects();
+    }
+  }, [repository]);
 
-    fetchSubjects();
-  }, []);
+  const fetchInchargeSubjects = async () => {
+    const { data, error } = await supabase
+      .from("vw_inchargesubjects")
+      .select("*");
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Error fetching subjects. Refresh the page.",
+        severity: "error",
+      });
+      return;
+    }
+
+    setSubjectOption(data);
+  };
+
+  const fetchSubjects = async () => {
+    // fix para assigned subject lang makita
+    const { data, error } = await supabase
+      .from("vw_assignedsubject")
+      .select("*");
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Error fetching subjects. Refresh the page.",
+        severity: "error",
+      });
+      return;
+    }
+
+    setSubjectOption(data);
+  };
 
   // get lessons
   useEffect(() => {
-    const fetchLessons = async () => {
-      if (!subject) {
-        setLessonOptions([]);
-        return;
-      }
-
-      try {
-        // console.log("Fetching lessons for subject_id:", lesson);
-        const { data, error } = await supabase
-          .from("tbl_lesson")
-          .select("title, id")
-          .eq("subject_id", subject);
-
-        if (error) {
-          console.error("Error fetching lessons:", error);
-          return;
-        }
-
-        // console.log("Fetched lessons:", data);
-        setLessonOptions(data);
-      } catch (err) {
-        console.error("Unexpected error fetching lessons:", err);
-      }
-    };
-
     fetchLessons();
   }, [subject]);
 
-  const handleChange = (event, newValue) => {
-    setTab(newValue);
+  const fetchLessons = async () => {
+    if (!subject) {
+      setLessonOptions([]);
+      return;
+    }
+
+    try {
+      // console.log("Fetching lessons for subject_id:", lesson);
+      const { data, error } = await supabase
+        .from("tbl_lesson")
+        .select("title, id")
+        .eq("subject_id", subject);
+
+      if (error) {
+        console.error("Error fetching lessons:", error);
+        return;
+      }
+
+      // console.log("Fetched lessons:", data);
+      setLessonOptions(data);
+    } catch (err) {
+      console.error("Unexpected error fetching lessons:", err);
+    }
   };
 
   return (

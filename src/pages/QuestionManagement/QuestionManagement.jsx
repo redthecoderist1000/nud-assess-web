@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import QuestionRepoModal from "./components/QuestionRepoModal";
 
-import { Box, Card, Container, Stack, Tab, Tabs } from "@mui/material";
+import { Box, Container, Stack } from "@mui/material";
 
 import MyQuestionTab from "./questionmanagementTabs/MyQuestionTab";
 import SharedQuestionTab from "./questionmanagementTabs/SharedQuestionTab";
+import CreateDialog from "../../components/elements/CreateDialog";
 
 const QuestionManagementPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [repoModalOpen, setRepoModalOpen] = useState(false);
-  const navigate = useNavigate();
+  const [createDialog, setCreateDialog] = useState(false);
   const tabParam = searchParams.get("tab") ?? 0;
 
   const [activeTab, setActiveTab] = useState(parseInt(tabParam, 10));
@@ -59,7 +58,7 @@ const QuestionManagementPage = () => {
                 boxShadow: "none",
                 transition: "background 0.2s",
               }}
-              onClick={() => setRepoModalOpen(true)}
+              onClick={() => setCreateDialog(true)}
             >
               <svg
                 className="w-4 h-4"
@@ -163,18 +162,14 @@ const QuestionManagementPage = () => {
               {activeTab === 1 && <SharedQuestionTab />}
             </Box>
           </Stack>
-          <QuestionRepoModal
-            isOpen={repoModalOpen}
-            onClose={() => setRepoModalOpen(false)}
-            onSelect={(selectedRepo) => {
-              setRepoModalOpen(false); // Close the modal
-              navigate("/GenerateQuestion", {
-                state: { repository: selectedRepo }, // Pass the selected repository
-              });
-            }}
-          />
         </main>
       </motion.div>
+
+      <CreateDialog
+        open={createDialog}
+        onClose={() => setCreateDialog(false)}
+        type="question"
+      />
     </Container>
   );
 };

@@ -15,14 +15,14 @@ import {
   TextField,
 } from "@mui/material";
 import { useState, useRef, useContext } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../helper/Supabase";
 
 import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
 import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
 import QuestionBuilder from "./components/resultPage/QuestionBuilder";
 import { userContext } from "../../App";
-import GenQuestionDialog from "../QuestionManagement/genQuestionTabs/GenQuestionDialog";
+import GenQuestionDialog from "../../components/elements/GeneralDialog";
 
 const QuizResultPage = () => {
   const { setSnackbar } = useContext(userContext);
@@ -191,22 +191,12 @@ const QuizResultPage = () => {
       message: "Quiz created successfully!",
       severity: "success",
     });
+    localStorage.removeItem("quizsummary");
 
     navigate(-1);
   };
 
   const randomQuiz = async () => {
-    // console.log("random");
-    // console.log(quizDetails);
-    // console.log(rows);
-
-    //    repository: 'Quiz',
-    //     mode: 'Random',
-    //     subject_id: '75b47974-ec35-4319-9dd2-6364d0f7348e',
-    //     subject_name: 'Information Assurance And Security\n',
-    //     is_random: false,
-    //     name: 'Red Zinfandel Ochavillo'
-
     // insert exam
     setLoading(true);
 
@@ -265,7 +255,7 @@ const QuizResultPage = () => {
       message: "Quiz created successfully!",
       severity: "success",
     });
-
+    localStorage.removeItem("quizsummary");
     navigate(-1);
   };
 
@@ -332,6 +322,11 @@ const QuizResultPage = () => {
   const isAllChecked = quizResult.every((q) => q.checked);
 
   const hasSimilarity = quizResult.some((q) => q.hasSimilar);
+
+  const onCancel = () => {
+    localStorage.removeItem("quizsummary");
+    navigate(-1);
+  };
 
   return (
     <Container maxWidth="xl" sx={{ my: 5 }}>
@@ -586,7 +581,7 @@ const QuizResultPage = () => {
           <Button
             color="error"
             size="large"
-            onClick={() => navigate(-1)}
+            onClick={onCancel}
             disableElevation
           >
             Cancel

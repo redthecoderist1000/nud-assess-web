@@ -50,7 +50,7 @@ const TosTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
 }));
 
 function Tosifier() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const modeParam = searchParams.get("mode");
   const repoParam = searchParams.get("repository");
 
@@ -433,14 +433,16 @@ function Tosifier() {
 
       // timeout 2s
       setTimeout(() => {
-        navigate("/quizsummary", {
-          state: {
+        localStorage.setItem(
+          "quizsummary",
+          JSON.stringify({
             quizDetail: quizDetail,
             rows: rows,
             total: total,
             quiz: [],
-          },
-        });
+          })
+        );
+        navigate("/quizsummary");
       }, 2000);
     } else {
       // setError(true);
@@ -589,10 +591,15 @@ function Tosifier() {
   };
 
   const manualQuiz = () => {
-    navigate("/manual-quiz", {
-      replace: true,
-      state: { quizDetail: quizDetail, tosDetail: rows },
-    });
+    localStorage.setItem(
+      "manual_requirements",
+      JSON.stringify({
+        quizDetail: quizDetail,
+        tosDetail: rows,
+      })
+    );
+
+    navigate("/manual-quiz");
   };
 
   useEffect(() => {
@@ -640,12 +647,9 @@ function Tosifier() {
     return rows.some((row) => row.lesson_id === lesson_id);
   };
 
-  const filteredLessonOptions = useMemo(() => {
-    // console.log(lessonOption);
-    // console.log(lessonOption.filter((lesson) => !isLessonInRows(lesson.id)));
-
-    return lessonOption.filter((lesson) => !isLessonInRows(lesson.id));
-  }, [lessonOption, isLessonInRows]);
+  const onCancel = () => {
+    navigate(-1);
+  };
 
   return (
     <Container maxWidth="xl" className="my-5">
@@ -1046,7 +1050,7 @@ function Tosifier() {
                 <Button
                   disabled={loading}
                   color="error"
-                  onClick={() => navigate(-1)}
+                  onClick={onCancel}
                   disableElevation
                 >
                   CANCEL

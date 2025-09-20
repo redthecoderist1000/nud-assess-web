@@ -7,11 +7,16 @@ import FactCheckRoundedIcon from "@mui/icons-material/FactCheckRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import InfoOutlineRoundedIcon from "@mui/icons-material/InfoOutlineRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
+import CreateDialog from "../../../components/elements/CreateDialog";
 
 const DashboardLead = ({}) => {
   const { user, setSnackbar } = useContext(userContext);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(false);
+  const [createDialog, setCreateDialog] = useState({
+    open: false,
+    type: null,
+  });
 
   useEffect(() => {
     fetchData();
@@ -35,8 +40,12 @@ const DashboardLead = ({}) => {
     setLoading(false);
   };
 
-  const createQuiz = () => {};
-  const createQuestion = () => {};
+  const createQuiz = () => {
+    setCreateDialog({ open: true, type: "quiz" });
+  };
+  const createQuestion = () => {
+    setCreateDialog({ open: true, type: "question" });
+  };
   const createClass = () => {};
 
   return (
@@ -158,6 +167,12 @@ const DashboardLead = ({}) => {
           </div>
         </Stack>
       )}
+
+      <CreateDialog
+        open={createDialog.open}
+        onClose={() => setCreateDialog({ open: false, type: null })}
+        type={createDialog.type}
+      />
     </div>
   );
 };

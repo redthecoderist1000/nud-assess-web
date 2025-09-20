@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { signupContext } from "../../App";
+import { signupContext, userContext } from "../../App";
 import { FormControl } from "@mui/material";
 import { OtpInput } from "reactjs-otp-input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,27 +9,25 @@ import { useLocation } from "react-router-dom";
 import { supabase } from "../../helper/Supabase";
 
 function SignupOtp() {
-  const signupData = useContext(signupContext);
+  const { setSnackbar } = useContext(userContext);
   const location = useLocation();
   const email = location.state.email;
 
   const [otp, setOtp] = useState("");
-  const [error, setError] = useState("");
-
-  //   agreeTerms: true;
-  //   confirmPassword: "pass";
-  //   email: "minatozaki@students.nu-dasma.edu.ph";
-  //   firstName: "Red";
-  //   lastName: "Ochavillo";
-  //   middleName: "Zinfandel C.";
-  //   password: "pass";
 
   const changeOtp = (otp) => {
     setOtp(otp);
   };
 
   const verifyOtp = async () => {
-    console.log("sakses", otp);
+    if (otp.length < 6) {
+      setSnackbar({
+        open: true,
+        message: "Please enter a valid 6-digit OTP.",
+        severity: "error",
+      });
+      return;
+    }
 
     let { data, error } = await supabase.auth.verifyOtp({
       email: email,
@@ -38,7 +36,11 @@ function SignupOtp() {
     });
 
     if (error) {
-      console.log("failed opt: ", error);
+      setSnackbar({
+        open: true,
+        message: `Error verifying OTP: ${error.message}`,
+        severity: "error",
+      });
     }
   };
 
@@ -48,8 +50,14 @@ function SignupOtp() {
     });
 
     if (error) {
-      console.error("Error resending OTP:", error);
-      setError(error.message);
+      // console.error("Error resending OTP:", error);
+      setSnackbar({
+        open: true,
+        message: `Error resending OTP: ${error.message}`,
+        severity: "error",
+      });
+
+      // setError(error.message);
     }
   };
 

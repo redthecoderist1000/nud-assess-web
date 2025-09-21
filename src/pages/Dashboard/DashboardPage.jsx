@@ -3,16 +3,9 @@ import DashboardLead from "./component/DashboardLead";
 import PerfOverview from "./component/PerfOverview/PerfOverview";
 import TopPerf from "./component/TopPerf";
 import LowPerf from "./component/LowPerf";
-import CreateClass from "../MyClasses/components/CreateClass";
 import { Container } from "@mui/material";
 
 const DashboardPage = () => {
-  const [createClassOpen, setCreateClassOpen] = useState(false);
-
-  const handleCreateClassSave = () => {
-    setCreateClassOpen(false);
-  };
-
   return (
     <Container maxWidth="xl" className="my-5">
       <div className="bg-white border-b border-gray-200 pt-6 pb-2">
@@ -26,7 +19,9 @@ const DashboardPage = () => {
         <DashboardLead />
       </div>
 
-      <PerfOverview />
+      <div className="mt-6">
+        <PerfOverview />
+      </div>
 
       <div className="mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
@@ -44,17 +39,6 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
-
-      {createClassOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 ">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-1/4">
-            <CreateClass
-              onSave={handleCreateClassSave}
-              onCancel={() => setCreateClassOpen(false)}
-            />
-          </div>
-        </div>
-      )}
     </Container>
   );
 };

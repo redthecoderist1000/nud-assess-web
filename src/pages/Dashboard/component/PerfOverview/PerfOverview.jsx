@@ -1,108 +1,106 @@
-import React from "react";
+import { useContext, useEffect, useState } from "react";
 import PerfGraph from "./PerfGraph";
 import PerfBox from "./PerfBox";
-
-const classes = [
-  {
-    color: "#1e40af",
-    name: "Data Structures (CS301)",
-    students: 42,
-    joinCode: "DS2024A",
-    avgScore: 88.7,
-    completion: 94.2,
-    totalExams: 8,
-    activeExams: 2,
-    status: "Excellent",
-    trend: "up",
-  },
-  {
-    color: "#fbbf24",
-    name: "Calculus III (MATH201)",
-    students: 35,
-    joinCode: "MATH201A",
-    avgScore: 82.1,
-    completion: 90.5,
-    totalExams: 7,
-    activeExams: 1,
-    status: "Good",
-    trend: "up",
-  },
-  {
-    color: "#6366f1",
-    name: "Database Systems (CS401)",
-    students: 28,
-    joinCode: "CS401B",
-    avgScore: 93.4,
-    completion: 97.8,
-    totalExams: 9,
-    activeExams: 3,
-    status: "Excellent",
-    trend: "up",
-  },
-];
+import {
+  Card,
+  Collapse,
+  IconButton,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import ExpandLessRoundedIcon from "@mui/icons-material/ExpandLessRounded";
+import { supabase } from "../../../../helper/Supabase";
+import { userContext } from "../../../../App";
+import { useNavigate } from "react-router-dom";
 
 const PerfOverview = () => {
+  const navigate = useNavigate();
+  const { setSnackbar } = useContext(userContext);
+  const [showBoxes, setShowBoxes] = useState(false);
+  const [perfOv, setPerfOv] = useState([]);
+  const [classOv, setClassOv] = useState([]);
+
+  const fetchClassOv = async () => {
+    const { data, error } = await supabase
+      .rpc("get_performanceoverview")
+      .select("*")
+      .single();
+
+    if (error) {
+      console.log(error);
+      setSnackbar({
+        open: true,
+        message: "Error fetching data. Please refresh the page.",
+        severity: "error",
+      });
+      return;
+    }
+
+    // console.log(data);
+    setPerfOv(data.performance);
+    setClassOv(data.class);
+  };
+
+  useEffect(() => {
+    fetchClassOv();
+  }, []);
+
+  const onClick = (id) => {
+    const params = new URLSearchParams({ class_id: id, tab: 3 });
+    navigate(`/class?${params.toString()}`);
+  };
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow p-6 w-full mt-6">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full mb-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <span>
-              <svg
-                className="w-5 h-5 text-gray-700"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M12 3L2 9l10 6 10-6-10-6zm0 13v5m-7-7v2a7 7 0 0 0 14 0v-2"
-                  stroke="currentColor"
-                  strokeLinejoin="round"
+    <Card variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <SchoolRoundedIcon sx={{ color: "#757575ff" }} />
+        <Typography variant="h6">Performance Overview per Class</Typography>
+      </Stack>
+      <Typography variant="caption" color="textSecondary">
+        Weekly average scores across all active classes
+      </Typography>
+
+      <PerfGraph perfData={perfOv} />
+      {/* </div> */}
+      {classOv == null ? (
+        <></>
+      ) : (
+        <>
+          <Collapse in={showBoxes} unmountOnExit>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+              {classOv.map((data, idx) => (
+                <PerfBox
+                  key={idx}
+                  data={data}
+                  onClick={() => onClick(data.id)}
                 />
-              </svg>
-            </span>
-            <span className="font-medium text-base text-gray-900">
-              Performance Overview per Class
-            </span>
-          </div>
-          <a
-            href="#"
-            className="text-xs text-blue-700 hover:underline mt-1 block"
-          >
-            Weekly average scores across all active classes
-          </a>
-        </div>
-        <a
-          href="#"
-          className="flex items-center text-sm text-gray-700 hover:text-blue-700 font-medium mt-2 md:mt-0"
-        >
-          View All Classes
-          <svg
-            className="w-4 h-4 ml-1"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M9 18l6-6-6-6"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </a>
-      </div>
-      <div className="w-full mt-4">
-        <PerfGraph />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-        {classes.map((classData, idx) => (
-          <PerfBox key={idx} classData={classData} />
-        ))}
-      </div>
-    </div>
+              ))}
+            </div>
+          </Collapse>
+          <Stack direction="row" justifyContent="center">
+            <Tooltip
+              title={showBoxes ? "Show Less" : "Show More"}
+              placement="top"
+              arrow
+            >
+              <IconButton
+                onClick={() => setShowBoxes(!showBoxes)}
+                sx={{ mt: 2 }}
+              >
+                {showBoxes ? (
+                  <ExpandLessRoundedIcon />
+                ) : (
+                  <ExpandMoreRoundedIcon />
+                )}
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        </>
+      )}
+    </Card>
   );
 };
 

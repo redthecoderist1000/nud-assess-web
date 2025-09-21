@@ -1,62 +1,74 @@
-import React from "react";
 import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-} from "chart.js";
-
-ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const colors = [
-  "#1e40af", 
-  "#f59e42", 
-  "#10b981", 
-  "#fbbf24", 
-  "#6366f1", 
+  "#1e40af",
+  "#f59e42",
+  "#10b981",
+  "#fbbf24",
+  "#6366f1",
+  "#ef4444",
+  "#14b8a6",
+  "#8b5cf6",
+  "#22c55e",
+  "#eab308",
+  "#3b82f6",
+  "#db2777",
+  "#0ea5e9",
+  "#a855f7",
+  "#f97316",
+  "#4ade80",
+  "#e11d48",
+  "#7c3aed",
+  "#2dd4bf",
+  "#f43f5e",
 ];
 
-const PerfGraph = ({ classesData }) => {
-  const defaultClassesData = [
-    {
-      name: "Calculus III (MATH201)",
-      color: "#fbbf24",
-      scores: [80.2, 81.5, 82.1, 83.0, 84.2, 85.0],
-    },
-    {
-      name: "Data Structures (CS301)",
-      color: "#1e40af",
-      scores: [91.2, 90.8, 86.7, 89.0, 90.5, 92.1],
-    },
-    {
-      name: "Database Systems (CS401)",
-      color: "#6366f1",
-      scores: [92.5, 93.0, 93.4, 92.8, 93.1, 94.0],
-    },
-    {
-      name: "Software Engineering (CS402)",
-      color: "#f59e42",
-      scores: [88.2, 89.1, 87.9, 88.5, 89.0, 88.7],
-    },
-    {
-      name: "Statistics (MATH350)",
-      color: "#10b981",
-      scores: [82.1, 83.5, 84.8, 85.2, 86.0, 86.5],
-    },
-  ];
+const PerfGraph = ({ perfData }) => {
+  // console.log(perfData);
+
+  const getWeekNumber = (date) => {
+    const tempDate = new Date(date.getTime());
+    tempDate.setHours(0, 0, 0, 0);
+    tempDate.setDate(tempDate.getDate() + 3 - ((tempDate.getDay() + 6) % 7));
+    const week1 = new Date(tempDate.getFullYear(), 0, 4);
+    return (
+      1 +
+      Math.round(
+        ((tempDate.getTime() - week1.getTime()) / 86400000 -
+          3 +
+          ((week1.getDay() + 6) % 7)) /
+          7
+      )
+    );
+  };
+
+  const labels = [];
+  const today = new Date();
+
+  for (let i = 7; i >= 1; i--) {
+    const pastDate = new Date(today);
+    pastDate.setDate(today.getDate() + 1 - i * 7);
+    const weekNum = getWeekNumber(pastDate);
+    const label = `Week ${weekNum} (${pastDate.toLocaleDateString()})`;
+    labels.push(label);
+  }
+
+  const finalData =
+    perfData?.map((d, idx) => ({
+      ...d,
+      borderColor: colors[idx % colors.length],
+      backgroundColor: colors[idx % colors.length] + "80",
+      pointBackgroundColor: colors[idx % colors.length],
+    })) || [];
 
   const data = {
-    labels: ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5", "Week 6"],
-    datasets: (classesData || defaultClassesData).map((cls, idx) => ({
-      label: cls.name,
-      data: cls.scores,
-      borderColor: cls.color || colors[idx % colors.length],
-      backgroundColor: cls.color || colors[idx % colors.length],
-      pointBackgroundColor: cls.color || colors[idx % colors.length],
+    labels: labels.map((d, _) => d),
+    datasets: finalData.map((d, _) => ({
+      label: d.class_name,
+      data: [...d.scores],
+      borderColor: d.borderColor,
+      backgroundColor: d.backgroundColor,
+      pointBackgroundColor: d.pointBackgroundColor,
       pointBorderColor: "#fff",
       pointRadius: 5,
       pointHoverRadius: 7,
@@ -94,8 +106,8 @@ const PerfGraph = ({ classesData }) => {
     },
     scales: {
       y: {
-        min: 70,
-        max: 95,
+        min: 0,
+        max: 100,
         title: {
           display: true,
           text: "Average Score (%)",
@@ -104,7 +116,7 @@ const PerfGraph = ({ classesData }) => {
           color: "#e5e7eb",
         },
         ticks: {
-          stepSize: 7,
+          stepSize: 10,
         },
       },
       x: {
@@ -116,7 +128,10 @@ const PerfGraph = ({ classesData }) => {
   };
 
   return (
-    <div className="w-full bg-white rounded-lg shadow p-4" style={{ height: "350px" }}>
+    <div
+      className="w-full bg-white rounded-lg shadow p-4"
+      style={{ height: "350px" }}
+    >
       <Line data={data} options={options} height={350} />
     </div>
   );

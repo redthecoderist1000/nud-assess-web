@@ -8,6 +8,7 @@ import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import InfoOutlineRoundedIcon from "@mui/icons-material/InfoOutlineRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import CreateDialog from "../../../components/elements/CreateDialog";
+import CreateClass from "../../MyClasses/components/CreateClass";
 
 const DashboardLead = ({}) => {
   const { user, setSnackbar } = useContext(userContext);
@@ -17,6 +18,7 @@ const DashboardLead = ({}) => {
     open: false,
     type: null,
   });
+  const [createClass, setCreateClass] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -46,7 +48,6 @@ const DashboardLead = ({}) => {
   const createQuestion = () => {
     setCreateDialog({ open: true, type: "question" });
   };
-  const createClass = () => {};
 
   return (
     <div className="rounded-2xl bg-[#4957a3] p-6 md:p-8 pb-6 relative overflow-hidden">
@@ -101,7 +102,7 @@ const DashboardLead = ({}) => {
           </button>
           <button
             className="flex items-center gap-2 bg-[#3d478c] text-white px-3 py-2 md:px-4 rounded-lg font-medium text-sm hover:bg-[#2e3566] transition"
-            onClick={createClass}
+            onClick={() => setCreateClass(true)}
           >
             <svg
               className="w-5 h-5"
@@ -173,6 +174,8 @@ const DashboardLead = ({}) => {
         onClose={() => setCreateDialog({ open: false, type: null })}
         type={createDialog.type}
       />
+
+      <CreateClass open={createClass} setOpen={setCreateClass} />
     </div>
   );
 };

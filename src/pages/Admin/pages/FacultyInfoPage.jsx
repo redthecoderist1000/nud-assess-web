@@ -16,16 +16,19 @@ import {
   Typography,
 } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import AssignSubjectDialog from "../components/AssignSubjectDialog";
 import RemoveSubjectDialog from "../components/RemoveSubjectDialog";
 import DisableAiDialog from "../components/DisableAiDialog";
+import { userContext } from "../../../App";
 
 function FacultyInfo() {
-  const location = useLocation();
-  const { facultyId } = location.state;
+  const navigate = useNavigate();
+  const { setSnackbar } = useContext(userContext);
+  const [searchParam] = useSearchParams();
+  const facultyId = searchParam.get("facultyId");
 
   const [info, setInfo] = useState({});
   const [load, setLoad] = useState([]);
@@ -44,7 +47,12 @@ function FacultyInfo() {
       .single();
 
     if (infoErr) {
-      console.log("error fetching info:", infoErr);
+      setSnackbar({
+        open: true,
+        message: "Error fetching faculty info",
+        severity: "error",
+      });
+      navigate(-1);
       return;
     }
     setInfo(infoData);
@@ -65,31 +73,58 @@ function FacultyInfo() {
     // console.log("sakses load:", loadData);
   };
 
-  useEffect(() => {
-    fetchInfo();
-    fetchLoad();
+  const fetchData = async () => {
+    const { data, error } = await supabase
+      .rpc("get_facultyinformation", {
+        p_faculty_id: facultyId,
+      })
+      .single();
 
-    supabase
+    if (error) {
+      console.log("Failed to fetch data:", error);
+      return;
+    }
+    // console.log(data);
+    setInfo(data.faculty_info);
+    setLoad(data.subject_load);
+  };
+
+  useEffect(() => {
+    fetchData();
+
+    const faculty_channel = supabase
       .channel("custom-filter-channel")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "tbl_faculty_subject" },
+        {
+          event: "*",
+          schema: "public",
+          table: "tbl_faculty_subject",
+          filter: `faculty_id=eq.${facultyId}`,
+        },
         (payload) => {
-          fetchLoad();
+          // fetchLoad();
+          fetchData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tbl_users",
+          filter: `id=eq.${facultyId}`,
+        },
+        (payload) => {
+          // fetchInfo();
+          fetchData();
         }
       )
       .subscribe();
 
-    supabase
-      .channel("tbl_users_channel")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "tbl_users" },
-        (payload) => {
-          fetchInfo();
-        }
-      )
-      .subscribe();
+    return () => {
+      supabase.removeChannel(faculty_channel);
+    };
   }, []);
 
   return (
@@ -103,13 +138,14 @@ function FacultyInfo() {
         </p>
       </div>
       <Stack spacing={3}>
+        {/* info */}
         <Grid container spacing={2} m>
           <Grid flex={2}>
             <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
               <Typography variant="caption" fontWeight="bold">
                 Name
               </Typography>
-              <Typography variant="body1">{`${info.suffix} ${info.f_name} ${info.m_name} ${info.l_name}`}</Typography>
+              <Typography variant="body1">{`${info.full_name}`}</Typography>
             </Paper>
           </Grid>
           <Grid flex={2}>
@@ -125,9 +161,7 @@ function FacultyInfo() {
               <Typography variant="caption" fontWeight="bold">
                 Department
               </Typography>
-              <Typography variant="body1">
-                {info.tbl_department?.shorthand_name ?? ""}
-              </Typography>
+              <Typography variant="body1">{info.dept_shortname}</Typography>
             </Paper>
           </Grid>
           <Grid flex={1}>
@@ -147,6 +181,7 @@ function FacultyInfo() {
             </Paper>
           </Grid>
         </Grid>
+        {/* load */}
         <Card variant="outlined" sx={{ p: 4, borderRadius: 4 }}>
           <Stack direction="row" justifyContent="space-between" mb={1}>
             <Typography variant="h5" fontWeight="bold">
@@ -203,7 +238,7 @@ function FacultyInfo() {
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <TableCell>{data.subject_code}</TableCell>
-                      <TableCell>{data.name}</TableCell>
+                      <TableCell>{data.subject_name}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -211,26 +246,42 @@ function FacultyInfo() {
             </TableContainer>
           )}
         </Card>
-
-        {/* <Divider />
-        <Typography variant="h5" fontWeight="bold">
-          Created
-        </Typography> */}
-        {/* <Divider />
-        <Stack direction="row" columnGap={4} mt={2}>
-          <Typography variant="caption" color="textDisabled" alignSelf="center">
-            {!info.allow_ai ? "Enable" : "Disable"} AI privilage?
-          </Typography>
-          <Button
-            variant="contained"
-            size="small"
-            color={!info.allow_ai ? "success" : "error"}
-            disableElevation
-            onClick={() => setDisableAi(true)}
-          >
-            {!info.allow_ai ? "Enable" : "Disable"}
-          </Button>
-        </Stack> */}
+        {/* settings */}
+        <Card variant="outlined" sx={{ p: 4, borderRadius: 4 }}>
+          <Stack rowGap={2}>
+            <Typography variant="h5" fontWeight="bold">
+              Additional Settings
+            </Typography>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2" alignSelf="center">
+                {!info.role == "Faculty" ? "Promote" : "Disable"}
+              </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                color={!info.allow_ai ? "success" : "error"}
+                disableElevation
+                onClick={() => setDisableAi(true)}
+              >
+                {!info.allow_ai ? "Enable" : "Disable"}
+              </Button>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2" alignSelf="center">
+                {!info.allow_ai ? "Enable" : "Disable"} AI privilage?
+              </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                color={!info.allow_ai ? "success" : "error"}
+                disableElevation
+                onClick={() => setDisableAi(true)}
+              >
+                {!info.allow_ai ? "Enable" : "Disable"}
+              </Button>
+            </Stack>
+          </Stack>
+        </Card>
       </Stack>
 
       {/* dialogs */}

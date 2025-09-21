@@ -1,13 +1,4 @@
 import {
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Input,
   InputAdornment,
   OutlinedInput,
   Paper,
@@ -19,18 +10,13 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  TableSortLabel,
-  Typography,
 } from "@mui/material";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
-import { visuallyHidden } from "@mui/utils";
 import SearchIcon from "@mui/icons-material/SearchRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 
-import AssignSubjectDialog from "../components/AssignSubjectDialog";
-import RemoveSubjectDialog from "../components/RemoveSubjectDialog";
 import { useNavigate } from "react-router-dom";
 import styled from "@emotion/styled";
 
@@ -74,43 +60,7 @@ const headCells = [
   },
 ];
 
-function EnhancedTableHead(props) {
-  const { order, orderBy, onRequestSort } = props;
-  const createSortHandler = (property) => (event) => {
-    onRequestSort(event, property);
-  };
-
-  return (
-    <TableHead>
-      <TableRow>
-        {headCells.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            align={headCell.align ?? "left"}
-            padding={headCell.disablePadding ? "none" : "normal"}
-            sortDirection={orderBy === headCell.id ? order : false}
-          >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : "asc"}
-              onClick={createSortHandler(headCell.id)}
-              sx={{ fontWeight: "bold" }}
-            >
-              {headCell.label}
-              {orderBy === headCell.id ? (
-                <Box component="span" sx={visuallyHidden}>
-                  {order === "desc" ? "sorted descending" : "sorted ascending"}
-                </Box>
-              ) : null}
-            </TableSortLabel>
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-  );
-}
-
-function FacultyTab() {
+const FacultyTab = () => {
   const navigate = useNavigate();
   const { user } = useContext(userContext);
   const [search, setSearch] = useState("");
@@ -119,16 +69,8 @@ function FacultyTab() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(false);
 
-  const [assignDialog, setAssignDialog] = useState(false);
-  const [removeDialog, setRemoveDialog] = useState(false);
-
-  const [selectedFaculty, setSelectedFaculty] = useState("");
-
-  const [facultyInfo, setFacultyInfo] = useState(false);
-
-  async function fetchData() {
+  const fetchData = async () => {
     let { data, error } = await supabase
       .from("vw_facultysubject")
       .select("*")
@@ -153,12 +95,12 @@ function FacultyTab() {
     );
 
     setRows(result);
-  }
+  };
 
   useEffect(() => {
     fetchData();
 
-    supabase
+    const faculty_channel = supabase
       .channel("custom-filter-channel")
       .on(
         "postgres_changes",
@@ -168,6 +110,10 @@ function FacultyTab() {
         }
       )
       .subscribe();
+
+    return () => {
+      supabase.removeChannel(faculty_channel);
+    };
   }, []);
 
   const visibleFaculty = useMemo(
@@ -194,12 +140,6 @@ function FacultyTab() {
   const handleSearch = (e) => setSearch(e.target.value);
   const clearSearch = () => setSearch("");
 
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
-  };
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -207,6 +147,12 @@ function FacultyTab() {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
+  };
+
+  const onClickRow = (id) => {
+    const params = new URLSearchParams({ facultyId: id });
+
+    navigate(`/admin/faculty?${params.toString()}`);
   };
 
   return (
@@ -261,9 +207,7 @@ function FacultyTab() {
                   hover
                   tabIndex={-1}
                   sx={{ cursor: "pointer" }}
-                  onClick={() => {
-                    navigate("faculty", { state: { facultyId: row.id } });
-                  }}
+                  onClick={() => onClickRow(row.id)}
                 >
                   <StyledTableCell component="th" scope="row">
                     {name}
@@ -297,20 +241,8 @@ function FacultyTab() {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
-
-      <AssignSubjectDialog
-        open={assignDialog}
-        setOpen={setAssignDialog}
-        selectedFaculty={selectedFaculty}
-      />
-
-      <RemoveSubjectDialog
-        open={removeDialog}
-        setOpen={setRemoveDialog}
-        selectedFaculty={selectedFaculty}
-      />
     </div>
   );
-}
+};
 
 export default FacultyTab;

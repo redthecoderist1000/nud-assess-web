@@ -247,21 +247,15 @@ const AnimatedRoutes = () => {
                   <Route path="quizzes" element={<QuizmanagementPage />} />
                   <Route path="QuestionSummary" element={<QuestionSummary />} />
                   <Route
-                    path="QuestionManagement"
+                    path="questions"
                     element={<QuestionManagementPage />}
                   />
+                  <Route path="classes" element={<ClassManagementPage />} />
                   <Route
-                    path="ClassManagement"
-                    element={<ClassManagementPage />}
-                  />
-                  <Route
-                    path="ReportAndAnalytics"
+                    path="analytics"
                     element={<ReportAndAnalyticsPage />}
                   />
-                  <Route
-                    path="ProfileSettings"
-                    element={<ProfileSettingsPage />}
-                  />
+                  <Route path="profile" element={<ProfileSettingsPage />} />
 
                   {/* <Route path="/class/:id" element={<ClassPage />} />
                 <Route path="/create-class" element={<CreateClass />} /> */}

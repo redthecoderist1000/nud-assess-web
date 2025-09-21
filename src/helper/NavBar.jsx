@@ -1,8 +1,7 @@
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import logo from "../assets/images/logo.png";
 import logo_icon from "../assets/images/logo_icon.png";
 import adminIcon from "../assets/images/admin_icon.png";
-import profilePic from "../assets/images/sample_profile.png";
 import dashboardIcon from "../assets/images/dashboard_icon.png";
 import quizManagementIcon from "../assets/images/quizmanagement_icon.png";
 import questionManagementIcon from "../assets/images/questionmanagement_icon.png";
@@ -13,23 +12,30 @@ import { useContext, useState } from "react";
 import { userContext } from "../App";
 
 import MuiDrawer from "@mui/material/Drawer";
-import { styled, useTheme } from "@mui/material/styles";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import MailIcon from "@mui/icons-material/Mail";
+import { styled } from "@mui/material/styles";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import {
+  Avatar,
   Box,
-  Divider,
+  Button,
   IconButton,
   List,
   ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
+  Stack,
+  Tooltip,
+  Typography,
 } from "@mui/material";
+import LogoutDialog from "../pages/Profile/component/LogoutDialog";
+
+import AdminPanelSettingsRoundedIcon from "@mui/icons-material/AdminPanelSettingsRounded";
+import AnalyticsRoundedIcon from "@mui/icons-material/AnalyticsRounded";
+import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
+import AssignmentRoundedIcon from "@mui/icons-material/AssignmentRounded";
+import FormatListNumberedRoundedIcon from "@mui/icons-material/FormatListNumberedRounded";
+import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
+import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 
 const drawerWidth = 240;
 
@@ -52,6 +58,7 @@ const closedMixin = (theme) => ({
   backgroundColor: "#DDE4F5",
   overflowX: "hidden",
   width: `calc(${theme.spacing(7)} + 1px)`,
+  padding: "5px",
   [theme.breakpoints.up("sm")]: {
     width: `calc(${theme.spacing(8)} + 1px)`,
   },
@@ -92,11 +99,10 @@ const Drawer = styled(MuiDrawer, {
 }));
 
 const NavBar = () => {
-  const theme = useTheme();
   const [open, setOpen] = useState(true);
+  const [logout, setLogout] = useState(false);
 
   const userCon = useContext(userContext);
-  const navigate = useNavigate();
   const location = useLocation(); // Get the current route
 
   const handleDrawer = () => {
@@ -106,64 +112,72 @@ const NavBar = () => {
   const navItems =
     userCon.user.role == "Admin"
       ? [
-          { to: "/", label: "Dashboard", icon: dashboardIcon },
+          {
+            to: "/",
+            label: "Dashboard",
+            icon: <DashboardRoundedIcon fontSize="small" />,
+          },
           {
             to: "/quizzes",
             label: "Quizzes",
-            icon: quizManagementIcon,
+            icon: <FormatListNumberedRoundedIcon fontSize="small" />,
           },
           {
-            to: "/QuestionManagement",
+            to: "/questions",
             label: "Questions",
-            icon: questionManagementIcon,
+            icon: <AssignmentRoundedIcon fontSize="small" />,
           },
           {
-            to: "/ClassManagement",
+            to: "/classes",
             label: "My Classes",
-            icon: classManagementIcon,
+            icon: <GroupRoundedIcon fontSize="small" />,
           },
           {
-            to: "/ReportAndAnalytics",
-            label: "Report and Analytics",
-            icon: reportAnalyticsIcon,
+            to: "/analytics",
+            label: "Analytics",
+            icon: <AnalyticsRoundedIcon fontSize="small" />,
           },
           {
             to: "/admin",
             label: "Administrator",
-            icon: adminIcon,
+            icon: <AdminPanelSettingsRoundedIcon fontSize="small" />,
           },
           {
-            to: "/ProfileSettings",
+            to: "/profile",
             label: "Profile Settings",
-            icon: profileSettingIcon,
+            icon: <ManageAccountsRoundedIcon fontSize="small" />,
           },
         ]
       : [
-          { to: "/", label: "Dashboard", icon: dashboardIcon },
+          {
+            to: "/",
+            label: "Dashboard",
+            icon: <DashboardRoundedIcon fontSize="small" />,
+          },
           {
             to: "/quizzes",
             label: "Quizzes",
-            icon: quizManagementIcon,
+            icon: <FormatListNumberedRoundedIcon fontSize="small" />,
           },
           {
-            to: "/QuestionManagement",
+            to: "/questions",
             label: "Questions",
-            icon: questionManagementIcon,
+            icon: <AssignmentRoundedIcon fontSize="small" />,
           },
           {
-            to: "/ClassManagement",
+            to: "/classes",
             label: "My Classes",
-            icon: classManagementIcon,
+            icon: <GroupRoundedIcon fontSize="small" />,
           },
           {
-            to: "/ReportAndAnalytics",
-            label: "Report and Analytics",
-            icon: reportAnalyticsIcon,
+            to: "/analytics",
+            label: "Analytics",
+            icon: <AnalyticsRoundedIcon fontSize="small" />,
           },
           {
-            to: "/ProfileSettings",
+            to: "/profile",
             label: "Profile Settings",
-            icon: profileSettingIcon,
+            icon: <ManageAccountsRoundedIcon fontSize="small" />,
           },
         ];
 
@@ -183,11 +197,8 @@ const NavBar = () => {
         {/* Profile Section */}
         {open ? (
           <div className="flex flex-col items-center mb-5">
-            <img
-              src={profilePic}
-              alt="Profile"
-              className="w-24 h-24 rounded-full object-cover"
-            />
+            <Avatar sx={{ width: 80, height: 80 }} />
+
             <h2 className="text-lg font-semibold text-blue-900 mt-2">
               {userCon.user.f_name + " " + userCon.user.l_name}
             </h2>
@@ -196,32 +207,56 @@ const NavBar = () => {
         ) : (
           <></>
         )}
-        <List>
-          {navItems.map((data, index) => (
-            <ListItem
-              key={index}
-              disablePadding
-              sx={{ display: "block", mb: 1 }}
-            >
-              <Link
-                to={data.to}
-                className={`sidebar-link flex items-center ${open ? "rounded-md" : ""} space-x-3 py-2 px-4 transition-all duration-300 ${
-                  location.pathname === data.to
-                    ? "bg-[#2D3B87] text-white"
-                    : "text-[#2D3B87] opacity-90 hover:bg-[#2D3B87] hover:text-white"
-                }`}
+        <Stack justifyContent="space-between" sx={{ height: "100%" }} gap={2}>
+          <List>
+            {navItems.map((data, index) => (
+              <Tooltip
+                key={index}
+                title={!open && data.label}
+                placement="right"
+                arrow
               >
-                <img
-                  src={data.icon}
-                  alt={`${data.label} Icon`}
-                  className="w-5 h-5"
-                />
-                {open ? <span>{data.label}</span> : <></>}
-              </Link>
-            </ListItem>
-          ))}
-        </List>
+                <ListItem disablePadding sx={{ display: "block", mb: 1 }} dense>
+                  <Link
+                    to={data.to}
+                    className={`sidebar-link flex items-center rounded-md space-x-3 py-2 px-4 transition-all duration-300 ${
+                      location.pathname === data.to
+                        ? "bg-[#2D3B87] text-white"
+                        : "text-[#2D3B87] opacity-90 hover:bg-[#2D3B87] hover:text-white"
+                    }`}
+                  >
+                    {data.icon}
+                    {open && (
+                      <Typography fontWeight={600}>{data.label}</Typography>
+                    )}
+                  </Link>
+                </ListItem>
+              </Tooltip>
+            ))}
+          </List>
+
+          {open ? (
+            <Button
+              color="error"
+              variant="contained"
+              fullWidth
+              disableElevation
+              onClick={() => setLogout(true)}
+              startIcon={<LogoutRoundedIcon />}
+            >
+              Sign Out
+            </Button>
+          ) : (
+            <Tooltip title="Sign Out" placement="right" arrow>
+              <IconButton color="error" onClick={() => setLogout(true)}>
+                <LogoutRoundedIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Stack>
       </Drawer>
+
+      <LogoutDialog open={logout} onClose={() => setLogout(false)} />
     </Box>
   );
 };

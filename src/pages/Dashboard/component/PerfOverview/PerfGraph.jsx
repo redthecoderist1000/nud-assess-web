@@ -130,7 +130,7 @@ const PerfGraph = ({ perfData }) => {
   return (
     <div
       className="w-full bg-white rounded-lg shadow p-4"
-      style={{ height: "350px" }}
+      style={{ height: "350px", overflow: "auto" }}
     >
       <Line data={data} options={options} height={350} />
     </div>

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
 import loginImage from "../../assets/images/login_image.png";
@@ -40,6 +40,17 @@ const LoginPage = () => {
     password: "",
     cpassword: "",
   });
+
+  useEffect(() => {
+    document.title = signUp ? "Sign Up - NUD Assess" : "Sign In - NUD Assess";
+    setEmail("");
+    setPassword("");
+    setFormSignUp({
+      email: "",
+      password: "",
+      cpassword: "",
+    });
+  }, [signUp]);
 
   const handleChangeSignUpForm = (e) => {
     setFormSignUp({ ...formSignUp, [e.target.name]: e.target.value });
@@ -97,13 +108,15 @@ const LoginPage = () => {
     }
     setIsLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.signUp({
       email: formSignUp.email,
       password: formSignUp.password,
     });
 
     if (error) {
-      console.log(error);
       setSnackbar({
         open: true,
         message: "Error: " + error.message,
@@ -113,20 +126,26 @@ const LoginPage = () => {
       return;
     }
 
-    if (data) {
-      console.log(data);
-
+    if (user.identities.length <= 0) {
+      setIsLoading(false);
       setSnackbar({
         open: true,
-        message: "OTP was successfully sent to: " + formSignUp.email,
-        severity: "success",
+        message: "Email already in use",
+        severity: "error",
       });
-
-      navigate("/signup-otp", {
-        replace: true,
-        state: { email: formSignUp.email },
-      });
+      return;
     }
+
+    setSnackbar({
+      open: true,
+      message: "OTP was successfully sent to: " + formSignUp.email,
+      severity: "success",
+    });
+
+    navigate("/signup-otp", {
+      replace: true,
+      state: { email: formSignUp.email, password: formSignUp.password },
+    });
   };
 
   const handleLogin = async (e) => {
@@ -139,13 +158,28 @@ const LoginPage = () => {
       password: password,
     });
     if (error) {
-      setSnackbar({
-        open: true,
-        message: "Error: " + error.message,
-        severity: "error",
-      });
-      setIsLoading(false);
+      console.log(error);
+      if (error.code === "email_not_confirmed") {
+        setSnackbar({
+          open: true,
+          message: "Email not yet confirmed. Please sign up again.",
+          severity: "warning",
+        });
+      } else if (error.code === "validation_failed") {
+        setSnackbar({
+          open: true,
+          message: "Invalid email or password.",
+          severity: "error",
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: "Error: " + error.message,
+          severity: "error",
+        });
+      }
 
+      setIsLoading(false);
       return;
     }
 
@@ -205,6 +239,7 @@ const LoginPage = () => {
                   label="Email"
                   type="text"
                   name="email"
+                  value={formSignUp.email}
                   fullWidth
                   onChange={handleChangeSignUpForm}
                 />
@@ -220,6 +255,7 @@ const LoginPage = () => {
                       id="password_input"
                       type={showPassword ? "text" : "password"}
                       name="password"
+                      value={formSignUp.password}
                       onChange={handleChangeSignUpForm}
                       endAdornment={
                         <InputAdornment position="end">
@@ -246,6 +282,7 @@ const LoginPage = () => {
                   <OutlinedInput
                     id="cpassword_input"
                     name="cpassword"
+                    value={formSignUp.cpassword}
                     onChange={handleChangeSignUpForm}
                     type={showCPassword ? "text" : "password"}
                     endAdornment={
@@ -324,12 +361,14 @@ const LoginPage = () => {
                   type="email"
                   fullWidth
                   size="small"
+                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <FormControl variant="outlined" size="small" fullWidth required>
                   <InputLabel htmlFor="password_input">Password</InputLabel>
                   <OutlinedInput
                     id="password_input"
+                    value={password}
                     type={showPassword ? "text" : "password"}
                     onChange={(e) => setPassword(e.target.value)}
                     endAdornment={

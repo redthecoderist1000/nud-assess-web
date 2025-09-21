@@ -90,7 +90,6 @@ function SignUpForm() {
         message: "Setup account unsuccessful",
         severity: "error",
       });
-
       setLoading(false);
       return;
     }

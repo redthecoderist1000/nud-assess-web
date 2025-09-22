@@ -1,6 +1,6 @@
-import React, { useContext, useState } from "react";
-import { signupContext } from "../../App";
-import { FormControl } from "@mui/material";
+import React, { useContext, useEffect, useState } from "react";
+import { signupContext, userContext } from "../../App";
+import { Button, FormControl } from "@mui/material";
 import { OtpInput } from "reactjs-otp-input";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "../../assets/images/logo.png";
@@ -9,28 +9,46 @@ import { useLocation } from "react-router-dom";
 import { supabase } from "../../helper/Supabase";
 
 function SignupOtp() {
-  const signupData = useContext(signupContext);
+  const { setSnackbar } = useContext(userContext);
   const location = useLocation();
   const email = location.state.email;
+  const password = location.state.password;
+  const [secondsRemaining, setSecondsRemaining] = useState(60);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (secondsRemaining <= 0) return;
+
+    const timer = setInterval(() => {
+      setSecondsRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [secondsRemaining]);
 
   const [otp, setOtp] = useState("");
-  const [error, setError] = useState("");
-
-  //   agreeTerms: true;
-  //   confirmPassword: "pass";
-  //   email: "minatozaki@students.nu-dasma.edu.ph";
-  //   firstName: "Red";
-  //   lastName: "Ochavillo";
-  //   middleName: "Zinfandel C.";
-  //   password: "pass";
 
   const changeOtp = (otp) => {
     setOtp(otp);
   };
 
   const verifyOtp = async () => {
-    console.log("sakses", otp);
+    if (otp.length < 6) {
+      setSnackbar({
+        open: true,
+        message: "Please enter a valid 6-digit OTP.",
+        severity: "error",
+      });
+      return;
+    }
 
+    setLoading(true);
     let { data, error } = await supabase.auth.verifyOtp({
       email: email,
       token: otp,
@@ -38,19 +56,46 @@ function SignupOtp() {
     });
 
     if (error) {
-      console.log("failed opt: ", error);
+      setSnackbar({
+        open: true,
+        message: `Error verifying OTP: ${error.message}`,
+        severity: "error",
+      });
+      setLoading(false);
+      return;
     }
+
+    setSnackbar({
+      open: true,
+      message: "OTP verified successfully! You can now log in.",
+      severity: "success",
+    });
   };
 
   const resend = async () => {
-    const { data, error } = await supabase.auth.signInWithOtp({
+    setLoading(true);
+    const { data, error } = await supabase.auth.signUp({
       email: email,
+      password: password,
     });
 
     if (error) {
-      console.error("Error resending OTP:", error);
-      setError(error.message);
+      setSnackbar({
+        open: true,
+        message: `${error.message}`,
+        severity: "error",
+      });
+      setLoading(false);
+      return;
     }
+
+    setSnackbar({
+      open: true,
+      message: `OTP has been resent to ${email}`,
+      severity: "success",
+    });
+    setSecondsRemaining(60);
+    setLoading(false);
   };
 
   return (
@@ -127,30 +172,42 @@ function SignupOtp() {
           }}
         />
         <motion.p
-          className="text-gray-600 mb-10 test-red-500"
+          className="text-gray-600 mb-10 test-red-500 text-center align-middle"
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           Don't have any OTP?
-          <span
-            className="text-blue-900 cursor-pointer hover:underline"
+          <Button
+            variant="text"
             onClick={resend}
+            disabled={secondsRemaining > 0}
+            loading={loading}
+            sx={{
+              textTransform: "none",
+              marginLeft: "8px",
+              color: "#35408E",
+              fontWeight: "bold",
+            }}
           >
-            {"  "}
-            Resend
-          </span>
+            Resend ({secondsRemaining}s)
+          </Button>
         </motion.p>
-        <p>{error}</p>
-        <motion.button
-          className="w-full p-3 bg-[#35408E] text-white rounded-md hover:bg-[#2c357e] transform transition duration-300 hover:scale-105"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
+        <Button
+          variant="contained"
           onClick={verifyOtp}
+          loading={loading}
+          size="large"
+          disableElevation
+          sx={{
+            color: "white",
+            bgcolor: "#35408E",
+            "&:hover": { backgroundColor: "#2c357e" },
+            textTransform: "none",
+          }}
         >
           Submit
-        </motion.button>
+        </Button>
       </FormControl>
     </motion.div>
   );

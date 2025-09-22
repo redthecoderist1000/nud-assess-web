@@ -140,7 +140,7 @@ function MyQuestionTab() {
 
   return (
     <>
-      <Grid container spacing={2}>
+      <Grid container columnGap={2} wrap="flex" alignItems="center">
         <Grid flex={3}>
           <TextField
             fullWidth

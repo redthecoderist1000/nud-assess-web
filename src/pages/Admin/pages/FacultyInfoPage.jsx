@@ -1,6 +1,7 @@
 import {
   Button,
   Card,
+  CircularProgress,
   Container,
   Divider,
   Grid,
@@ -16,80 +17,105 @@ import {
   Typography,
 } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
-import { useLocation } from "react-router-dom";
-import AssignSubjectDialog from "../components/AssignSubjectDialog";
-import RemoveSubjectDialog from "../components/RemoveSubjectDialog";
-import DisableAiDialog from "../components/DisableAiDialog";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import AssignSubjectDialog from "../components/facultyInfo/AssignSubjectDialog";
+import RemoveSubjectDialog from "../components/facultyInfo/RemoveSubjectDialog";
+import DisableAiDialog from "../components/facultyInfo/DisableAiDialog";
+import { userContext } from "../../../App";
+import TransferDeptDialog from "../components/facultyInfo/TransferDeptDialog";
+import { BarChart, PieChart } from "@mui/x-charts";
+import PromoteDialog from "../components/facultyInfo/PromoteDialog";
 
 function FacultyInfo() {
-  const location = useLocation();
-  const { facultyId } = location.state;
+  const navigate = useNavigate();
+  const { setSnackbar } = useContext(userContext);
+  const [searchParam] = useSearchParams();
+  const facultyId = searchParam.get("facultyId");
 
   const [info, setInfo] = useState({});
   const [load, setLoad] = useState([]);
+  const [questionGen, setQuestionGen] = useState([]);
+  const [quizGen, setQuizGen] = useState({});
   const [assignDialog, setAssignDialog] = useState(false);
   const [removeDialog, setRemoveDialog] = useState(false);
+  const [transferDialog, setTransferDialog] = useState(false);
+  const [promoteDialog, setPromoteDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [disableAi, setDisableAi] = useState(false);
 
-  const fetchInfo = async () => {
-    const { data: infoData, error: infoErr } = await supabase
-      .from("tbl_users")
-      .select(
-        "suffix, f_name,m_name,l_name,role,email,tbl_department(name, shorthand_name),allow_ai"
-      )
-      .eq("id", facultyId)
+  const fetchData = async () => {
+    const { data, error } = await supabase
+      .rpc("get_facultyinformation", {
+        p_faculty_id: facultyId,
+      })
       .single();
 
-    if (infoErr) {
-      console.log("error fetching info:", infoErr);
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch faculty data. Please try again.",
+        severity: "error",
+      });
+      navigate(-1);
       return;
     }
-    setInfo(infoData);
-  };
 
-  const fetchLoad = async () => {
-    const { data: loadData, error: loadErr } = await supabase
-      .from("vw_facultysubject")
-      .select("*")
-      .eq("id", facultyId)
-      .neq("subject_code", null);
-
-    if (loadErr) {
-      console.log("error fetching load:", loadErr);
+    if (data.faculty_info == null) {
+      setSnackbar({
+        open: true,
+        message: "Faculty information not found.",
+        severity: "error",
+      });
+      navigate(-1);
       return;
     }
-    setLoad(loadData);
-    // console.log("sakses load:", loadData);
+
+    setInfo(data.faculty_info);
+    setLoad(data.subject_load);
+    setQuestionGen(data.question_gen);
+    setQuizGen(data.quiz_gen);
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchInfo();
-    fetchLoad();
+    fetchData();
 
-    supabase
+    const faculty_channel = supabase
       .channel("custom-filter-channel")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "tbl_faculty_subject" },
+        {
+          event: "*",
+          schema: "public",
+          table: "tbl_faculty_subject",
+          filter: `faculty_id=eq.${facultyId}`,
+        },
         (payload) => {
-          fetchLoad();
+          // fetchLoad();
+          fetchData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tbl_users",
+          filter: `id=eq.${facultyId}`,
+        },
+        (payload) => {
+          // fetchInfo();
+          fetchData();
         }
       )
       .subscribe();
 
-    supabase
-      .channel("tbl_users_channel")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "tbl_users" },
-        (payload) => {
-          fetchInfo();
-        }
-      )
-      .subscribe();
+    return () => {
+      supabase.removeChannel(faculty_channel);
+    };
   }, []);
 
   return (
@@ -103,50 +129,62 @@ function FacultyInfo() {
         </p>
       </div>
       <Stack spacing={3}>
-        <Grid container spacing={2} m>
-          <Grid flex={2}>
-            <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
-              <Typography variant="caption" fontWeight="bold">
-                Name
-              </Typography>
-              <Typography variant="body1">{`${info.suffix} ${info.f_name} ${info.m_name} ${info.l_name}`}</Typography>
-            </Paper>
+        {/* info */}
+        {loading ? (
+          <></>
+        ) : (
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+            }}
+          >
+            <Grid sx={{ flex: "1 1 300px", minWidth: 250 }}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
+                <Typography variant="caption" fontWeight="bold">
+                  Name
+                </Typography>
+                <Typography variant="body1">{`${info.full_name}`}</Typography>
+              </Paper>
+            </Grid>
+            <Grid sx={{ flex: "1 1 300px", minWidth: 250 }}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
+                <Typography variant="caption" fontWeight="bold">
+                  Email
+                </Typography>
+                <Typography variant="body1">{info.email}</Typography>
+              </Paper>
+            </Grid>
+            <Grid sx={{ flex: "1 1 200px", minWidth: 200 }}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
+                <Typography variant="caption" fontWeight="bold">
+                  Department
+                </Typography>
+                <Typography variant="body1">{info.dept_shortname}</Typography>
+              </Paper>
+            </Grid>
+            <Grid sx={{ flex: "1 1 200px", minWidth: 200 }}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
+                <Typography variant="caption" fontWeight="bold">
+                  Role
+                </Typography>
+                <Typography variant="body1">{info.role}</Typography>
+              </Paper>
+            </Grid>
+            <Grid sx={{ flex: "1 1 200px", minWidth: 200 }}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
+                <Typography variant="caption" fontWeight="bold">
+                  Total Load
+                </Typography>
+                <Typography variant="body1">{load.length}</Typography>
+              </Paper>
+            </Grid>
           </Grid>
-          <Grid flex={2}>
-            <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
-              <Typography variant="caption" fontWeight="bold">
-                Email
-              </Typography>
-              <Typography variant="body1">{info.email}</Typography>
-            </Paper>
-          </Grid>
-          <Grid flex={1}>
-            <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
-              <Typography variant="caption" fontWeight="bold">
-                Department
-              </Typography>
-              <Typography variant="body1">
-                {info.tbl_department?.shorthand_name ?? ""}
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid flex={1}>
-            <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
-              <Typography variant="caption" fontWeight="bold">
-                Role
-              </Typography>
-              <Typography variant="body1">{info.role}</Typography>
-            </Paper>
-          </Grid>
-          <Grid flex={1}>
-            <Paper variant="outlined" sx={{ p: 2, borderRadius: 4 }}>
-              <Typography variant="caption" fontWeight="bold">
-                Total Load
-              </Typography>
-              <Typography variant="body1">{load.length}</Typography>
-            </Paper>
-          </Grid>
-        </Grid>
+        )}
+        {/* load */}
         <Card variant="outlined" sx={{ p: 4, borderRadius: 4 }}>
           <Stack direction="row" justifyContent="space-between" mb={1}>
             <Typography variant="h5" fontWeight="bold">
@@ -159,6 +197,7 @@ function FacultyInfo() {
                 color="success"
                 disableElevation
                 onClick={() => setAssignDialog(true)}
+                loading={loading}
               >
                 Add
               </Button>
@@ -169,13 +208,18 @@ function FacultyInfo() {
                   variant="contained"
                   disableElevation
                   onClick={() => setRemoveDialog(true)}
+                  loading={loading}
                 >
                   Remove
                 </Button>
               )}
             </Stack>
           </Stack>
-          {load.length == 0 ? (
+          {loading ? (
+            <Stack alignItems="center">
+              <CircularProgress />
+            </Stack>
+          ) : load.length == 0 ? (
             <Typography align="center" variant="body2" color="textDisabled">
               No assigned subject yet.
             </Typography>
@@ -203,7 +247,7 @@ function FacultyInfo() {
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <TableCell>{data.subject_code}</TableCell>
-                      <TableCell>{data.name}</TableCell>
+                      <TableCell>{data.subject_name}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -211,26 +255,194 @@ function FacultyInfo() {
             </TableContainer>
           )}
         </Card>
-
-        {/* <Divider />
-        <Typography variant="h5" fontWeight="bold">
-          Created
-        </Typography> */}
-        {/* <Divider />
-        <Stack direction="row" columnGap={4} mt={2}>
-          <Typography variant="caption" color="textDisabled" alignSelf="center">
-            {!info.allow_ai ? "Enable" : "Disable"} AI privilage?
+        {/* geenrate content */}
+        <Card variant="outlined" sx={{ p: 4, borderRadius: 4 }}>
+          <Typography variant="h5" fontWeight="bold">
+            Generated Content
           </Typography>
-          <Button
-            variant="contained"
-            size="small"
-            color={!info.allow_ai ? "success" : "error"}
-            disableElevation
-            onClick={() => setDisableAi(true)}
-          >
-            {!info.allow_ai ? "Enable" : "Disable"}
-          </Button>
-        </Stack> */}
+          {loading ? (
+            <Stack alignItems="center">
+              <CircularProgress />
+            </Stack>
+          ) : (
+            <Grid container alignItems={"center"}>
+              <Grid flex={3}>
+                <Typography variant="h6" fontWeight="bold" textAlign="center">
+                  Questions
+                </Typography>
+                <BarChart
+                  xAxis={[
+                    {
+                      data:
+                        questionGen?.map((data) => data.cognitive_level) ?? [],
+                    },
+                  ]}
+                  series={[
+                    {
+                      label: "AI Generated",
+                      data: questionGen?.map((item) => item?.ai_count) ?? [],
+                      color: "#0050a0ff",
+                    },
+                    {
+                      label: "Custom Generated",
+                      data:
+                        questionGen?.map((item) => item?.custom_count) ?? [],
+                      color: "#e08700ff",
+                    },
+                  ]}
+                  grid={{
+                    horizontal: { show: true },
+                    vertical: { show: false },
+                  }}
+                  borderRadius={5}
+                  height={300}
+                />
+              </Grid>
+              <Grid flex={2}>
+                <Typography variant="h6" fontWeight="bold" textAlign="center">
+                  Quizzes
+                </Typography>
+                <PieChart
+                  height={300}
+                  series={[
+                    {
+                      data:
+                        quizGen.ai_count +
+                          quizGen.random_count +
+                          quizGen.manual_count ==
+                        0
+                          ? []
+                          : [
+                              {
+                                id: 0,
+                                value: quizGen.ai_count,
+                                label: `AI Generated (${quizGen.ai_count})`,
+                                color: "#0050a0ff",
+                              },
+                              {
+                                id: 1,
+                                value: quizGen.random_count,
+                                label: `Random Generated (${quizGen.random_count})`,
+                                color: "#8300a3ff",
+                              },
+                              {
+                                id: 2,
+                                value: quizGen.manual_count,
+                                label: `Manual Generated (${quizGen.manual_count})`,
+                                color: "#e08700ff",
+                              },
+                            ],
+                    },
+                  ]}
+                />
+              </Grid>
+            </Grid>
+          )}
+        </Card>
+        {/* settings */}
+        <Card variant="outlined" sx={{ p: 4, borderRadius: 4 }}>
+          <Stack rowGap={2}>
+            <Typography variant="h5" fontWeight="bold">
+              Additional Settings
+            </Typography>
+
+            {loading ? (
+              <Stack alignItems="center">
+                <CircularProgress />
+              </Stack>
+            ) : (
+              <>
+                {/* ai */}
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <div>
+                    <Typography
+                      variant="body1"
+                      fontWeight="bold"
+                      alignSelf="center"
+                    >
+                      AI Content Generation
+                    </Typography>
+                    <Typography variant="caption" alignSelf="center">
+                      Enable or disable the use of AI for generating content.
+                    </Typography>
+                  </div>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color={!info.allow_ai ? "success" : "error"}
+                    disableElevation
+                    onClick={() => setDisableAi(true)}
+                  >
+                    {!info.allow_ai ? "Enable" : "Disable"}
+                  </Button>
+                </Stack>
+                <Divider />
+
+                {/* transfer dept */}
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <div>
+                    <Typography
+                      variant="body1"
+                      fontWeight="bold"
+                      alignSelf="center"
+                    >
+                      Transfer department
+                    </Typography>
+                    <Typography variant="caption" alignSelf="center">
+                      Transfer faculty to another department.
+                    </Typography>
+                  </div>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="error"
+                    disableElevation
+                    onClick={() => setTransferDialog(true)}
+                  >
+                    Transfer
+                  </Button>
+                </Stack>
+                <Divider />
+                {/* admin privilege */}
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <div>
+                    <Typography
+                      variant="body1"
+                      fontWeight="bold"
+                      alignSelf="center"
+                    >
+                      Administrator access
+                    </Typography>
+                    <Typography variant="caption" alignSelf="center">
+                      Give or revoke admin access
+                    </Typography>
+                  </div>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color={info.role == "Faculty" ? "success" : "error"}
+                    disableElevation
+                    onClick={() => setPromoteDialog(true)}
+                  >
+                    {info.role == "Faculty" ? "promote" : "revoke"}
+                  </Button>
+                </Stack>
+              </>
+            )}
+          </Stack>
+        </Card>
       </Stack>
 
       {/* dialogs */}
@@ -243,13 +455,29 @@ function FacultyInfo() {
         open={removeDialog}
         setOpen={setRemoveDialog}
         selectedFaculty={facultyId}
+        fetchData={fetchData}
       />
       <DisableAiDialog
         open={disableAi}
         setOpen={setDisableAi}
         facultyId={facultyId}
-        name={`${info.suffix} ${info.f_name} ${info.m_name} ${info.l_name}`}
+        name={info.full_name}
         allowAi={info.allow_ai}
+      />
+
+      <TransferDeptDialog
+        open={transferDialog}
+        setOpen={setTransferDialog}
+        selectedFaculty={facultyId}
+        currDept={info.dept_id}
+      />
+
+      <PromoteDialog
+        open={promoteDialog}
+        setOpen={setPromoteDialog}
+        facultyId={facultyId}
+        name={info.full_name}
+        role={info.role}
       />
     </Container>
   );

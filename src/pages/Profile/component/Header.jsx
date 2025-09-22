@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { motion } from "framer-motion";
-import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
+import { Avatar } from "@mui/material";
 
-const Header = ({ avatarUrl }) => {
+const Header = () => {
   const { user } = useContext(userContext);
 
   const full_name = [user?.suffix, user?.f_name, user?.m_name, user?.l_name]
@@ -24,11 +24,7 @@ const Header = ({ avatarUrl }) => {
         }}
       >
         <div className="relative">
-          <img
-            src={avatarUrl}
-            alt="Profile"
-            className="w-16 h-16 rounded-full border-4 border-white object-cover"
-          />
+          <Avatar sx={{ width: 64, height: 64, border: "4px solid white" }} />
           <span className="absolute bottom-0 right-0 bg-yellow-400 rounded-full w-6 h-6 flex items-center justify-center border-2 border-white text-xs font-bold text-white">
             <svg
               xmlns="http://www.w3.org/2000/svg"

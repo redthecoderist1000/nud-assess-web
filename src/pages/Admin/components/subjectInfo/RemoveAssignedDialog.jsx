@@ -12,6 +12,7 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  OutlinedInput,
   Stack,
   Typography,
 } from "@mui/material";
@@ -124,10 +125,12 @@ function RemoveAssignedDialog(props) {
             })}
           </List>
         </Card>
-        <Input
+
+        <OutlinedInput
           placeholder="Search Faculty"
           value={search}
-          sx={{ my: 2, width: "100%" }}
+          fullWidth
+          size="small"
           onChange={(e) => setSearch(e.target.value)}
           startAdornment={
             <InputAdornment position="start">

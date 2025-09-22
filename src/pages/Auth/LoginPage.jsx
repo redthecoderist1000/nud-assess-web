@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
 import loginImage from "../../assets/images/login_image.png";
@@ -18,6 +18,7 @@ import {
   OutlinedInput,
   Stack,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -40,13 +41,50 @@ const LoginPage = () => {
     cpassword: "",
   });
 
+  useEffect(() => {
+    document.title = signUp ? "Sign Up - NUD Assess" : "Sign In - NUD Assess";
+    setEmail("");
+    setPassword("");
+    setFormSignUp({
+      email: "",
+      password: "",
+      cpassword: "",
+    });
+  }, [signUp]);
+
   const handleChangeSignUpForm = (e) => {
     setFormSignUp({ ...formSignUp, [e.target.name]: e.target.value });
   };
 
-  const sendConfirmation = (e) => {
+  const checkPasswordStrength = () => {
+    const regex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return regex.test(formSignUp.password);
+  };
+
+  const passwordRequirements = (
+    <div className="text-xs">
+      <p>Password must be at least:</p>
+      <ul className="list-disc list-inside">
+        <li>8 characters</li>
+        <li>One uppercase letter</li>
+        <li>One lowercase letter</li>
+        <li>One number</li>
+        <li>One special character</li>
+      </ul>
+    </div>
+  );
+
+  const sendConfirmation = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!checkPasswordStrength() && env.VITE_ENVIRONMENT === "deployed") {
+      setSnackbar({
+        open: true,
+        message: "Password must satisfy the requirements.",
+        severity: "error",
+      });
+      return;
+    }
 
     const domain = formSignUp.email.split("@")[1];
     // uncomment on final
@@ -68,36 +106,46 @@ const LoginPage = () => {
       setIsLoading(false);
       return;
     }
+    setIsLoading(true);
 
-    (async () => {
-      const { data, error } = await supabase.auth.signUp({
-        email: formSignUp.email,
-        password: formSignUp.password,
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.signUp({
+      email: formSignUp.email,
+      password: formSignUp.password,
+    });
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Error: " + error.message,
+        severity: "error",
       });
+      setIsLoading(false);
+      return;
+    }
 
-      if (error) {
-        setSnackbar({
-          open: true,
-          message: "Error: " + error.message,
-          severity: "error",
-        });
-        setIsLoading(false);
-        return;
-      }
+    if (user.identities.length <= 0) {
+      setIsLoading(false);
+      setSnackbar({
+        open: true,
+        message: "Email already in use",
+        severity: "error",
+      });
+      return;
+    }
 
-      if (data) {
-        setSnackbar({
-          open: true,
-          message: "OTP was successfully sent to: " + formSignUp.email,
-          severity: "success",
-        });
+    setSnackbar({
+      open: true,
+      message: "OTP was successfully sent to: " + formSignUp.email,
+      severity: "success",
+    });
 
-        navigate("/signup-otp", {
-          replace: true,
-          state: { email: formSignUp.email },
-        });
-      }
-    })();
+    navigate("/signup-otp", {
+      replace: true,
+      state: { email: formSignUp.email, password: formSignUp.password },
+    });
   };
 
   const handleLogin = async (e) => {
@@ -110,13 +158,28 @@ const LoginPage = () => {
       password: password,
     });
     if (error) {
-      setSnackbar({
-        open: true,
-        message: "Error: " + error.message,
-        severity: "error",
-      });
-      setIsLoading(false);
+      console.log(error);
+      if (error.code === "email_not_confirmed") {
+        setSnackbar({
+          open: true,
+          message: "Email not yet confirmed. Please sign up again.",
+          severity: "warning",
+        });
+      } else if (error.code === "validation_failed") {
+        setSnackbar({
+          open: true,
+          message: "Invalid email or password.",
+          severity: "error",
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: "Error: " + error.message,
+          severity: "error",
+        });
+      }
 
+      setIsLoading(false);
       return;
     }
 
@@ -176,34 +239,42 @@ const LoginPage = () => {
                   label="Email"
                   type="text"
                   name="email"
+                  value={formSignUp.email}
                   fullWidth
                   onChange={handleChangeSignUpForm}
                 />
-
-                <FormControl variant="outlined" size="small" fullWidth required>
-                  <InputLabel htmlFor="password_input">Password</InputLabel>
-                  <OutlinedInput
-                    id="password_input"
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    onChange={handleChangeSignUpForm}
-                    endAdornment={
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                        >
-                          {showPassword ? (
-                            <VisibilityOff sx={{ fontSize: 20 }} />
-                          ) : (
-                            <Visibility sx={{ fontSize: 20 }} />
-                          )}
-                        </IconButton>
-                      </InputAdornment>
-                    }
-                    label="Password"
-                  />
-                </FormControl>
+                <Tooltip title={passwordRequirements} arrow placement="right">
+                  <FormControl
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    required
+                  >
+                    <InputLabel htmlFor="password_input">Password</InputLabel>
+                    <OutlinedInput
+                      id="password_input"
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={formSignUp.password}
+                      onChange={handleChangeSignUpForm}
+                      endAdornment={
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? (
+                              <VisibilityOff sx={{ fontSize: 20 }} />
+                            ) : (
+                              <Visibility sx={{ fontSize: 20 }} />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      }
+                      label="Password"
+                    />
+                  </FormControl>
+                </Tooltip>
                 <FormControl variant="outlined" size="small" fullWidth required>
                   <InputLabel htmlFor="cpassword_input">
                     Confirm Password
@@ -211,6 +282,7 @@ const LoginPage = () => {
                   <OutlinedInput
                     id="cpassword_input"
                     name="cpassword"
+                    value={formSignUp.cpassword}
                     onChange={handleChangeSignUpForm}
                     type={showCPassword ? "text" : "password"}
                     endAdornment={
@@ -230,6 +302,7 @@ const LoginPage = () => {
                     label="Confirm Password"
                   />
                 </FormControl>
+
                 {/* Send Confirmation Button */}
                 <Button
                   variant="contained"
@@ -288,12 +361,14 @@ const LoginPage = () => {
                   type="email"
                   fullWidth
                   size="small"
+                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <FormControl variant="outlined" size="small" fullWidth required>
                   <InputLabel htmlFor="password_input">Password</InputLabel>
                   <OutlinedInput
                     id="password_input"
+                    value={password}
                     type={showPassword ? "text" : "password"}
                     onChange={(e) => setPassword(e.target.value)}
                     endAdornment={

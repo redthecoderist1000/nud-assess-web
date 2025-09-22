@@ -11,7 +11,6 @@ const ClassGrid = ({
   handleArchiveDialog,
   handleActivate,
   handleDeleteDialog,
-  handleSelectAnalyticsClass,
 }) => (
   <div className="flex-1">
     {/* <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"> */}
@@ -28,7 +27,6 @@ const ClassGrid = ({
           handleArchiveDialog={handleArchiveDialog}
           handleActivate={handleActivate}
           handleDeleteDialog={handleDeleteDialog}
-          onClick={() => handleSelectAnalyticsClass(cls)}
         />
       ))}
     </div>

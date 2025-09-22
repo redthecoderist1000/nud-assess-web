@@ -1,4 +1,7 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../../../helper/Supabase";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
+import { CircularProgress, Stack, Typography } from "@mui/material";
 
 const sampleData = [
   {
@@ -24,49 +27,86 @@ const sampleData = [
   },
 ];
 
-function LowPerf({ data }) {
-  const students = data || sampleData;
+function LowPerf() {
+  const [missed, setMissed] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("vw_10missedexam")
+      .select("*")
+      .limit(10);
+
+    if (error) {
+      setLoading(false);
+      return;
+    }
+    setMissed(data);
+    setLoading(false);
+  };
 
   return (
     <div
       className="bg-white rounded-xl border border-gray-200 p-5 w-full"
-      style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)", minHeight: 400, maxHeight: 400, display: "flex", flexDirection: "column" }}
+      style={{
+        boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
+        minHeight: 400,
+        maxHeight: 400,
+        display: "flex",
+        flexDirection: "column",
+      }}
     >
-      <div className="flex items-center gap-2 mb-1">
-        <span>
-          <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M12 9v4M12 17h.01M4.93 19h14.14a2 2 0 0 0 1.74-2.82l-7.07-12.26a2 2 0 0 0-3.48 0L3.19 16.18A2 2 0 0 0 4.93 19z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-        <span className="font-medium text-base text-gray-900">Students Needing Support</span>
-      </div>
-      <p className="text-xs text-gray-500 mb-4">
-        Students with declining performance or missed assignments (from tbl_result trends)
-      </p>
-      <div className="space-y-3 overflow-y-auto flex-1">
-        {students.map((student, idx) => (
-          <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-4 py-3">
-            <div>
-              <div className="font-semibold text-gray-900">{student.name}</div>
-              <div className="text-xs text-gray-500">{student.class}</div>
-              <div className="flex gap-2 mt-2">
-                <span className="bg-red-600 text-white text-xs px-3 py-1 rounded-full font-medium">
-                  {student.missed} missed exams
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-col items-end mt-2 sm:mt-0">
-              <span className="font-bold text-orange-700 text-lg">{student.score}%</span>
-              <span className="text-xs text-orange-700 flex items-center gap-1">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 16 16">
-                  <path d="M8 4v8M8 12l-4-4M8 12l4-4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                {student.completion}% completion
-              </span>
-            </div>
+      {loading ? (
+        <Stack justifyContent="center" alignItems="center" flex={1}>
+          <CircularProgress />
+        </Stack>
+      ) : (
+        <>
+          <div className="flex items-center gap-2">
+            <WarningAmberRoundedIcon sx={{ color: "#757575ff" }} />
+            <Typography variant="h6">Students Needing Support</Typography>
           </div>
-        ))}
-      </div>
+          <Typography variant="caption" color="textSecondary">
+            Students with missed exams
+          </Typography>
+
+          <div className="space-y-3 overflow-y-auto flex-1">
+            {missed.length === 0 ? (
+              <Stack justifyContent="center" alignItems="center" flex={1}>
+                <Typography variant="body2" color="textSecondary">
+                  No students with missed exams.
+                </Typography>
+              </Stack>
+            ) : (
+              missed.map((student, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-4 py-3"
+                >
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      {student.student_name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {student.class_name}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="bg-red-600 text-white text-xs px-3 py-1 rounded-full font-medium">
+                      {student.missed_exam} missed exams
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

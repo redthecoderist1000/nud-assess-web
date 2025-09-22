@@ -8,6 +8,7 @@ import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import InfoOutlineRoundedIcon from "@mui/icons-material/InfoOutlineRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import CreateDialog from "../../../components/elements/CreateDialog";
+import CreateClass from "../../MyClasses/components/CreateClass";
 
 const DashboardLead = ({}) => {
   const { user, setSnackbar } = useContext(userContext);
@@ -17,6 +18,7 @@ const DashboardLead = ({}) => {
     open: false,
     type: null,
   });
+  const [createClass, setCreateClass] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -46,7 +48,6 @@ const DashboardLead = ({}) => {
   const createQuestion = () => {
     setCreateDialog({ open: true, type: "question" });
   };
-  const createClass = () => {};
 
   return (
     <div className="rounded-2xl bg-[#4957a3] p-6 md:p-8 pb-6 relative overflow-hidden">
@@ -56,7 +57,12 @@ const DashboardLead = ({}) => {
             Welcome back, {user.f_name}!
           </h2>
         </div>
-        <div className="flex gap-2 md:gap-3 mb-4 md:mb-0">
+        <Stack
+          direction="row"
+          flexWrap={"wrap"}
+          justifyContent={"center"}
+          gap={2}
+        >
           <button
             className="flex items-center gap-2 bg-[#3d478c] text-white px-3 py-2 md:px-4 rounded-lg font-medium text-sm hover:bg-[#2e3566] transition"
             onClick={createQuiz}
@@ -101,7 +107,7 @@ const DashboardLead = ({}) => {
           </button>
           <button
             className="flex items-center gap-2 bg-[#3d478c] text-white px-3 py-2 md:px-4 rounded-lg font-medium text-sm hover:bg-[#2e3566] transition"
-            onClick={createClass}
+            onClick={() => setCreateClass(true)}
           >
             <svg
               className="w-5 h-5"
@@ -117,15 +123,22 @@ const DashboardLead = ({}) => {
             </svg>
             Create Class
           </button>
-        </div>
+        </Stack>
       </div>
       {loading ? (
         <div className="text-center">
           <CircularProgress sx={{ color: "#7f88c4ff" }} />
         </div>
       ) : (
-        <Stack direction="row" spacing={2} mt={2}>
-          <div className="flex items-center gap-3 bg-[#6b7bd6] bg-opacity-40 rounded-xl px-6 py-4   flex-1 min-w-[160px] mt-2">
+        <Stack
+          direction="row"
+          rowGap={1}
+          columnGap={1}
+          mt={2}
+          flex={1}
+          flexWrap="wrap"
+        >
+          <div className="flex items-center gap-3 bg-[#6b7bd6] bg-opacity-40 rounded-xl px-6 py-4   flex-1 min-w-[160px] ">
             <FactCheckRoundedIcon sx={{ color: "#ffb74cff" }} />
             <div>
               <div className="text-2xl font-bold text-white leading-tight">
@@ -134,7 +147,7 @@ const DashboardLead = ({}) => {
               <div className="text-white text-sm opacity-80">Total Quizzes</div>
             </div>
           </div>
-          <div className="flex items-center gap-3 bg-[#6b7bd6] bg-opacity-40 rounded-xl px-6 py-4 flex-1 min-w-[160px] mt-2">
+          <div className="flex items-center gap-3 bg-[#6b7bd6] bg-opacity-40 rounded-xl px-6 py-4 flex-1 min-w-[160px] ">
             <InfoOutlineRoundedIcon sx={{ color: "#ffb74cff" }} />
             <div>
               <div className="text-2xl font-bold text-white leading-tight">
@@ -145,7 +158,7 @@ const DashboardLead = ({}) => {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3 bg-[#6b7bd6] bg-opacity-40 rounded-xl px-6 py-4 flex-1 min-w-[160px] mt-2">
+          <div className="flex items-center gap-3 bg-[#6b7bd6] bg-opacity-40 rounded-xl px-6 py-4 flex-1 min-w-[160px] ">
             <PersonRoundedIcon sx={{ color: "#ffb74cff" }} />
             <div>
               <div className="text-2xl font-bold text-white leading-tight">
@@ -156,7 +169,7 @@ const DashboardLead = ({}) => {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3 bg-[#6b7bd6] bg-opacity-40 rounded-xl px-6 py-4 flex-1 min-w-[160px] mt-2">
+          <div className="flex items-center gap-3 bg-[#6b7bd6] bg-opacity-40 rounded-xl px-6 py-4 flex-1 min-w-[160px] ">
             <SchoolRoundedIcon sx={{ color: "#ffb74cff" }} />
             <div>
               <div className="text-2xl font-bold text-white leading-tight">
@@ -173,6 +186,8 @@ const DashboardLead = ({}) => {
         onClose={() => setCreateDialog({ open: false, type: null })}
         type={createDialog.type}
       />
+
+      <CreateClass open={createClass} setOpen={setCreateClass} />
     </div>
   );
 };

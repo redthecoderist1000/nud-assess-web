@@ -27,7 +27,7 @@ import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 
 const CreateClass = ({ open, setOpen }) => {
   // const { user } = useContext(userContext);
-  const { user } = useContext(userContext);
+  const { user, setSnackbar } = useContext(userContext);
 
   const [classData, setClassData] = useState({
     class_name: "",
@@ -35,11 +35,7 @@ const CreateClass = ({ open, setOpen }) => {
     created_by: user.user_id,
   });
   const [loading, setLoading] = useState(false);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+
   const [memberList, setMemberList] = useState([]);
   const importRef = useRef(null);
 
@@ -457,22 +453,6 @@ const CreateClass = ({ open, setOpen }) => {
           </DialogActions>
         )}
       </form>
-      {/* snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Dialog>
   );
 };

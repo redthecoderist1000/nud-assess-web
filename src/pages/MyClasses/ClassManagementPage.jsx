@@ -176,13 +176,6 @@ const ClassManagementPage = () => {
     setSearchParams({ tab: event }, { replace: true });
   };
 
-  const handleClassClick = (cls) => {
-    const params = new URLSearchParams({
-      class_id: cls.id,
-    });
-    navigate(`/class?${params.toString()}`);
-  };
-
   return (
     <Container maxWidth="xl" sx={{ my: 5 }}>
       <motion.div
@@ -264,7 +257,6 @@ const ClassManagementPage = () => {
               handleArchiveDialog={() => setArchiveDialog(true)}
               handleActivate={handleActivate}
               handleDeleteDialog={() => setDeleteDialog(true)}
-              handleSelectAnalyticsClass={handleClassClick}
             />
           )}
         </Stack>

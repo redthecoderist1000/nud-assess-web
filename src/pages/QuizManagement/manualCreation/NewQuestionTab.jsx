@@ -293,9 +293,7 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
         action: () => submit(),
       });
       return;
-    }
-
-    if (newItem.has_similar) {
+    } else if (newItem.has_similar) {
       setDialog({
         open: true,
         title: "Similar Questions Found",
@@ -304,11 +302,13 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
         action: () => submit(),
       });
       return;
+    } else {
+      submit();
     }
-    submit();
   };
 
   const submit = () => {
+    setDialog({ open: false, title: "", content: "", action: null });
     addToExam(newItem);
     resetForm();
   };

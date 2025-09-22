@@ -300,11 +300,12 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
         open: true,
         title: "Similar Questions Found",
         content:
-          "Similar questions were found. Are you sure you want to add this question?",
+          "Similar questions were found. Adding this question may lead to duplicates in the question repository. Are you sure you want to add this question?",
         action: () => submit(),
       });
       return;
     }
+    submit();
   };
 
   const submit = () => {

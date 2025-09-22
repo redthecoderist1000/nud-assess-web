@@ -8,15 +8,23 @@ import {
   Stack,
 } from "@mui/material";
 import { supabase } from "../../../helper/Supabase";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { userContext } from "../../../App";
 
 function LogoutDialog({ open, onClose }) {
+  const { setSnackbar } = useContext(userContext);
   const [loading, setLoading] = useState(false);
   const handleLogout = async () => {
     setLoading(true);
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error("Error signing out:", error.message);
+      console.log(error);
+      setSnackbar({
+        open: true,
+        message: `Failed to sign out`,
+        severity: "error",
+      });
       setLoading(false);
       return;
     }

@@ -18,9 +18,9 @@ import {
   TextField,
 } from "@mui/material";
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { supabase } from "../../../helper/Supabase";
+import { supabase } from "../../../../helper/Supabase";
 import { data } from "react-router-dom";
-import { userContext } from "../../../App";
+import { userContext } from "../../../../App";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 
 function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
@@ -205,7 +205,7 @@ function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
             loading={loading}
             disabled={selectedSubject.length == 0}
           >
-            Continue
+            Assign
           </Button>
         </Stack>
       </DialogActions>

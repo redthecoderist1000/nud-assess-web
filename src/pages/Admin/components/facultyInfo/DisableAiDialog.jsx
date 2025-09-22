@@ -8,10 +8,12 @@ import {
   LinearProgress,
   Stack,
 } from "@mui/material";
-import React, { useState } from "react";
-import { supabase } from "../../../helper/Supabase";
+import React, { useContext, useState } from "react";
+import { supabase } from "../../../../helper/Supabase";
+import { userContext } from "../../../../App";
 
 function DisableAiDialog(props) {
+  const { setSnackbar } = useContext(userContext);
   const { open, setOpen, facultyId, name, allowAi } = props;
   const [loading, setLoading] = useState(false);
 
@@ -25,10 +27,18 @@ function DisableAiDialog(props) {
         .select("*");
 
       if (disableErr) {
-        console.log("error disable:", disableErr);
+        setSnackbar({
+          open: true,
+          message: "Error disabling AI usage",
+          severity: "error",
+        });
         return;
       }
-      console.log("sakses disable:", disableData);
+      setSnackbar({
+        open: true,
+        message: `Successfully disabled AI usage for ${name}`,
+        severity: "success",
+      });
     } else {
       const { data: ableData, error: ableErr } = await supabase
         .from("tbl_users")
@@ -37,10 +47,18 @@ function DisableAiDialog(props) {
         .select("*");
 
       if (ableErr) {
-        console.log("error able:", ableErr);
+        setSnackbar({
+          open: true,
+          message: "Error enabling AI usage",
+          severity: "error",
+        });
         return;
       }
-      console.log("sakses able:", ableData);
+      setSnackbar({
+        open: true,
+        message: `Successfully enabled AI usage for ${name}`,
+        severity: "success",
+      });
     }
 
     setOpen(false);
@@ -65,19 +83,26 @@ function DisableAiDialog(props) {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        {loading ? (
-          <LinearProgress />
-        ) : (
+        <Stack direction={"row"} justifyContent={"space-between"} flex={1}>
+          <Button
+            color="error"
+            loading={loading}
+            onClick={() => setOpen(false)}
+          >
+            Cancel
+          </Button>
+
           <Button
             color={!allowAi ? "success" : "error"}
             variant="contained"
             size="small"
+            loading={loading}
             onClick={disableAi}
             disableElevation
           >
             {!allowAi ? "Enable" : "Disable"}
           </Button>
-        )}
+        </Stack>
       </DialogActions>
     </Dialog>
   );

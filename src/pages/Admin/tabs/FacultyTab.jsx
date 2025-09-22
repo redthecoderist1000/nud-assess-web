@@ -109,6 +109,14 @@ const FacultyTab = () => {
           fetchData();
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tbl_users" },
+        (payload) => {
+          console.log(payload);
+          fetchData();
+        }
+      )
       .subscribe();
 
     return () => {

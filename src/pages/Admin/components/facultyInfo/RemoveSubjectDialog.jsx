@@ -7,6 +7,7 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -14,10 +15,13 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import React, { useEffect, useMemo, useState } from "react";
-import { supabase } from "../../../helper/Supabase";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { supabase } from "../../../../helper/Supabase";
+import { userContext } from "../../../../App";
+import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 
-function RemoveSubjectDialog({ open, setOpen, selectedFaculty }) {
+function RemoveSubjectDialog({ open, setOpen, selectedFaculty, fetchData }) {
+  const { setSnackbar } = useContext(userContext);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [subjectOption, setSubjectOption] = useState([]);
@@ -60,15 +64,24 @@ function RemoveSubjectDialog({ open, setOpen, selectedFaculty }) {
       .in("id", idList);
 
     if (error) {
-      console.log("Error removing subjects:", error);
+      setSnackbar({
+        message: "Failed to remove subjects. Please try again.",
+        severity: "error",
+        open: true,
+      });
       setLoading(false);
       return;
     }
-
     setOpen(false);
+    fetchData();
+    setSnackbar({
+      message: "Subjects removed successfully",
+      severity: "success",
+      open: true,
+    });
+
     setSelectedSubject([]);
     setSearch("");
-    setLoading(false);
   };
 
   const fetchSubjects = async () => {
@@ -102,24 +115,27 @@ function RemoveSubjectDialog({ open, setOpen, selectedFaculty }) {
       maxWidth="md"
     >
       <DialogTitle>Remove subject</DialogTitle>
-      <Divider />
       <DialogContent>
-        <Card sx={{ mb: 2, p: 2 }}>
+        <Card sx={{ mb: 2, p: 2 }} variant="outlined">
           <DialogContentText>Selected subjects:</DialogContentText>
           <List dense disablePadding sx={{ width: "100%" }}>
             {selectedSubject.map((data, index) => {
               return (
-                <ListItem key={index}>
+                <ListItem
+                  key={index}
+                  secondaryAction={
+                    <IconButton
+                      onClick={() => removeSelected(index)}
+                      color="error"
+                      size="small"
+                    >
+                      <HighlightOffRoundedIcon fontSize="20" />
+                    </IconButton>
+                  }
+                >
                   <ListItemText>
                     {data.subject_name} ({data.subject_code})
                   </ListItemText>
-                  <Button
-                    size="small"
-                    color="error"
-                    onClick={() => removeSelected(index)}
-                  >
-                    remove
-                  </Button>
                 </ListItem>
               );
             })}
@@ -144,7 +160,6 @@ function RemoveSubjectDialog({ open, setOpen, selectedFaculty }) {
           })}
         </List>
       </DialogContent>
-      <Divider />
 
       <DialogActions>
         <Stack direction="row" justifyContent="space-between" width="100%">
@@ -157,11 +172,13 @@ function RemoveSubjectDialog({ open, setOpen, selectedFaculty }) {
           </Button>
           <Button
             variant="contained"
+            color="error"
             onClick={confirmRemove}
             loading={loading}
             disabled={selectedSubject.length == 0}
+            disableElevation
           >
-            Continue
+            Remove
           </Button>
         </Stack>
       </DialogActions>

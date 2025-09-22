@@ -73,9 +73,6 @@ function FacultyInfo() {
       return;
     }
 
-    // console.log(data);
-    console.log(data.question_gen);
-    console.log(data.quiz_gen);
     setInfo(data.faculty_info);
     setLoad(data.subject_load);
     setQuestionGen(data.question_gen);

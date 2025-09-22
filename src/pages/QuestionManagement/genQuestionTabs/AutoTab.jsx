@@ -33,7 +33,7 @@ export default function AutoTab(props) {
   const [searchParams] = useSearchParams();
   const repository = searchParams.get("repository");
   const { subject, lesson, lessonId } = props;
-  const { setSnackbar } = useContext(userContext);
+  const { user, setSnackbar } = useContext(userContext);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [files, setFiles] = useState([]);
@@ -368,85 +368,87 @@ export default function AutoTab(props) {
 
   return (
     <>
-      <Box component="form" onSubmit={generateQuestion}>
-        <FileUpload files={files} setFiles={setFiles} />
-        <Stack
-          direction={"row"}
-          spacing={2}
-          mt={2}
-          mb={2}
-          justifyContent={"space-between"}
-          alignItems={"center"}
-        >
-          <TextField
-            fullWidth
-            size="small"
-            label="Total Items"
-            type="number"
-            required
-            inputProps={{ min: 1, max: 100 }}
-            value={formData.total_items}
-            sx={{ maxWidth: "150px" }}
-            onChange={(e) =>
-              setFormData({ ...formData, total_items: e.target.value })
-            }
-          />
-          <FormControl
-            component={"fieldset"}
-            variant="filled"
-            size="small"
-            required
+      {user.allow_ai && (
+        <Box component="form" onSubmit={generateQuestion}>
+          <FileUpload files={files} setFiles={setFiles} />
+          <Stack
+            direction={"row"}
+            spacing={2}
+            mt={2}
+            mb={2}
+            justifyContent={"space-between"}
+            alignItems={"center"}
           >
-            <FormLabel>Cognitive Levels</FormLabel>
-            <FormGroup row>
-              {cognitive_levels.map((level, index) => (
-                <FormControlLabel
-                  key={index}
-                  control={
-                    <Checkbox
-                      checked={level.isSelected}
-                      onClick={() => handleCognitiveLevelChange(index)}
-                    />
-                  }
-                  label={
-                    <Typography variant="caption">{level.label}</Typography>
-                  }
-                  labelPlacement="bottom"
-                />
-              ))}
-            </FormGroup>
-          </FormControl>
-
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            size="medium"
-            disableElevation
-            disabled={loading}
-            startIcon={<AutoAwesomeRoundedIcon />}
-            sx={{ textTransform: "none", minWidth: "200px" }}
-          >
-            {loading ? "Generating..." : "Generate with AI"}
-          </Button>
-        </Stack>
-        {loading && (
-          <>
-            <Typography
-              color="text.secondary"
-              fontStyle="italic"
-              alignSelf={"center"}
+            <TextField
+              fullWidth
+              size="small"
+              label="Total Items"
+              type="number"
+              required
+              inputProps={{ min: 1, max: 100 }}
+              value={formData.total_items}
+              sx={{ maxWidth: "150px" }}
+              onChange={(e) =>
+                setFormData({ ...formData, total_items: e.target.value })
+              }
+            />
+            <FormControl
+              component={"fieldset"}
+              variant="filled"
+              size="small"
+              required
             >
-              {status}
+              <FormLabel>Cognitive Levels</FormLabel>
+              <FormGroup row>
+                {cognitive_levels.map((level, index) => (
+                  <FormControlLabel
+                    key={index}
+                    control={
+                      <Checkbox
+                        checked={level.isSelected}
+                        onClick={() => handleCognitiveLevelChange(index)}
+                      />
+                    }
+                    label={
+                      <Typography variant="caption">{level.label}</Typography>
+                    }
+                    labelPlacement="bottom"
+                  />
+                ))}
+              </FormGroup>
+            </FormControl>
+
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              size="medium"
+              disableElevation
+              disabled={loading}
+              startIcon={<AutoAwesomeRoundedIcon />}
+              sx={{ textTransform: "none", minWidth: "200px" }}
+            >
+              {loading ? "Generating..." : "Generate with AI"}
+            </Button>
+          </Stack>
+          {loading && (
+            <>
+              <Typography
+                color="text.secondary"
+                fontStyle="italic"
+                alignSelf={"center"}
+              >
+                {status}
+              </Typography>
+            </>
+          )}
+          <Divider sx={{ my: 5 }}>
+            <Typography variant="caption" color="text.secondary">
+              or add manually
             </Typography>
-          </>
-        )}
-        <Divider sx={{ my: 5 }}>
-          <Typography variant="caption" color="text.secondary">
-            or add manually
-          </Typography>
-        </Divider>
-      </Box>
+          </Divider>
+        </Box>
+      )}
       <Box component="form" onSubmit={validate}>
         <Stack rowGap={3} mt={2} mb={2}>
           <questionContext.Provider value={{ items, setItems, lessonId }}>

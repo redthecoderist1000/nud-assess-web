@@ -19,44 +19,26 @@ function DisableAiDialog(props) {
 
   const disableAi = async () => {
     setLoading(true);
-    if (allowAi) {
-      const { data: disableData, error: disableErr } = await supabase
-        .from("tbl_users")
-        .update({ allow_ai: false })
-        .eq("id", facultyId)
-        .select("*");
 
-      if (disableErr) {
-        setSnackbar({
-          open: true,
-          message: "Error disabling AI usage",
-          severity: "error",
-        });
-        return;
-      }
+    const newStatus = !allowAi;
+    const action = newStatus ? "enabled" : "disabled";
+
+    const { error } = await supabase
+      .from("tbl_users")
+      .update({ allow_ai: newStatus })
+      .eq("id", facultyId)
+      .select("*");
+
+    if (error) {
       setSnackbar({
         open: true,
-        message: `Successfully disabled AI usage for ${name}`,
-        severity: "success",
+        message: `Error ${action} AI usage`,
+        severity: "error",
       });
     } else {
-      const { data: ableData, error: ableErr } = await supabase
-        .from("tbl_users")
-        .update({ allow_ai: true })
-        .eq("id", facultyId)
-        .select("*");
-
-      if (ableErr) {
-        setSnackbar({
-          open: true,
-          message: "Error enabling AI usage",
-          severity: "error",
-        });
-        return;
-      }
       setSnackbar({
         open: true,
-        message: `Successfully enabled AI usage for ${name}`,
+        message: `Successfully ${action} AI usage for ${name}`,
         severity: "success",
       });
     }

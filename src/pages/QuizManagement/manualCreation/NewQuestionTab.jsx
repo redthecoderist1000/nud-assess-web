@@ -293,21 +293,22 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
         action: () => submit(),
       });
       return;
-    }
-
-    if (newItem.has_similar) {
+    } else if (newItem.has_similar) {
       setDialog({
         open: true,
         title: "Similar Questions Found",
         content:
-          "Similar questions were found. Are you sure you want to add this question?",
+          "Similar questions were found. Adding this question may lead to duplicates in the question repository. Are you sure you want to add this question?",
         action: () => submit(),
       });
       return;
+    } else {
+      submit();
     }
   };
 
   const submit = () => {
+    setDialog({ open: false, title: "", content: "", action: null });
     addToExam(newItem);
     resetForm();
   };

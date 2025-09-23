@@ -82,12 +82,18 @@ function CartPage() {
       ? [filter.lesson]
       : Array.from(new Set(tosDetail.map((item) => item.lesson_id)));
 
-    const { data, error } = await supabase.rpc("get_questions", {
+    const query = supabase.rpc("get_questions", {
       p_repository: quizDetail.repository,
       p_lesson_id: lesson_id,
       p_type: filter.type || null,
       p_blooms_category: filter.cognitive_level || null,
     });
+
+    if (quizDetail.repository === "Private") {
+      query.eq("creator_id", user.user_id);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.log("Error fetching questions:", error);
@@ -620,34 +626,31 @@ function CartPage() {
                 <CircularProgress />
               </Stack>
             ) : (
-              //  : visibleOptionQuestions.length === 0 ? (
-              //   <Typography variant="body2" color="textDisabled" mt={2}>
-              //     No questions found.
-              //   </Typography>
-              // )
               <Stack maxHeight={"70vh"} overflow="auto" mt={2} spacing={1}>
                 <Stack direction="row" justifyContent={"space-between"}>
                   <Typography variant="body2" color="textDisabled">
                     {visibleOptionQuestions.length} results found
                   </Typography>
-                  <FormGroup>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={filter.owned}
-                          onClick={() =>
-                            setFilter({ ...filter, owned: !filter.owned })
-                          }
-                        />
-                      }
-                      label={
-                        <Typography variant="caption" color="textSecondary">
-                          Owned only
-                        </Typography>
-                      }
-                    />
-                  </FormGroup>
+                  {quizDetail.repository !== "Private" && (
+                    <FormGroup>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            size="small"
+                            checked={filter.owned}
+                            onClick={() =>
+                              setFilter({ ...filter, owned: !filter.owned })
+                            }
+                          />
+                        }
+                        label={
+                          <Typography variant="caption" color="textSecondary">
+                            Owned only
+                          </Typography>
+                        }
+                      />
+                    </FormGroup>
+                  )}
                 </Stack>
                 {visibleOptionQuestions.map((data, index) => (
                   <QuestionBankItem

@@ -115,7 +115,8 @@ function CreateDialogStep2({ onChoose }) {
             Quizzes Repository
           </Button>
           <Typography variant="body2" color="text.secondary" align="center">
-            Contains questions available for quizzes
+            Contains questions available for quizzes. Shared with other faculty
+            members.
           </Typography>
         </Box>
         <Box

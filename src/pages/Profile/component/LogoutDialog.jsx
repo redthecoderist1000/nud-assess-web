@@ -16,7 +16,7 @@ function LogoutDialog({ open, onClose }) {
   const [loading, setLoading] = useState(false);
   const handleLogout = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({ scope: "local" });
     if (error) {
       console.error("Error signing out:", error.message);
       console.log(error);

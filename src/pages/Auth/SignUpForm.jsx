@@ -195,33 +195,6 @@ function SignUpForm() {
             </Select>
           </FormControl>
           {/* Terms and Privacy Policies */}
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="agreeTerms"
-              defaultChecked={false}
-              onChange={handleChange}
-              className="w-4 h-4 border-gray-300 rounded"
-            />
-            <label className="ml-2 text-gray-600">
-              I agree to all the{" "}
-              <button
-                type="button"
-                onClick={() => setTerms(true)}
-                className="text-amber-300 hover:underline focus:outline-none"
-              >
-                Terms
-              </button>{" "}
-              and{" "}
-              <button
-                type="button"
-                onClick={() => setPrivacy(true)}
-                className="text-amber-300 hover:underline focus:outline-none"
-              >
-                Privacy Policies
-              </button>
-            </label>
-          </div>
 
           {/* Submit Button */}
           <Button

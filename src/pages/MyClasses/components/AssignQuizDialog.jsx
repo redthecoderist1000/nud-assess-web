@@ -8,40 +8,106 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
+  FormControl,
   Grid,
+  IconButton,
+  InputLabel,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
+  Menu,
+  MenuItem,
+  Select,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import dayjs from "dayjs";
+import { userContext } from "../../../App";
 
 function AssignQuizDialog({ open, setOpen, classId, setSnackbar }) {
+  const { user } = useContext(userContext);
   const [quizzes, setQuizzes] = useState([]);
-  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState({
+    subject: "",
+    search: "",
+    repository: "",
+    tab: "own",
+    mode: "All",
+  });
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [quizInfo, setQuizInfo] = useState({});
+  const [subjectOption, setSubjectOption] = useState([]);
+  const [repositoryOption, setRepositoryOption] = useState([]);
 
   useEffect(() => {
     if (!open) {
+      setFilter({
+        subject: "",
+        search: "",
+        repository: "",
+        tab: "own",
+        mode: "All",
+      });
+      setQuizInfo({});
+      setSelectedQuiz(null);
+
       return;
     }
-    fetchQuizzes();
-    setSelectedQuiz(null);
-    setSearch("");
-    setQuizInfo({});
+    // fetchQuizzes();
+    fetchSubjects();
   }, [open]);
 
+  useEffect(() => {
+    if (filter.repository === "") {
+      setQuizzes([]);
+      return;
+    }
+    if (filter.repository === "Private") {
+      setFilter({ ...filter, tab: "own" });
+    }
+    fetchQuizzes();
+  }, [filter.repository]);
+
+  useEffect(() => {
+    setFilter({ ...filter, repository: "" });
+    if (filter.subject === "") return;
+    getRepository();
+  }, [filter.subject]);
+
+  const getRepository = async () => {
+    const { data, error } = await supabase
+      .from("tbl_subject")
+      .select("*")
+      .eq("id", filter.subject)
+      .eq("faculty_incharge", user.id)
+      .maybeSingle();
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch allowed repository. Please try again.",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (data) {
+      setRepositoryOption(["Quiz", "Final Exam", "Private"]);
+    } else {
+      setRepositoryOption(["Quiz", "Private"]);
+    }
+  };
+
   const fetchQuizzes = async () => {
-    const { data, error } = await supabase.from("vw_allquizbyuser").select("*");
+    const { data, error } = await supabase.from("vw_allquiz").select("*");
     if (error) {
       setSnackbar({
         open: true,
@@ -53,27 +119,57 @@ function AssignQuizDialog({ open, setOpen, classId, setSnackbar }) {
     setQuizzes(data);
   };
 
-  const filteredQuizzes = useMemo(() => {
-    if (search === "") {
-      return quizzes;
+  const fetchSubjects = async () => {
+    const { data, error } = await supabase
+      .from("vw_facultysubject")
+      .select("*")
+      .eq("id", user.id);
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch subjects. Please try again.",
+        severity: "error",
+      });
+      return;
     }
+    setSubjectOption(data);
+  };
+
+  const filteredQuizzes = useMemo(() => {
+    const search = filter.search.toLowerCase();
+    const subject = filter.subject;
+    const repository = filter.repository;
+    const mode = filter.mode;
+    const tab = filter.tab;
 
     return quizzes.filter((quiz) => {
-      const matchQuizName = quiz.name
-        .toLowerCase()
-        .includes(search.toLowerCase());
+      const matchesSearch =
+        search === "" ||
+        [quiz.name, quiz.subject_name, quiz.subject_code].some((field) =>
+          field.toLowerCase().includes(search)
+        );
 
-      const matchSubjectName = quiz.subject_name
-        .toLowerCase()
-        .includes(search.toLowerCase());
+      const matchesSubject = subject === "" || quiz.subject_id === subject;
 
-      const matchSubjectCode = quiz.subject_code
-        .toLowerCase()
-        .includes(search.toLowerCase());
+      const matchRepository =
+        repository === "" || quiz.repository === repository;
 
-      return matchQuizName || matchSubjectName || matchSubjectCode;
+      const matchMode = mode === "All" || quiz.mode === mode;
+
+      const own = tab === "own" && quiz.creator_id === user.id;
+
+      const shared = tab === "shared" && quiz.creator_id !== user.id;
+
+      return (
+        matchesSearch &&
+        matchesSubject &&
+        matchRepository &&
+        matchMode &&
+        (own || shared)
+      );
     });
-  }, [search, quizzes]);
+  }, [filter, quizzes]);
 
   const confirmAssign = async () => {
     // console.log(quizInfo);
@@ -114,6 +210,25 @@ function AssignQuizDialog({ open, setOpen, classId, setSnackbar }) {
     setQuizInfo({ ...quizInfo, close_time: e });
   };
 
+  const modeOption = [
+    {
+      value: "All",
+      label: "All",
+    },
+    {
+      value: "AI",
+      label: "AI Generated",
+    },
+    {
+      value: "Random",
+      label: "Random",
+    },
+    {
+      value: "Manual",
+      label: "Manual",
+    },
+  ];
+
   return (
     <Dialog
       fullWidth
@@ -135,24 +250,39 @@ function AssignQuizDialog({ open, setOpen, classId, setSnackbar }) {
           <Card sx={{ mb: 2 }} variant="outlined">
             <CardContent>
               <DialogContentText>Selected Quiz:</DialogContentText>
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                width="100%"
+              <ListItem
+                secondaryAction={
+                  <IconButton
+                    color="error"
+                    size="small"
+                    aria-label="remove selected quiz"
+                    onClick={() => setSelectedQuiz(null)}
+                  >
+                    <HighlightOffRoundedIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                }
               >
-                <Stack>
-                  <ListItemText>
-                    <b>{selectedQuiz.name}</b> | {selectedQuiz.total_items}{" "}
-                    items
-                  </ListItemText>
-                  <ListItemText>
-                    {selectedQuiz.subject_name} ({selectedQuiz.subject_code})
-                  </ListItemText>
+                <Stack width={"100%"} spacing={1}>
+                  <Stack direction="row" justifyContent={"space-between"}>
+                    <Typography>
+                      <b>{selectedQuiz.name}</b> | {selectedQuiz.total_items}{" "}
+                      items
+                    </Typography>
+                    <Typography variant="caption" color="textDisabled">
+                      mode: {selectedQuiz.mode} | usage:{" "}
+                      {selectedQuiz.usage_count}
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent={"space-between"}>
+                    <Typography>
+                      {selectedQuiz.subject_name} ({selectedQuiz.subject_code})
+                    </Typography>
+                    <Typography variant="caption" color="textDisabled">
+                      created by: {selectedQuiz.created_by}
+                    </Typography>
+                  </Stack>
                 </Stack>
-                <Button color="error" onClick={() => setSelectedQuiz(null)}>
-                  remove
-                </Button>
-              </Stack>
+              </ListItem>
               <Typography variant="caption" color="textDisabled">
                 Schedule quiz (optional):
               </Typography>
@@ -200,27 +330,138 @@ function AssignQuizDialog({ open, setOpen, classId, setSnackbar }) {
             </CardContent>
           </Card>
         )}
-        <TextField
-          label="search quiz"
-          type="text"
-          size="small"
-          fullWidth
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        {/* filters */}
+        <Grid container spacing={2} mt={1}>
+          <Grid flex={2}>
+            <TextField
+              label="search quiz"
+              type="text"
+              size="small"
+              value={filter.search}
+              fullWidth
+              onChange={(e) => setFilter({ ...filter, search: e.target.value })}
+            />
+          </Grid>
+          <Grid flex={1}>
+            <FormControl fullWidth size="small" required>
+              <InputLabel id="subject_label" value={filter.subject}>
+                Subject
+              </InputLabel>
+              <Select
+                labelId="subject_label"
+                label="Subject"
+                defaultValue=""
+                value={filter.subject}
+                onChange={(e) =>
+                  setFilter({ ...filter, subject: e.target.value })
+                }
+              >
+                <MenuItem value="" disabled>
+                  -- Select Subjects --
+                </MenuItem>
+                {subjectOption.map((subject, index) => (
+                  <MenuItem key={index} value={subject.subject_id}>
+                    {subject.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid flex={1}>
+            <FormControl fullWidth size="small" required>
+              <InputLabel id="repository_label" value={filter.repository}>
+                Repository
+              </InputLabel>
+              <Select
+                labelId="repository_label"
+                label="Repository"
+                defaultValue=""
+                value={filter.repository}
+                onChange={(e) =>
+                  setFilter({ ...filter, repository: e.target.value })
+                }
+              >
+                <MenuItem value="" disabled>
+                  -- Select Repositories --
+                </MenuItem>
+                {repositoryOption.map((repo, index) => (
+                  <MenuItem key={index} value={repo}>
+                    {repo}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid flex={1}>
+            <FormControl fullWidth size="small">
+              <InputLabel id="mode_label" value={filter.mode}>
+                Mode
+              </InputLabel>
+              <Select
+                labelId="mode_label"
+                label="Mode"
+                defaultValue=""
+                value={filter.mode}
+                onChange={(e) => setFilter({ ...filter, mode: e.target.value })}
+              >
+                {modeOption.map((mode, index) => (
+                  <MenuItem key={index} value={mode.value}>
+                    {mode.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+        {filter.repository !== "Private" && (
+          <Stack direction={"row"} spacing={1} mt={2} mb={1}>
+            <Button
+              fullWidth
+              disableElevation
+              variant={filter.tab === "own" ? "contained" : "outlined"}
+              onClick={() => setFilter({ ...filter, tab: "own" })}
+            >
+              Own Quizzes
+            </Button>
+            <Button
+              fullWidth
+              disableElevation
+              variant={filter.tab === "shared" ? "contained" : "outlined"}
+              onClick={() => setFilter({ ...filter, tab: "shared" })}
+            >
+              Shared Quizzes
+            </Button>
+          </Stack>
+        )}
+        {/* quiz lists */}
         <List
           sx={{ width: "100%", maxHeight: "300px", overflowY: "auto" }}
           dense
         >
           {filteredQuizzes.map((data, index) => {
             return (
-              <ListItemButton key={index} onClick={() => setSelectedQuiz(data)}>
-                <Stack>
-                  <ListItemText>
-                    <b>{data.name}</b> | {data.total_items} items
-                  </ListItemText>
-                  <ListItemText>
-                    {data.subject_name} ({data.subject_code})
-                  </ListItemText>
+              <ListItemButton
+                title="Click to select this quiz"
+                key={index}
+                onClick={() => setSelectedQuiz(data)}
+              >
+                <Stack width={"100%"} spacing={1}>
+                  <Stack direction="row" justifyContent={"space-between"}>
+                    <Typography>
+                      <b>{data.name}</b> | {data.total_items} items
+                    </Typography>
+                    <Typography variant="caption" color="textDisabled">
+                      mode: {data.mode} | usage: {data.usage_count}
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent={"space-between"}>
+                    <Typography>
+                      {data.subject_name} ({data.subject_code})
+                    </Typography>
+                    <Typography variant="caption" color="textDisabled">
+                      created by: {data.created_by}
+                    </Typography>
+                  </Stack>
                 </Stack>
               </ListItemButton>
             );

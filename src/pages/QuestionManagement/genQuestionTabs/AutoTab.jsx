@@ -72,9 +72,10 @@ export default function AutoTab(props) {
   });
 
   useEffect(() => {
-    const allowedRepo = ["Quiz", "Final Exam"];
+    const allowedRepo = ["Quiz", "Final Exam", "Private"];
 
     if (!repository || !allowedRepo.includes(repository)) {
+      console.log("Invalid repository selected.");
       setSnackbar({
         open: true,
         message: "Invalid repository selected.",
@@ -256,6 +257,7 @@ export default function AutoTab(props) {
 
   const validate = (e) => {
     e.preventDefault();
+    console.log("validating...");
     if (!subject || !lesson) {
       setSnackbar({
         open: true,
@@ -264,18 +266,14 @@ export default function AutoTab(props) {
       });
 
       return;
-    }
-
-    if (items.length === 0) {
+    } else if (items.length === 0) {
       setSnackbar({
         open: true,
         message: "No questions to upload.",
         severity: "error",
       });
       return;
-    }
-
-    if (!isAllChecked()) {
+    } else if (!isAllChecked()) {
       setDialog({
         open: true,
         title: "Unverified Questions",
@@ -286,9 +284,7 @@ export default function AutoTab(props) {
         },
       });
       return;
-    }
-
-    if (hasSimilar()) {
+    } else if (hasSimilar()) {
       setDialog({
         open: true,
         title: "Similar Questions",
@@ -300,6 +296,8 @@ export default function AutoTab(props) {
       });
       return;
     }
+    // if all good
+    uploadQuestion();
   };
 
   const uploadQuestion = () => {

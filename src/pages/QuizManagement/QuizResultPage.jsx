@@ -27,9 +27,13 @@ import GenQuestionDialog from "../../components/elements/GeneralDialog";
 const QuizResultPage = () => {
   const { setSnackbar } = useContext(userContext);
   const navigate = useNavigate();
-  const { quizDetail, rows, total, quiz } = JSON.parse(
-    localStorage.getItem("quizsummary")
-  );
+  const {
+    quizDetail = {},
+    rows = [],
+    total = {},
+    quiz = [],
+  } = JSON.parse(localStorage.getItem("quizsummary") || "{}");
+
   const [loading, setLoading] = useState(false);
 
   // State for edit mode and editable data
@@ -324,8 +328,8 @@ const QuizResultPage = () => {
   const hasSimilarity = quizResult.some((q) => q.hasSimilar);
 
   const onCancel = () => {
-    localStorage.removeItem("quizsummary");
     navigate(-1);
+    localStorage.removeItem("quizsummary");
   };
 
   return (

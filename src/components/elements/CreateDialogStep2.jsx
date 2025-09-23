@@ -118,6 +118,43 @@ function CreateDialogStep2({ onChoose }) {
             Contains questions available for quizzes
           </Typography>
         </Box>
+        <Box
+          sx={{
+            border: "1.5px solid #e5e7eb",
+            borderRadius: 2,
+            bgcolor: "#fff",
+            p: 2,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => onChoose(1, "Private")}
+            sx={{
+              bgcolor: "#e0edff",
+              color: "#2563eb",
+              fontWeight: "bold",
+              fontSize: "1rem",
+              borderRadius: 2,
+              boxShadow: "none",
+              py: 1.5,
+              mb: 1,
+              "&:hover": {
+                bgcolor: "#2563eb",
+                color: "#fff",
+              },
+            }}
+          >
+            Private Repository
+          </Button>
+          <Typography variant="body2" color="text.secondary" align="center">
+            Contains questions visible to the owner only.
+          </Typography>
+        </Box>
       </Stack>
     </>
   );

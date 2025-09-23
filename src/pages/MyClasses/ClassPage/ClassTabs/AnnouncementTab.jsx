@@ -20,6 +20,7 @@ import AnnouncementItem from "../../components/AnnouncementItem";
 import DeleteAnnounce from "../../components/DeleteAnnounce";
 import EditAnnounce from "../../components/EditAnnounce";
 import { userContext } from "../../../../App";
+import GeneralDialog from "../../../../components/elements/GeneralDialog";
 
 const AnnouncementTab = ({ class_id }) => {
   const { setSnackbar } = useContext(userContext);
@@ -50,6 +51,12 @@ const AnnouncementTab = ({ class_id }) => {
 
   const [toEdit, setToEdit] = useState(null);
   const [toDelete, setToDelete] = useState(null);
+  const [dialog, setDialog] = useState({
+    open: false,
+    title: "",
+    content: "",
+    action: null,
+  });
 
   const stripHtml = (html = "") =>
     typeof DOMParser !== "undefined"
@@ -65,10 +72,8 @@ const AnnouncementTab = ({ class_id }) => {
     handleEditorChange(e);
   };
 
-  const submitForm = async (e) => {
-    setLoading(true);
+  const validate = (e) => {
     e.preventDefault();
-    // console.log(formData);
     const text = stripHtml(formData.content).trim();
     if (!formData.title || !text) {
       setLoading(false);
@@ -79,7 +84,15 @@ const AnnouncementTab = ({ class_id }) => {
       });
       return;
     }
+    setDialog({
+      open: true,
+      title: "Post Announcement",
+      content: "Are you sure you want to post this announcement?",
+      action: submitForm,
+    });
+  };
 
+  const submitForm = async () => {
     // create payload
     const payload = {
       title: formData.title,
@@ -90,6 +103,7 @@ const AnnouncementTab = ({ class_id }) => {
         new Date(formData.start_date) > new Date() && { status: "Scheduled" }),
     };
 
+    setLoading(true);
     const { data, error } = await supabase
       .from("tbl_announcement")
       .insert(payload)
@@ -112,6 +126,7 @@ const AnnouncementTab = ({ class_id }) => {
       severity: "success",
     });
     setFormData({ content: "", title: "", start_date: null });
+    setDialog({ ...dialog, open: false });
     setLoading(false);
   };
 
@@ -189,7 +204,7 @@ const AnnouncementTab = ({ class_id }) => {
         />
         <div className="flex-1">
           <div className="font-semibold mb-1">Post Announcement</div>
-          <form onSubmit={submitForm}>
+          <form onSubmit={validate}>
             <Stack rowGap={2}>
               <Grid container spacing={2}>
                 <Grid flex={3}>
@@ -292,6 +307,8 @@ const AnnouncementTab = ({ class_id }) => {
         announcement={toEdit}
         setSnackbar={setSnackbar}
       />
+
+      <GeneralDialog dialog={dialog} setDialog={setDialog} />
     </div>
   );
 };

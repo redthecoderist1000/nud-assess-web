@@ -4,7 +4,37 @@ const env = import.meta.env;
 
 const image_url = env.VITE_PRINTABLE_IMAGE_URL;
 
-const generateHTML = (rows, total, quizDetail) => {
+const generateHTML = (rows, quizName) => {
+  const summarizeLessons = () => {
+    const summary = {
+      hours: 0,
+      percentage: 0,
+      remembering: 0,
+      understanding: 0,
+      applying: 0,
+      analyzing: 0,
+      creating: 0,
+      evaluating: 0,
+      totalItems: 0,
+    };
+
+    rows.forEach((rows) => {
+      summary.hours += parseFloat(rows.hours);
+      summary.percentage += parseFloat(rows.percentage);
+      summary.remembering += rows.remembering;
+      summary.understanding += rows.understanding;
+      summary.applying += rows.applying;
+      summary.analyzing += rows.analyzing;
+      summary.creating += rows.creating;
+      summary.evaluating += rows.evaluating;
+      summary.totalItems += rows.totalItems;
+    });
+
+    return summary;
+  };
+
+  const total = summarizeLessons();
+
   const html = `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -54,7 +84,7 @@ const generateHTML = (rows, total, quizDetail) => {
       margin-bottom: 50px;
     }
 
-    .title{
+    .title-container .title{
       margin: 0;
       font-size: 12px;
       font-weight: 600;
@@ -68,7 +98,7 @@ const generateHTML = (rows, total, quizDetail) => {
     }
 
     table, th, td {
-      border: 1px solid black;
+      border: 0.5px solid black;
       border-collapse: collapse;
       text-align: center;
       font-size: 10px;
@@ -101,12 +131,11 @@ const generateHTML = (rows, total, quizDetail) => {
   <body>
     <div class="container">
       <div class="header-container">
-        <img src="${image_url}/nu_logo.png" alt="nu_logo" />
         <h1 class="header-text">NATIONAL UNIVERSITY - DASMARINAS</h1>
       </div>
 
       <div class="title-container">
-        <h2 class="title">Table of Specification for ${quizDetail.name}</h2>
+        <h2 class="title">Table of Specification for ${quizName}</h2>
       </div>
 
       <div class="table-container">
@@ -169,9 +198,9 @@ const generateHTML = (rows, total, quizDetail) => {
   return html;
 };
 
-const TOS_pdf_export = (rows, total, quizDetail) => {
-  const html = generateHTML(rows, total, quizDetail);
-  const filename = `TOS_${quizDetail.name.replace(/\s+/g, "_")}.pdf`;
+const TOS_pdf_export = (rows, quizName) => {
+  const html = generateHTML(rows, quizName);
+  const filename = `TOS_${quizName.replace(/\s+/g, "_")}.pdf`;
 
   // Create a temporary container
   const container = document.createElement("div");

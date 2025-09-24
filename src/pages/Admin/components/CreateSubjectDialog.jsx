@@ -23,13 +23,60 @@ function CreateSubjectDialog({ open, onClose }) {
     setSubForm({ ...subForm, [e.target.name]: e.target.value });
   };
 
+  const getNextAvailableName = (baseName, existingNames) => {
+    const usedNumbers = new Set();
+
+    existingNames.forEach((name) => {
+      const match = name.match(new RegExp(`^${baseName}(?:\\((\\d+)\\))?$`));
+      if (match) {
+        const num = match[1] ? parseInt(match[1]) : 0;
+        usedNumbers.add(num);
+      }
+    });
+
+    // Find the smallest unused number starting from 0
+    let nextNum = 0;
+    while (usedNumbers.has(nextNum)) {
+      nextNum++;
+    }
+
+    return nextNum === 0 ? baseName : `${baseName}(${nextNum})`;
+  };
+
   const submitForm = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    // check fr similar names
+    const { data: nameCheck, error: checkError } = await supabase
+      .from("tbl_subject")
+      .select("name")
+      .eq("department_id", user.department_id)
+      .like("name", subForm.name + "%");
+    if (checkError) {
+      setSnackbar({
+        open: true,
+        message: "Failed to create subject. Please try again.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const baseName = subForm.name;
+    const pattern = new RegExp(`^${baseName}(?:\\(\\d+\\))?$`);
+
+    const filtered = nameCheck
+      .map((item) => item.name)
+      .filter((name) => pattern.test(name));
+
+    const name =
+      filtered.length > 0 ? getNextAvailableName(baseName, filtered) : baseName;
+
     const { data: subjectData, error } = await supabase
       .from("tbl_subject")
       .insert({
-        name: subForm.name,
+        name: name,
         subject_code: subForm.subject_code,
         department_id: user.department_id,
       })

@@ -23,6 +23,8 @@ import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
 import QuestionBuilder from "./components/resultPage/QuestionBuilder";
 import { userContext } from "../../App";
 import GenQuestionDialog from "../../components/elements/GeneralDialog";
+import Export from "../../components/elements/Export";
+import TOS_pdf_export from "../../components/printables/TOS_pdf";
 
 const QuizResultPage = () => {
   const { setSnackbar } = useContext(userContext);
@@ -35,53 +37,21 @@ const QuizResultPage = () => {
   } = JSON.parse(localStorage.getItem("quizsummary") || "{}");
 
   const [loading, setLoading] = useState(false);
-
   // State for edit mode and editable data
   const [editQDetail, setEditQDetail] = useState(false);
 
   const [quizDetails, setQuizDetails] = useState(quizDetail);
   const [quizResult, setQuizResult] = useState([...quiz]);
-
   const [dialog, setDialog] = useState({
     open: false,
     title: "",
     content: "",
     action: null,
   });
+  const [tosExportAnchor, setTosExportAnchor] = useState(null);
 
   // Ref for print area
   const tosRef = useRef();
-  const questionRef = useRef();
-
-  // Print handler: only print the printRef area
-  const handlePrint = (target) => {
-    const tosContent = tosRef.current.innerHTML;
-    const questionContent = questionRef.current.innerHTML;
-
-    const win = window.open("", "", "width=900,height=650");
-    win.document.write(`
-      <html>
-        <head>
-          <title>Print</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 40px; }
-            .quiz-title { font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem; }
-            .quiz-lesson { font-size: 1.2rem; margin-bottom: 1.5rem; }
-            .quiz-items { margin-top: 1.5rem; }
-            .quiz-question { margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: flex-start; }
-            .quiz-options { margin-left: 1.5rem; }
-          </style>
-        </head>
-        <body>
-          ${target === "tos" ? tosContent : questionContent}
-        </body>
-      </html>
-    `);
-    win.document.close();
-    win.focus();
-    win.print();
-    win.close();
-  };
 
   const AIGenerated = async () => {
     // create exam
@@ -332,6 +302,11 @@ const QuizResultPage = () => {
     localStorage.removeItem("quizsummary");
   };
 
+  const handleTosPdf = () => {
+    TOS_pdf_export(rows, total, quizDetails);
+    setTosExportAnchor(null);
+  };
+
   return (
     <Container maxWidth="xl" sx={{ my: 5 }}>
       <div className="bg-white border-b border-gray-200 pt-6 pb-2 mb-6">
@@ -427,13 +402,12 @@ const QuizResultPage = () => {
           alignItems="center"
         >
           <h2 className="text-2xl font-bold">Table of Specification</h2>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => handlePrint("tos")}
-          >
-            Print <PrintRoundedIcon />
-          </Button>
+
+          <Export
+            anchorEl={tosExportAnchor}
+            setAnchorEl={setTosExportAnchor}
+            dlPdf={handleTosPdf}
+          />
         </Stack>
         <TableContainer>
           <Table size="small">
@@ -553,11 +527,7 @@ const QuizResultPage = () => {
           >
             <h2 className="text-2xl font-bold">Generated Questions</h2>
             <Stack direction="row" spacing={2}>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => handlePrint("question")}
-              >
+              <Button size="small" variant="outlined" onClick={() => {}}>
                 Print <PrintRoundedIcon />
               </Button>
             </Stack>

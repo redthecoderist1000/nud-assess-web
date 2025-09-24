@@ -8,6 +8,7 @@ import { downloadFullCSV } from "../Download/CSVReport";
 import { downloadWordReport } from "../Download/WordReport";
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
+import Export from "../../../components/elements/Export";
 const summaryData = {
   students: 40,
   quizzes: 10,
@@ -155,6 +156,7 @@ const taxonomyAnalysis = [
 const FilterAnalytics = ({ filter, setFilter, hasResult }) => {
   const { setSnackbar } = useContext(userContext);
   const [classOption, setClassOption] = useState([]);
+  const [exportAnchor, setExportAnchor] = useState(null);
 
   useEffect(() => {
     fetchOptions();
@@ -283,53 +285,13 @@ const FilterAnalytics = ({ filter, setFilter, hasResult }) => {
           <MenuItem value="30">last 30 days</MenuItem>
         </Select>
 
-        {!hasResult && (
-          <Select
-            className="bg-gray-100 rounded-md"
-            labelId="export_label"
-            size="small"
-            sx={{
-              height: 36,
-              fontSize: 14,
-            }}
-            displayEmpty
-            value=""
-          >
-            <MenuItem value="" disabled>
-              Export as
-            </MenuItem>
-            <MenuItem
-              onClick={handleCSVDownload}
-              value="csv"
-              sx={{ justifyContent: "center", gap: 1 }}
-            >
-              <CalendarViewMonthRoundedIcon
-                style={{ fontSize: 16 }}
-                color="success"
-              />
-              .csv
-            </MenuItem>
-            <MenuItem
-              onClick={handleWordDownload}
-              value="docx"
-              sx={{ justifyContent: "center", gap: 1 }}
-            >
-              <InsertDriveFileRoundedIcon
-                style={{ fontSize: 16 }}
-                color="primary"
-              />
-              .docx
-            </MenuItem>
-            <MenuItem
-              onClick={openQuickSummaryPDF}
-              value="pdf"
-              sx={{ justifyContent: "center", gap: 1 }}
-            >
-              <PictureAsPdfRoundedIcon style={{ fontSize: 16 }} color="error" />
-              .pdf
-            </MenuItem>
-          </Select>
-        )}
+        <Export
+          anchorEl={exportAnchor}
+          setAnchorEl={setExportAnchor}
+          disable={hasResult}
+          dlCsv={handleCSVDownload}
+          dlPdf={openQuickSummaryPDF}
+        />
       </div>
     </div>
   );

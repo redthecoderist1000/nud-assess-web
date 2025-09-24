@@ -36,7 +36,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { setSnackbar } = useContext(userContext);
 
-  const [signUp, setSignUp] = useState(true);
+  const [signUp, setSignUp] = useState(false);
   const [formSignUp, setFormSignUp] = useState({
     email: "",
     password: "",

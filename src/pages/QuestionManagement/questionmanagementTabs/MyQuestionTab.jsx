@@ -267,6 +267,7 @@ function MyQuestionTab() {
                 <TableCell>
                   <Typography variant="body2">{row.type}</Typography>
                 </TableCell>
+
                 <TableCell>
                   <Typography variant="body2">{row.blooms_category}</Typography>
                 </TableCell>

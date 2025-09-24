@@ -22,6 +22,8 @@ import {
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import TermsDialog from "./components/TermsDialog";
+import PolicyDialog from "./components/PolicyDialog";
 
 const LoginPage = () => {
   const env = import.meta.env;
@@ -39,7 +41,10 @@ const LoginPage = () => {
     email: "",
     password: "",
     cpassword: "",
+    terms: false,
   });
+  const [terms, setTerms] = useState(false);
+  const [privacy, setPrivacy] = useState(false);
 
   useEffect(() => {
     document.title = signUp ? "Sign Up - NUD Assess" : "Sign In - NUD Assess";
@@ -58,7 +63,7 @@ const LoginPage = () => {
 
   const checkPasswordStrength = () => {
     const regex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$#!%*?&])[A-Za-z\d@$#!%*?&]{8,}$/;
     return regex.test(formSignUp.password);
   };
 
@@ -67,10 +72,10 @@ const LoginPage = () => {
       <p>Password must be at least:</p>
       <ul className="list-disc list-inside">
         <li>8 characters</li>
-        <li>One uppercase letter</li>
-        <li>One lowercase letter</li>
-        <li>One number</li>
-        <li>One special character</li>
+        <li>One uppercase letter (A-Z)</li>
+        <li>One lowercase letter (a-z)</li>
+        <li>One number (0-9)</li>
+        <li>One special character (@$#!%*?&)</li>
       </ul>
     </div>
   );
@@ -91,7 +96,7 @@ const LoginPage = () => {
     if (domain != "nu-dasma.edu.ph" && env.VITE_ENVIRONMENT === "deployed") {
       setSnackbar({
         open: true,
-        message: "Please use your valid NU email",
+        message: "Please use your valid NUD Employee email",
         severity: "error",
       });
       setIsLoading(false);
@@ -303,6 +308,39 @@ const LoginPage = () => {
                   />
                 </FormControl>
 
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    defaultChecked={false}
+                    value={formSignUp.terms}
+                    onChange={() =>
+                      setFormSignUp({
+                        ...formSignUp,
+                        terms: !formSignUp.terms,
+                      })
+                    }
+                    required
+                    className="w-4 h-4 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 text-gray-600">
+                    I agree to all the{" "}
+                    <button
+                      type="button"
+                      onClick={() => setTerms(true)}
+                      className="text-amber-300 hover:underline focus:outline-none"
+                    >
+                      Terms
+                    </button>{" "}
+                    and{" "}
+                    <button
+                      type="button"
+                      onClick={() => setPrivacy(true)}
+                      className="text-amber-300 hover:underline focus:outline-none"
+                    >
+                      Privacy Policies
+                    </button>
+                  </label>
+                </div>
                 {/* Send Confirmation Button */}
                 <Button
                   variant="contained"
@@ -437,6 +475,10 @@ const LoginPage = () => {
           />
         </motion.div>
       </div>
+
+      <TermsDialog open={terms} onClose={() => setTerms(false)} />
+
+      <PolicyDialog open={privacy} onClose={() => setPrivacy(false)} />
     </motion.div>
   );
 };

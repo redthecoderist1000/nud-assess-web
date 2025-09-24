@@ -256,7 +256,7 @@ function Tosifier() {
   useEffect(() => {
     // check params
     const allowedModes = ["AI-Generated", "Random", "Manual"];
-    const allowedRepos = ["Final Exam", "Quiz"];
+    const allowedRepos = ["Final Exam", "Quiz", "Private"];
 
     if (!allowedModes.includes(quizDetail.mode)) {
       setSnackbar({
@@ -373,15 +373,21 @@ function Tosifier() {
   };
 
   const getCount = async (category, lesson_id, limit) => {
-    const { data, error } = await supabase
+    let query = supabase
       .from("tbl_question")
       .select("id")
       .eq("repository", quizDetail.repository)
       .eq("lesson_id", lesson_id)
-      .eq("blooms_category", category)
-      .limit(limit);
+      .eq("blooms_category", category);
 
-    return { count: data.length, error: error };
+    // Conditionally add the filter
+    if (quizDetail.repository === "Private") {
+      query = query.eq("created_by", user.user_id);
+    }
+
+    const { data, error } = await query.limit(limit);
+
+    return { count: data?.length || 0, error };
   };
 
   const randomQuiz = async () => {

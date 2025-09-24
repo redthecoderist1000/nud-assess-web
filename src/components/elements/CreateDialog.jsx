@@ -37,6 +37,7 @@ function CreateDialog({ open, onClose, type }) {
         navigate(`/quiz-detail?${params.toString()}`);
       }
       if (type == "question") {
+        console.log(input);
         const params = new URLSearchParams({
           repository: input,
         });

@@ -1,5 +1,14 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Alert, Button, Snackbar, Stack } from "@mui/material";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import {
+  Alert,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Snackbar,
+  Stack,
+} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -15,16 +24,15 @@ import EditQuiz from "../../components/EditQuiz";
 import { userContext } from "../../../../App";
 import { supabase } from "../../../../helper/Supabase";
 
-const dateFormat = (dateTime) => {
-  return dayjs(dateTime).format("MMM DD, YYYY");
-};
-
 const QuizTab = ({ quizzes, class_id }) => {
   const { setSnackbar } = useContext(userContext);
   const [assignQuiz, setAssignQuiz] = useState(false);
   const [deleteQuiz, setDeleteQuiz] = useState(null);
   const [editQuiz, setEditQuiz] = useState(null);
   const [is_active, set_IsActive] = useState(true);
+  const [filter, setFilter] = useState({
+    status: "All", // all, open, closed, scheduled
+  });
 
   const fetchData = async () => {
     const { data, error } = await supabase
@@ -34,7 +42,12 @@ const QuizTab = ({ quizzes, class_id }) => {
       .single();
 
     if (error) {
-      console.log("fail to fetch class status:", error);
+      // console.log("fail to fetch class status:", error);
+      setSnackbar({
+        open: true,
+        message: "Error fetching class status. Please try again.",
+        severity: "error",
+      });
       return;
     }
     set_IsActive(data.is_active);
@@ -44,10 +57,37 @@ const QuizTab = ({ quizzes, class_id }) => {
     fetchData();
   }, [class_id]);
 
+  const filteredQuizzes = useMemo(() => {
+    const status = filter.status;
+
+    return quizzes.filter((quiz) => {
+      const matchStatus = status === "All" || quiz.status === status;
+
+      return matchStatus;
+    });
+  }, [filter, quizzes]);
+
   return (
     <div>
       {/* button top */}
-      <div className="flex items-center justify-end mb-4">
+      <Stack direction={"row"} justifyContent="space-between" mb={2}>
+        <FormControl size="small" sx={{ minWidth: 120, bgcolor: "#fff" }}>
+          <InputLabel id="filter-status-label">Status</InputLabel>
+          <Select
+            labelId="filter-status-label"
+            label="Status"
+            value={filter.status}
+            onChange={(e) =>
+              setFilter((prev) => ({ ...prev, status: e.target.value }))
+            }
+          >
+            <MenuItem value="All">All</MenuItem>
+            <MenuItem value="Open">Open</MenuItem>
+            <MenuItem value="Close">Closed</MenuItem>
+            <MenuItem value="Scheduled">Scheduled</MenuItem>
+          </Select>
+        </FormControl>
+
         <Button
           variant="contained"
           disableElevation
@@ -72,7 +112,7 @@ const QuizTab = ({ quizzes, class_id }) => {
         >
           Assign Quiz
         </Button>
-      </div>
+      </Stack>
       {/* list */}
       <Stack
         spacing={2}
@@ -94,7 +134,7 @@ const QuizTab = ({ quizzes, class_id }) => {
             No quizzes assigned yet.
           </div>
         ) : (
-          quizzes.map((quiz, index) => (
+          filteredQuizzes.map((quiz, index) => (
             <QuizItem
               key={index}
               quiz={quiz}

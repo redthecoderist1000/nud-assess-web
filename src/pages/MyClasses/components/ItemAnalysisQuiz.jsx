@@ -2,7 +2,15 @@ import {
   Button,
   Card,
   IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Paper,
+  Select,
   Stack,
   Table,
   TableBody,
@@ -10,9 +18,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
+import CalendarViewMonthRoundedIcon from "@mui/icons-material/CalendarViewMonthRounded";
+import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
+import IosShareRoundedIcon from "@mui/icons-material/IosShareRounded";
+import SystemUpdateAltRoundedIcon from "@mui/icons-material/SystemUpdateAltRounded";
 import { mkConfig, generateCsv, download } from "export-to-csv";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
@@ -20,6 +33,7 @@ import { supabase } from "../../../helper/Supabase";
 function ItemAnalysisQuiz(props) {
   const { class_exam_id, exam_name } = props;
   const [itemAnalysis, setItemAnalysis] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -93,9 +107,30 @@ function ItemAnalysisQuiz(props) {
       <Stack direction="row" mb={2} justifyContent="space-between">
         <h2 className="text-2xl font-bold ">Item Analysis</h2>
 
-        <IconButton size="small" onClick={dlCsv}>
-          <PrintRoundedIcon />
-        </IconButton>
+        <Tooltip title="Export" placement="top" arrow>
+          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+            <SystemUpdateAltRoundedIcon />
+          </IconButton>
+        </Tooltip>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={() => setAnchorEl(null)}
+        >
+          <ListItemButton onClick={dlCsv} dense>
+            <ListItemIcon>
+              <CalendarViewMonthRoundedIcon color="success" />
+            </ListItemIcon>
+            <ListItemText primary=".csv" />
+          </ListItemButton>
+          <ListItemButton onClick={() => {}} dense>
+            <ListItemIcon>
+              <PictureAsPdfRoundedIcon color="error" />
+            </ListItemIcon>
+            <ListItemText primary=".pdf" />
+          </ListItemButton>
+        </Menu>
       </Stack>
       {itemAnalysis.length <= 0 ? (
         <Typography align="center" variant="body2" color="textDisabled">

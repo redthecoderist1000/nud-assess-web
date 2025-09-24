@@ -232,6 +232,17 @@ const ReportAndAnalyticsPage = () => {
     return (resultData?.length || 0) > 0;
   };
 
+  useEffect(() => {
+    const runCheck = async () => {
+      const hasResult = await checkHasResult();
+      setHasResult(hasResult); // or whatever state you want to update
+    };
+
+    if (filter.class_id) {
+      runCheck();
+    }
+  }, [filter.class_id]);
+
   const renderTabContent = () => {
     if (loading) {
       return (
@@ -287,7 +298,7 @@ const ReportAndAnalyticsPage = () => {
         setFilter={setFilter}
         generalData={generalData}
         analyticsData={analyticsData}
-        hasResult={checkHasResult}
+        hasResult={!hasResult}
       />
       {generalLoading ? (
         <></>

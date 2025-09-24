@@ -87,7 +87,7 @@ function MyQuizTab() {
     { id: "exam_name", label: "Exam Name" },
     { id: "subject_name", label: "Subject" },
     { id: "total_items", label: "Total Items" },
-    { id: "answered_count", label: "Answered Count" },
+    { id: "usage_count", label: "Usage Count" },
   ];
 
   if (rows.length <= 0) {
@@ -159,7 +159,7 @@ function MyQuizTab() {
                   <Typography variant="body2">{row.total_items}</Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2">{row.answered_count}</Typography>
+                  <Typography variant="body2">{row.usage_count}</Typography>
                 </TableCell>
               </TableRow>
             ))}

@@ -33,7 +33,7 @@ const CreateQuestionAutomatically = () => {
   const [lessonName, setLessonName] = useState("");
 
   useEffect(() => {
-    const allowedRepo = ["Quiz", "Final Exam"];
+    const allowedRepo = ["Quiz", "Final Exam", "Private"];
 
     if (!repository || !allowedRepo.includes(repository)) {
       setSnackbar({
@@ -45,7 +45,7 @@ const CreateQuestionAutomatically = () => {
       return;
     }
 
-    if (repository === "Quiz") {
+    if (repository === "Quiz" || repository === "Private") {
       fetchSubjects();
     }
     if (repository === "Final Exam") {

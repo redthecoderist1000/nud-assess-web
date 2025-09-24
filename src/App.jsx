@@ -164,7 +164,6 @@ const AnimatedRoutes = () => {
     } = await supabase.auth.getSession();
 
     if (session) {
-      console.log(session);
       const { data, error } = await supabase
         .from("tbl_users")
         .select("*")

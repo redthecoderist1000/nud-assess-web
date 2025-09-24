@@ -101,7 +101,7 @@ const generateHTML = (rows, total, quizDetail) => {
   <body>
     <div class="container">
       <div class="header-container">
-        <img src="./images/nu_logo.png" alt="nu_logo" />
+        <img src="${image_url}/nu_logo.png" alt="nu_logo" />
         <h1 class="header-text">NATIONAL UNIVERSITY - DASMARINAS</h1>
       </div>
 

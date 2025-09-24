@@ -178,20 +178,23 @@ const TOS_pdf_export = (rows, total, quizDetail) => {
   container.innerHTML = html;
   document.body.appendChild(container);
 
-  // Generate and download PDF
-  html2pdf()
-    .set({
-      margin: 0.5,
-      filename: filename,
-      image: { type: "jpeg", quality: 1 },
-      html2canvas: { scale: 1 },
-      jsPDF: { unit: "in", format: "letter", orientation: "landscape" },
-    })
-    .from(container)
-    .save()
-    .then(() => {
-      document.body.removeChild(container); // Clean up
-    });
+  const opt = {
+    margin: 0.5,
+    filename: filename,
+    image: { type: "jpeg", quality: 1 },
+    html2canvas: { scale: 1, allowTaint: true, useCORS: true },
+    jsPDF: { unit: "in", format: "letter", orientation: "landscape" },
+  };
+
+  setTimeout(() => {
+    html2pdf()
+      .set(opt)
+      .from(container)
+      .save()
+      .then(() => {
+        document.body.removeChild(container); // Clean up
+      });
+  }, 1000); // Wait 1 second
 };
 
 export default TOS_pdf_export;

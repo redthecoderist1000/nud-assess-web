@@ -16,8 +16,6 @@ function QuizInfoPage() {
 
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [examName, setExamName] = useState("");
   const [examInfo, setExamInfo] = useState({ name: "", mode: "" });
   const [totalScore, setTotalScore] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
@@ -91,13 +89,13 @@ function QuizInfoPage() {
 
     const { data: examDetails } = await supabase
       .from("tbl_class_exam")
-      .select("tbl_exam(name, mode)")
+      .select("tbl_exam(name, mode), tbl_class(class_name)")
       .eq("id", class_exam_id)
       .single();
-    setExamName(examDetails?.tbl_exam.name || "Quiz");
     setExamInfo({
       name: examDetails?.tbl_exam.name,
       mode: examDetails?.tbl_exam.mode,
+      class_name: examDetails?.tbl_class.class_name,
     });
 
     setLoading(false);
@@ -126,10 +124,11 @@ function QuizInfoPage() {
       >
         <Stack justifyContent="start" alignItems="self-start">
           <Button
-            sx={{ color: "white", textTransform: "lowercase" }}
+            sx={{ color: "white", textTransform: "none" }}
             onClick={() => navigate(-1)}
+            startIcon={<ArrowBackIosNewRoundedIcon />}
           >
-            <ArrowBackIosNewRoundedIcon fontSize="small" /> return{""}
+            Back
           </Button>
           <h1 className="text-7xl font-bold mt-30 text-white">
             {examInfo.name}
@@ -183,9 +182,7 @@ function QuizInfoPage() {
           {/* div className="bg-white rounded-xl shadow p-4 overflow-x-auto" */}
           <Card sx={{ p: 2 }} variant="outlined">
             {loading ? (
-              <p>Loadindg...</p>
-            ) : error ? (
-              <p className="text-red-500">{error}</p>
+              <p>Loading...</p>
             ) : (
               <table className="min-w-full text-sm text-left">
                 <thead>
@@ -230,7 +227,7 @@ function QuizInfoPage() {
           {examInfo.mode != "Random" && (
             <ItemAnalysisQuiz
               class_exam_id={class_exam_id}
-              exam_name={examName}
+              exam_info={examInfo}
             />
           )}
 
@@ -238,29 +235,6 @@ function QuizInfoPage() {
           <LessonAnalysisQuiz class_exam_id={class_exam_id} />
         </Stack>
       </Container>
-
-      {/* <Dialog
-        open={openSummary}
-        onClose={() => {}}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          {"Use Google's location service?"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Let Google help apps determine location. This means sending
-            anonymous location data to Google, even when no apps are running.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {}}>Disagree</Button>
-          <Button onClick={() => {}} autoFocus>
-            Agree
-          </Button>
-        </DialogActions>
-      </Dialog> */}
 
       <StudentSummary
         open={openSummary}

@@ -1,13 +1,25 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useContext } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import { supabase } from "../../../../helper/Supabase";
-import { Avatar, LinearProgress, Typography } from "@mui/material";
+import {
+  Avatar,
+  LinearProgress,
+  OutlinedInput,
+  Stack,
+  Typography,
+} from "@mui/material";
+import Export from "../../../../components/elements/Export";
+import GradeBook_csv from "../../../../components/printables/Gradebook_csv";
+import { userContext } from "../../../../App";
 
-const GradeBookTable = ({ classId, setSnackbar, setAllowExport }) => {
+const GradeBookTable = ({ classId, class_name }) => {
+  const { setSnackbar } = useContext(userContext);
+
   const [search, setSearch] = useState("");
   const [headers, setHeaders] = useState([]);
   const [body, setBody] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
     if (!classId) return;
@@ -48,10 +60,8 @@ const GradeBookTable = ({ classId, setSnackbar, setAllowExport }) => {
 
     if (!data || data.gradebook === null) {
       setLoading(false);
-      setAllowExport(false);
       return;
     }
-    setAllowExport(true);
     setHeaders((prev) => [...data.gradebook.map((g) => g.exam_name)]);
 
     const studentsMap = new Map();
@@ -60,8 +70,7 @@ const GradeBookTable = ({ classId, setSnackbar, setAllowExport }) => {
         const key = student.student_id;
         if (!studentsMap.has(key)) {
           studentsMap.set(key, {
-            f_name: student.f_name,
-            l_name: student.l_name,
+            student_name: student.student_name,
             scores: [],
           });
         }
@@ -77,20 +86,24 @@ const GradeBookTable = ({ classId, setSnackbar, setAllowExport }) => {
     });
 
     setBody(Array.from(studentsMap.values()));
-    console.log(Array.from(studentsMap.values()));
 
     setLoading(false);
   };
 
   var filteredBody = useMemo(
     () =>
-      body.filter(
-        (student) =>
-          student.f_name.toLowerCase().includes(search.toLowerCase()) ||
-          student.l_name.toLowerCase().includes(search.toLowerCase())
+      body.filter((student) =>
+        student.student_name.toLowerCase().includes(search.toLowerCase())
       ),
     [body, search]
   );
+
+  const dlCsv = () => {
+    GradeBook_csv(headers, body, class_name);
+    setAnchorEl(null);
+  };
+
+  //
 
   if (loading) {
     return <LinearProgress />;
@@ -112,24 +125,20 @@ const GradeBookTable = ({ classId, setSnackbar, setAllowExport }) => {
         <div className="font-semibold text-lg flex items-center gap-2">
           <span>Student Grades</span>
         </div>
-        <div className="relative">
-          <input
-            type="text"
-            className="bg-[#f4f5f7] rounded-md pl-9 pr-3 py-2 text-sm border-none outline-none w-56"
+        <Stack direction="row" spacing={1} alignItems="center">
+          <OutlinedInput
+            size="small"
             placeholder="Search students..."
             value={search}
+            startAdornment={
+              <SearchIcon
+                sx={{ color: "action.active", mr: 1, fontSize: 20 }}
+              />
+            }
             onChange={(e) => setSearch(e.target.value)}
           />
-          <SearchIcon
-            sx={{
-              position: "absolute",
-              left: 8,
-              top: 8,
-              color: "#bdbdbd",
-              fontSize: 20,
-            }}
-          />
-        </div>
+          <Export anchorEl={anchorEl} setAnchorEl={setAnchorEl} dlCsv={dlCsv} />
+        </Stack>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
@@ -156,9 +165,7 @@ const GradeBookTable = ({ classId, setSnackbar, setAllowExport }) => {
                 <td
                   className={`py-2 px-3 flex items-center gap-2 sticky left-0 bg-white z-10`}
                 >
-                  <span>
-                    {s.f_name} {s.l_name}
-                  </span>
+                  <span>{s.student_name}</span>
                 </td>
                 {s.scores.map((g, i) => (
                   <td key={i} className="py-2 px-3 font-medium text-center">

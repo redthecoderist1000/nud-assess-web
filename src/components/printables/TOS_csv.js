@@ -1,10 +1,19 @@
-import { download, generateCsv, mkConfig } from "export-to-csv";
-
 const TOS_csv_export = (rows, quizName) => {
-  let filename = quizName.replaceAll(" ", "_");
+  let csv = [];
 
-  //   console.log(rows);
-  //   console.log(total);
+  csv.push(`TABLE OF SPECIFICATION`);
+  csv.push("");
+  csv.push(`Quiz Name, ${quizName}`);
+  csv.push("");
+  csv.push(
+    "Topic, Time spent per topic (hours), %, Remembering, Understanding, Applying, Analyzing, Creating, Evaluating, Total Items"
+  );
+  rows.forEach((row) => {
+    const topic = `"${row.topic.replace(/"/g, '""')}"`;
+    csv.push(
+      `${topic}, ${row.hours}, ${row.percentage}, ${row.remembering}, ${row.understanding}, ${row.applying}, ${row.analyzing}, ${row.creating}, ${row.evaluating}, ${row.totalItems}`
+    );
+  });
 
   const summarizeLessons = () => {
     const summary = {
@@ -35,60 +44,21 @@ const TOS_csv_export = (rows, quizName) => {
   };
 
   const total = summarizeLessons();
+  csv.push(
+    `Total, ${total.hours}, ${total.percentage}, ${total.remembering}, ${total.understanding}, ${total.applying}, ${total.analyzing}, ${total.creating}, ${total.evaluating}, ${total.totalItems}`
+  );
 
-  const csvConfig = mkConfig({
-    useKeysAsHeaders: false,
-    filename: `TOS_${filename}`, // Add date
-    fieldSeparator: ",",
-    quoteStrings: '"',
-    decimalSeparator: ".",
-    showLabels: true,
-    showTitle: true,
-    title: `Table of Specification for ${quizName}`,
-    useTextFile: false,
-    useBom: true,
-    columnHeaders: [
-      "Topic",
-      "Time spent per topic (hours)",
-      "%",
-      "Remembering",
-      "Understanding",
-      "Applying",
-      "Analyzing",
-      "Creating",
-      "Evaluating",
-      "Total Items",
-    ],
-  });
+  let filename = quizName.replaceAll(" ", "_");
 
-  const data = rows.map((item, _) => ({
-    Topic: item.topic,
-    "Time spent per topic (hours)": item.hours,
-    "%": item.percentage,
-    Remembering: item.remembering,
-    Understanding: item.understanding,
-    Applying: item.applying,
-    Analyzing: item.analyzing,
-    Creating: item.evaluating,
-    Evaluating: item.creating,
-    "Total Items": item.totalItems,
-  }));
+  const csvContent = csv.join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
-  data.push({
-    Topic: "Total",
-    "Time spent per topic (hours)": total.hours,
-    "%": total.percentage,
-    Remembering: total.remembering,
-    Understanding: total.understanding,
-    Applying: total.applying,
-    Analyzing: total.analyzing,
-    Creating: total.creating,
-    Evaluating: total.evaluating,
-    "Total Items": total.totalItems,
-  });
-
-  const csv = generateCsv(csvConfig)(data);
-  download(csvConfig)(csv);
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
 };
 
 export default TOS_csv_export;

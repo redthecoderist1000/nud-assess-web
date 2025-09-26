@@ -10,14 +10,21 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { useContext, useState } from "react";
+import { act, useContext, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
+import GeneralDialog from "../../../components/elements/GeneralDialog";
 
 function CreateSubjectDialog({ open, onClose }) {
   const { user, setSnackbar } = useContext(userContext);
   const [loading, setLoading] = useState(false);
   const [subForm, setSubForm] = useState({});
+  const [dialog, setDialog] = useState({
+    open: false,
+    title: "",
+    content: "",
+    actions: null,
+  });
 
   const handleSubFormChange = (e) => {
     setSubForm({ ...subForm, [e.target.name]: e.target.value });
@@ -43,11 +50,9 @@ function CreateSubjectDialog({ open, onClose }) {
     return nextNum === 0 ? baseName : `${baseName}(${nextNum})`;
   };
 
-  const submitForm = async (e) => {
+  const validate = async (e) => {
     e.preventDefault();
     setLoading(true);
-
-    // check fr similar names
     const { data: nameCheck, error: checkError } = await supabase
       .from("tbl_subject")
       .select("name")
@@ -70,13 +75,29 @@ function CreateSubjectDialog({ open, onClose }) {
       .map((item) => item.name)
       .filter((name) => pattern.test(name));
 
-    const name =
+    const finalName =
       filtered.length > 0 ? getNextAvailableName(baseName, filtered) : baseName;
+
+    if (filtered.length > 0) {
+      setDialog({
+        open: true,
+        title: "Subject Already Exists",
+        content: `A subject with the name "${baseName}" already exists. Do you want to create "${finalName}" instead?`,
+        action: () => submitForm(finalName),
+      });
+      return;
+    }
+    await submitForm(finalName);
+  };
+
+  const submitForm = async (finalName) => {
+    setDialog({ open: false, title: "", content: "", actions: null });
+    setLoading(true);
 
     const { data: subjectData, error } = await supabase
       .from("tbl_subject")
       .insert({
-        name: name,
+        name: finalName,
         subject_code: subForm.subject_code,
         department_id: user.department_id,
       })
@@ -127,7 +148,7 @@ function CreateSubjectDialog({ open, onClose }) {
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth={true} maxWidth="sm">
-      <form onSubmit={submitForm}>
+      <form onSubmit={validate}>
         <DialogTitle>Add subject</DialogTitle>
         <DialogContent>
           <DialogContentText>Add subject into your program?</DialogContentText>
@@ -174,6 +195,7 @@ function CreateSubjectDialog({ open, onClose }) {
           </Stack>
         </DialogActions>
       </form>
+      <GeneralDialog dialog={dialog} setDialog={setDialog} />
     </Dialog>
   );
 }

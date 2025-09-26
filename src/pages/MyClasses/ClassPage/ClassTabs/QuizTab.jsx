@@ -8,6 +8,7 @@ import {
   Select,
   Snackbar,
   Stack,
+  TextField,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -32,6 +33,7 @@ const QuizTab = ({ quizzes, class_id }) => {
   const [is_active, set_IsActive] = useState(true);
   const [filter, setFilter] = useState({
     status: "All", // all, open, closed, scheduled
+    search: "",
   });
 
   const fetchData = async () => {
@@ -59,11 +61,13 @@ const QuizTab = ({ quizzes, class_id }) => {
 
   const filteredQuizzes = useMemo(() => {
     const status = filter.status;
+    const search = filter.search.toLowerCase();
 
     return quizzes.filter((quiz) => {
       const matchStatus = status === "All" || quiz.status === status;
+      const matchSearch = quiz.name.toLowerCase().includes(search);
 
-      return matchStatus;
+      return matchStatus && matchSearch;
     });
   }, [filter, quizzes]);
 
@@ -71,22 +75,34 @@ const QuizTab = ({ quizzes, class_id }) => {
     <div>
       {/* button top */}
       <Stack direction={"row"} justifyContent="space-between" mb={2}>
-        <FormControl size="small" sx={{ minWidth: 120, bgcolor: "#fff" }}>
-          <InputLabel id="filter-status-label">Status</InputLabel>
-          <Select
-            labelId="filter-status-label"
-            label="Status"
-            value={filter.status}
+        <Stack direction={"row"} spacing={2}>
+          <TextField
+            value={filter.search}
+            size="small"
+            placeholder="Search quiz"
+            label="Search quiz"
             onChange={(e) =>
-              setFilter((prev) => ({ ...prev, status: e.target.value }))
+              setFilter((prev) => ({ ...prev, search: e.target.value }))
             }
-          >
-            <MenuItem value="All">All</MenuItem>
-            <MenuItem value="Open">Open</MenuItem>
-            <MenuItem value="Close">Closed</MenuItem>
-            <MenuItem value="Scheduled">Scheduled</MenuItem>
-          </Select>
-        </FormControl>
+            sx={{ bgcolor: "#fff" }}
+          />
+          <FormControl size="small" sx={{ minWidth: 120, bgcolor: "#fff" }}>
+            <InputLabel id="filter-status-label">Status</InputLabel>
+            <Select
+              labelId="filter-status-label"
+              label="Status"
+              value={filter.status}
+              onChange={(e) =>
+                setFilter((prev) => ({ ...prev, status: e.target.value }))
+              }
+            >
+              <MenuItem value="All">All</MenuItem>
+              <MenuItem value="Open">Open</MenuItem>
+              <MenuItem value="Close">Closed</MenuItem>
+              <MenuItem value="Scheduled">Scheduled</MenuItem>
+            </Select>
+          </FormControl>
+        </Stack>
 
         <Button
           variant="contained"

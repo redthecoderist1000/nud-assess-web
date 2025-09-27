@@ -28,6 +28,7 @@ import { aiRun } from "../../../helper/Gemini";
 import { supabase } from "../../../helper/Supabase";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import { relevanceCheck } from "../../../helper/RelevanceCheck";
 
 const env = import.meta.env;
 
@@ -498,6 +499,7 @@ function Tosifier() {
           return;
         }
       } catch (error) {
+        // console.log(error);
         setLoading(false);
         setStatus(null);
         setSnackbar({

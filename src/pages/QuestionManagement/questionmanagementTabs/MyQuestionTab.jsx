@@ -25,6 +25,8 @@ import { supabase } from "../../../helper/Supabase";
 import styled from "@emotion/styled";
 import { userContext } from "../../../App";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import Export from "../../../components/elements/Export";
+import MyQuestionCsv from "../../../components/printables/MyQuestion_csv";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -35,7 +37,7 @@ const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
 }));
 
 function MyQuestionTab() {
-  const { setSnackBar } = useContext(userContext);
+  const { user, setSnackBar } = useContext(userContext);
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [searchBloom, setSearchBloom] = useState("");
@@ -43,6 +45,7 @@ function MyQuestionTab() {
   const [searchType, setSearchType] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [exportAnchor, setExportAnchor] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -122,6 +125,11 @@ function MyQuestionTab() {
     { id: "lesson", label: "Lesson" },
     { id: "sub", label: "Subject" },
   ];
+
+  const dlCsv = () => {
+    MyQuestionCsv(rows, user);
+  };
+  const dlPdf = () => {};
 
   if (rows.length <= 0) {
     return (
@@ -236,6 +244,12 @@ function MyQuestionTab() {
             <RestartAltRoundedIcon size="small" color="error" />
           </IconButton>
         </Tooltip>
+        <Export
+          anchorEl={exportAnchor}
+          setAnchorEl={setExportAnchor}
+          dlCsv={dlCsv}
+          dlPdf={dlPdf}
+        />
       </Grid>
 
       <TableContainer

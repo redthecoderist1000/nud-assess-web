@@ -1,200 +1,127 @@
-import html2pdf from "html2pdf.js";
+import jsPDF from "jspdf";
+import set_pdf_header from "./pdf_header";
+import autoTable from "jspdf-autotable";
 
-const env = import.meta.env;
-
-const image_url = env.VITE_PRINTABLE_IMAGE_URL;
-
-const generateHTML = (rows, total, quizDetail) => {
-  const html = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TOS</title>
-  </head>
-
-  <style>    
-    * {
-    box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
-    -webkit-print-color-adjust: exact !important;
-    color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-    }
-
-    .container {
-      width: 100%;
-      max-width: none;
-      padding: 0.5in;
-      margin: 0;
-    }
-
-    .header-container {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 50px;
-      gap: 40px;
-    }
-    
-    .header-text {
-      font-size: 14px;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    .title-container {
-      text-align: center;
-      margin-bottom: 50px;
-    }
-
-    .title{
-      margin: 0;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .table-container {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    table, th, td {
-      border: 1px solid black;
-      border-collapse: collapse;
-      text-align: center;
-      font-size: 10px;
-      }
-      
-    table {
-      padding: 5px;
-      width: 100%;
-      table-layout: auto;
-      page-break-inside: avoid;
-    }
-    
-    thead,
-    tfoot {
-      background-color: #305496;
-      color: #ffffff;
-    }
-
-    th {
-      font-weight: 600;
-    }
-
-    th, td{
-      vertical-align: middle;
-      padding: 10px;
-    }
-
-  </style>
-
-  <body>
-    <div class="container">
-      <div class="header-container">
-        <img src="${image_url}/nu_logo.png" alt="nu_logo" />
-        <h1 class="header-text">NATIONAL UNIVERSITY - DASMARINAS</h1>
-      </div>
-
-      <div class="title-container">
-        <h2 class="title">Table of Specification for ${quizDetail.name}</h2>
-      </div>
-
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th rowspan="2">Topics</th>
-              <th rowspan="2">Time spent on Topic (hours)</th>
-              <th rowspan="2">%</th>
-              <th colspan="6">Remembering</th>
-              <th rowspan="2">No. of items per Topic</th>
-            </tr>
-            <tr>
-              <th>Remembering</th>
-              <th>Understanding</th>
-              <th>Applying</th>
-              <th>Analyzing</th>
-              <th>Evaluating</th>
-              <th>Creating</th>
-            </tr>
-            <tr></tr>
-          </thead>
-          <tbody>
-          ${rows.map((row, _) => {
-            return `<tr>
-              <td>${row.topic}</td>
-              <td>${row.hours}</td>
-              <td>${row.percentage}</td>
-              <td>${row.remembering}</td>
-              <td>${row.understanding}</td>
-              <td>${row.applying}</td>
-              <td>${row.analyzing}</td>
-              <td>${row.evaluating}</td>
-              <td>${row.creating}</td>
-              <td>${row.totalItems}</td>
-            </tr>`;
-          })}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td>Total</td>
-              <td>${total.hours}</td>
-              <td>${total.percentage}</td>
-              <td>${total.remembering}</td>
-              <td>${total.understanding}</td>
-              <td>${total.applying}</td>
-              <td>${total.analyzing}</td>
-              <td>${total.evaluating}</td>
-              <td>${total.creating}</td>
-              <td>${total.totalItems}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-  </body>
-</html>
-`;
-
-  return html;
-};
-
-const TOS_pdf_export = (rows, total, quizDetail) => {
-  const html = generateHTML(rows, total, quizDetail);
-  const filename = `TOS_${quizDetail.name.replace(/\s+/g, "_")}.pdf`;
-
-  // Create a temporary container
-  const container = document.createElement("div");
-  container.innerHTML = html;
-  document.body.appendChild(container);
-
-  const opt = {
-    margin: 0.5,
-    filename: filename,
-    image: { type: "jpeg", quality: 1 },
-    html2canvas: { scale: 1, allowTaint: true, useCORS: true },
-    jsPDF: { unit: "in", format: "letter", orientation: "landscape" },
+const summarizeLessons = (rows) => {
+  const summary = {
+    hours: 0,
+    percentage: 0,
+    remembering: 0,
+    understanding: 0,
+    applying: 0,
+    analyzing: 0,
+    creating: 0,
+    evaluating: 0,
+    totalItems: 0,
   };
 
-  setTimeout(() => {
-    html2pdf()
-      .set(opt)
-      .from(container)
-      .save()
-      .then(() => {
-        document.body.removeChild(container); // Clean up
-      });
-  }, 1000); // Wait 1 second
+  rows.forEach((rows) => {
+    summary.hours += parseFloat(rows.hours);
+    summary.percentage += parseFloat(rows.percentage);
+    summary.remembering += rows.remembering;
+    summary.understanding += rows.understanding;
+    summary.applying += rows.applying;
+    summary.analyzing += rows.analyzing;
+    summary.creating += rows.creating;
+    summary.evaluating += rows.evaluating;
+    summary.totalItems += rows.totalItems;
+  });
+
+  return summary;
+};
+
+const TOS_pdf_export = (rows, quizName) => {
+  const filename = `TOS_${quizName.replace(/\s+/g, "_")}.pdf`;
+
+  const total = summarizeLessons(rows);
+
+  const doc = new jsPDF();
+  doc.setProperties({
+    title: quizName,
+    subject: "Table of Specification",
+    author: "NUD Assess LLC.",
+    keywords: "table of specification, quiz, report, bloom's taxonomy",
+    creator: "NUD Assess LLC.",
+    creationDate: new Date(),
+  });
+
+  set_pdf_header(doc);
+
+  // Title
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Table of Specification for ${quizName}`, 105, 45, {
+    align: "center",
+  });
+
+  autoTable(doc, {
+    theme: "grid",
+    headStyles: { fillColor: [48, 84, 150], textColor: 255 },
+    head: [
+      [
+        "Topics",
+        "Hours",
+        "%",
+        "Remembering",
+        "Understanding",
+        "Applying",
+        "Analyzing",
+        "Evaluating",
+        "Creating",
+        "Total per Topic",
+      ],
+    ],
+    body: rows.map((row) => [
+      row.topic,
+      row.hours,
+      row.percentage,
+      row.remembering,
+      row.understanding,
+      row.applying,
+      row.analyzing,
+      row.evaluating,
+      row.creating,
+      row.totalItems,
+    ]),
+    foot: [
+      [
+        "Total",
+        total.hours,
+        total.percentage,
+        total.remembering,
+        total.understanding,
+        total.applying,
+        total.analyzing,
+        total.evaluating,
+        total.creating,
+        total.totalItems,
+      ],
+    ],
+    footStyles: { fillColor: [48, 84, 150], textColor: 255 },
+    startY: 55,
+    bodyStyles: { textColor: 20 },
+    styles: {
+      fontSize: 10,
+      cellPadding: 2,
+      valign: "middle",
+      halign: "center",
+    },
+    columnStyles: {
+      0: { minCellWidth: 30 },
+      1: { minCellWidth: 10 },
+      2: { minCellWidth: 15 },
+      3: { minCellWidth: 15 },
+      4: { minCellWidth: 15 },
+      5: { minCellWidth: 15 },
+      6: { minCellWidth: 15 },
+      7: { minCellWidth: 15 },
+      8: { minCellWidth: 15 },
+      9: { minCellWidth: 10 },
+    },
+  });
+
+  // Save PDF
+  doc.save(filename);
 };
 
 export default TOS_pdf_export;

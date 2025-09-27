@@ -31,12 +31,10 @@ const ClassPage = () => {
 
   const class_id = searchParams.get("class_id");
 
-  const location = useLocation();
   const navigate = useNavigate();
   // const classData = location.state;
   const [classData, setClassData] = useState({});
 
-  const [dropdownVisible, setDropdownVisible] = useState(null);
   const [people, setPeople] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
 
@@ -201,8 +199,9 @@ const ClassPage = () => {
           <Button
             sx={{ color: "white", textTransform: "none" }}
             onClick={() => navigate(-1)}
+            startIcon={<ArrowBackIosNewRoundedIcon />}
           >
-            <ArrowBackIosNewRoundedIcon fontSize="big" /> Back to Classes{" "}
+            Back
           </Button>
           <h1 className="text-6xl font-bold text-white mt-10">
             {classData.class_name}
@@ -250,7 +249,9 @@ const ClassPage = () => {
               <PeopleTab people={people} class_id={class_id} />
             )}
             {activeTab === 2 && <AnnouncementTab class_id={class_id} />}
-            {activeTab === 3 && <GradeTab class_id={class_id} />}
+            {activeTab === 3 && (
+              <GradeTab class_id={class_id} class_name={classData.class_name} />
+            )}
           </Stack>
         </Grid>
 

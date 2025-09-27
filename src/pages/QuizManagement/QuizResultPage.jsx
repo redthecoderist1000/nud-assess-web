@@ -25,6 +25,7 @@ import { userContext } from "../../App";
 import GenQuestionDialog from "../../components/elements/GeneralDialog";
 import Export from "../../components/elements/Export";
 import TOS_pdf_export from "../../components/printables/TOS_pdf";
+import TOS_csv_export from "../../components/printables/TOS_csv";
 
 const QuizResultPage = () => {
   const { setSnackbar } = useContext(userContext);
@@ -303,7 +304,12 @@ const QuizResultPage = () => {
   };
 
   const handleTosPdf = () => {
-    TOS_pdf_export(rows, total, quizDetails);
+    TOS_pdf_export(rows, quizDetails.name);
+    setTosExportAnchor(null);
+  };
+
+  const handleTosCsv = () => {
+    TOS_csv_export(rows, quizDetails.name);
     setTosExportAnchor(null);
   };
 
@@ -407,6 +413,7 @@ const QuizResultPage = () => {
             anchorEl={tosExportAnchor}
             setAnchorEl={setTosExportAnchor}
             dlPdf={handleTosPdf}
+            dlCsv={handleTosCsv}
           />
         </Stack>
         <TableContainer>

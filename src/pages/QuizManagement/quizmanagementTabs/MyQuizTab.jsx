@@ -21,6 +21,9 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
 import styled from "@emotion/styled";
+import Export from "../../../components/elements/Export";
+import MyQuiz_csv from "../../../components/printables/MyQuiz_csv";
+import MyQuiz_pdf from "../../../components/printables/MyQuiz_pdf";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -30,11 +33,12 @@ const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
 }));
 
 function MyQuizTab() {
-  const { setSnackbar } = useContext(userContext);
+  const { user, setSnackbar } = useContext(userContext);
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [exportAnchor, setExportAnchor] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -90,6 +94,13 @@ function MyQuizTab() {
     { id: "usage_count", label: "Usage Count" },
   ];
 
+  const dlCsv = () => {
+    MyQuiz_csv(rows, user);
+  };
+  const dlPdf = () => {
+    MyQuiz_pdf(rows, user);
+  };
+
   if (rows.length <= 0) {
     return (
       <Typography color="textDisabled" align="center" variant="body2">
@@ -100,19 +111,27 @@ function MyQuizTab() {
 
   return (
     <>
-      <TextField
-        fullWidth
-        sx={{
-          maxWidth: 300,
-          background: "#f6f7fb",
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 2,
-          },
-        }}
-        size="small"
-        label="Search exams..."
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <TextField
+          fullWidth
+          sx={{
+            maxWidth: 300,
+            background: "#f6f7fb",
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 2,
+            },
+          }}
+          size="small"
+          label="Search exams..."
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <Export
+          anchorEl={exportAnchor}
+          setAnchorEl={setExportAnchor}
+          dlCsv={dlCsv}
+          dlPdf={dlPdf}
+        />
+      </Stack>
 
       <TableContainer
         component={Paper}

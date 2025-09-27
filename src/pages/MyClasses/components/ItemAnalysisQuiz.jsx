@@ -1,16 +1,6 @@
 import {
-  Button,
   Card,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
   Paper,
-  Select,
   Stack,
   Table,
   TableBody,
@@ -18,20 +8,16 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
   Typography,
 } from "@mui/material";
-import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
-import CalendarViewMonthRoundedIcon from "@mui/icons-material/CalendarViewMonthRounded";
-import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
-import IosShareRoundedIcon from "@mui/icons-material/IosShareRounded";
-import SystemUpdateAltRoundedIcon from "@mui/icons-material/SystemUpdateAltRounded";
-import { mkConfig, generateCsv, download } from "export-to-csv";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
+import ItemAnalysis_pdf from "../../../components/printables/ItemAnalysis_pdf";
+import Export from "../../../components/elements/Export";
+import ItemAnalysis_csv from "../../../components/printables/ItemAnalysis_csv";
 
 function ItemAnalysisQuiz(props) {
-  const { class_exam_id, exam_name } = props;
+  const { class_exam_id, exam_info } = props;
   const [itemAnalysis, setItemAnalysis] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -52,85 +38,24 @@ function ItemAnalysisQuiz(props) {
   };
 
   const dlCsv = () => {
-    let filename = exam_name.replaceAll(" ", "_");
-
-    const csvConfig = mkConfig({
-      useKeysAsHeaders: true,
-      filename: `${filename}_item_analysis_${new Date().toISOString().split("T")[0]}`, // Add date
-      fieldSeparator: ",",
-      quoteStrings: '"',
-      decimalSeparator: ".",
-      showLabels: true,
-      showTitle: true,
-      title: `Item Analysis Report - ${exam_name}`,
-      useTextFile: false,
-      useBom: true,
-      headers: ["Question", "Correct", "Incorrect", "Success %"],
-    });
-
-    const data = itemAnalysis
-      .sort(
-        (a, b) =>
-          b.correct / (b.correct + b.in_correct) -
-          a.correct / (a.correct + a.in_correct)
-      )
-      .map((data, index) => {
-        return {
-          Question: data.question,
-          Correct: data.correct,
-          Incorrect: data.in_correct,
-          "Success Rate": `${((data.correct / (data.correct + data.in_correct)) * 100).toFixed(1)}%`,
-        };
-      });
-
-    // Add summary row
-    const totalCorrect = itemAnalysis.reduce(
-      (sum, item) => sum + item.correct,
-      0
-    );
-    const totalIncorrect = itemAnalysis.reduce(
-      (sum, item) => sum + item.in_correct,
-      0
-    );
-
-    data.push({
-      Question: "TOTAL",
-      Correct: totalCorrect,
-      Incorrect: totalIncorrect,
-    });
-
-    const csv = generateCsv(csvConfig)(data);
-    download(csvConfig)(csv);
+    ItemAnalysis_csv(itemAnalysis, exam_info);
   };
+
+  const dlpdf = () => {
+    ItemAnalysis_pdf(itemAnalysis, exam_info);
+  };
+
   return (
     <Card sx={{ p: 2 }} variant="outlined">
       <Stack direction="row" mb={2} justifyContent="space-between">
         <h2 className="text-2xl font-bold ">Item Analysis</h2>
 
-        <Tooltip title="Export" placement="top" arrow>
-          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-            <SystemUpdateAltRoundedIcon />
-          </IconButton>
-        </Tooltip>
-
-        <Menu
+        <Export
           anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={() => setAnchorEl(null)}
-        >
-          <ListItemButton onClick={dlCsv} dense>
-            <ListItemIcon>
-              <CalendarViewMonthRoundedIcon color="success" />
-            </ListItemIcon>
-            <ListItemText primary=".csv" />
-          </ListItemButton>
-          <ListItemButton onClick={() => {}} dense>
-            <ListItemIcon>
-              <PictureAsPdfRoundedIcon color="error" />
-            </ListItemIcon>
-            <ListItemText primary=".pdf" />
-          </ListItemButton>
-        </Menu>
+          setAnchorEl={setAnchorEl}
+          dlCsv={dlCsv}
+          dlPdf={dlpdf}
+        />
       </Stack>
       {itemAnalysis.length <= 0 ? (
         <Typography align="center" variant="body2" color="textDisabled">

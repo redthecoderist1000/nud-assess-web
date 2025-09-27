@@ -9,6 +9,8 @@ import { downloadWordReport } from "../Download/WordReport";
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
 import Export from "../../../components/elements/Export";
+import Analytics_csv from "../../../components/printables/Analytics_csv";
+import Analytics_pdf from "../../../components/printables/Analytics_pdf";
 const summaryData = {
   students: 40,
   quizzes: 10,
@@ -153,7 +155,14 @@ const taxonomyAnalysis = [
   { level: "Creating", count: 3, percent: "3.75%" },
 ];
 
-const FilterAnalytics = ({ filter, setFilter, hasResult }) => {
+const FilterAnalytics = ({
+  filter,
+  setFilter,
+  hasResult,
+  quizData,
+  questionData,
+  generalData,
+}) => {
   const { setSnackbar } = useContext(userContext);
   const [classOption, setClassOption] = useState([]);
   const [exportAnchor, setExportAnchor] = useState(null);
@@ -187,36 +196,15 @@ const FilterAnalytics = ({ filter, setFilter, hasResult }) => {
   };
 
   // csv handler
-  const handleCSVDownload = () => {
-    downloadFullCSV({
-      summaryData,
-      quizData,
-      scoreDist,
-      lessonPerf,
-      questionTypes,
-      questionAnalysis,
-      tosPlacement,
-      taxonomyAnalysis,
-      filename: "class_report.csv",
-    });
-  };
-
-  // word handler
-  const handleWordDownload = () => {
-    downloadWordReport({
-      summaryData,
-      quizData,
-      scoreDist,
-      lessonPerf,
-      questionTypes,
-      questionAnalysis,
-      tosPlacement,
-      taxonomyAnalysis,
-      filename: "class_report.doc",
-    });
+  const dlCsv = () => {
+    Analytics_csv(generalData, quizData, questionData);
   };
 
   // pdf handler
+  const dlPdf = () => {
+    Analytics_pdf(generalData, quizData, questionData);
+  };
+
   function openQuickSummaryPDF() {
     const html = getReportHTML({
       summaryData,
@@ -289,8 +277,8 @@ const FilterAnalytics = ({ filter, setFilter, hasResult }) => {
           anchorEl={exportAnchor}
           setAnchorEl={setExportAnchor}
           disable={hasResult}
-          dlCsv={handleCSVDownload}
-          dlPdf={openQuickSummaryPDF}
+          dlCsv={dlCsv}
+          dlPdf={dlPdf}
         />
       </div>
     </div>

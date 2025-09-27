@@ -58,20 +58,25 @@ const fetchQuestions = async (blooms_category, repository, lesson_id) => {
     return { error: questionError };
   }
   // console.log(questionData);
-  const questionsWithEmbeddings = await Promise.all(
-    questionData.map(async (question) => {
-      const embedding = await embeddingModel.embedContent({
-        content: {
-          parts: [{ text: question.question }],
-        },
-        taskType: "RETRIEVAL_QUERY",
-      });
-      return { ...question, embedding };
-    })
-  );
-  // console.log(questionsWithEmbeddings);
 
-  return { data: questionsWithEmbeddings, error: null };
+  try {
+    const questionsWithEmbeddings = await Promise.all(
+      questionData.map(async (question) => {
+        const embedding = await embeddingModel.embedContent({
+          content: {
+            parts: [{ text: question.question }],
+          },
+          taskType: "RETRIEVAL_QUERY",
+        });
+        return { ...question, embedding };
+      })
+    );
+    // console.log(questionsWithEmbeddings);
+
+    return { data: questionsWithEmbeddings, error: null };
+  } catch (error) {
+    return { error: error };
+  }
 };
 
 // question: data.question,

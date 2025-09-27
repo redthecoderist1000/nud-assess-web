@@ -151,9 +151,11 @@ function QuestionBuilder(props) {
             fontSize: "0.875rem",
           }}
           action={
-            <Button color="inherit" size="small" onClick={retryCheck}>
-              retry
-            </Button>
+            <Tooltip title="retry">
+              <IconButton color="inherit" size="small" onClick={retryCheck}>
+                <RestartAltRoundedIcon />
+              </IconButton>
+            </Tooltip>
           }
         >
           Error! Failed to check similarities

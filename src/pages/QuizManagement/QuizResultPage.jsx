@@ -533,11 +533,11 @@ const QuizResultPage = () => {
             my={2}
           >
             <h2 className="text-2xl font-bold">Generated Questions</h2>
-            <Stack direction="row" spacing={2}>
+            {/* <Stack direction="row" spacing={2}>
               <Button size="small" variant="outlined" onClick={() => {}}>
                 Print <PrintRoundedIcon />
               </Button>
-            </Stack>
+            </Stack> */}
           </Stack>
           {/* mismong questions */}
           {quizResult.map((data, index) => {

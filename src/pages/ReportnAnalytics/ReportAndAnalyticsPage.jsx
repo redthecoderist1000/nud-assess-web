@@ -21,11 +21,13 @@ const ReportAndAnalyticsPage = () => {
     start_time: "all",
   });
   const [generalData, setGeneralData] = useState({});
-  const [analyticsData, setAnalyticsData] = useState({});
   const [generalLoading, setGeneralLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [hasGeneral, setHasGeneral] = useState(true);
   const [hasResult, setHasResult] = useState(true);
+
+  const [quizData, setQuizData] = useState({});
+  const [questionData, setQuestionData] = useState({});
 
   useEffect(() => {
     if (filter.class_id == "") {
@@ -39,8 +41,8 @@ const ReportAndAnalyticsPage = () => {
       return;
     }
 
-    if (activeTab == "quiz") fetchQuizData();
-    if (activeTab == "question") fetchQuestionData();
+    fetchQuizData();
+    fetchQuestionData();
 
     // distribution, bloom_tax, perf_by_quiz
   }, [filter, activeTab]);
@@ -116,7 +118,7 @@ const ReportAndAnalyticsPage = () => {
         });
         return;
       }
-      setAnalyticsData(data);
+      setQuizData(data);
     } else {
       const days7 = new Date(
         Date.now() - 7 * 24 * 60 * 60 * 1000
@@ -139,7 +141,7 @@ const ReportAndAnalyticsPage = () => {
         });
         return;
       }
-      setAnalyticsData(data);
+      setQuizData(data);
     }
     setLoading(false);
   };
@@ -169,7 +171,7 @@ const ReportAndAnalyticsPage = () => {
         });
         return;
       }
-      setAnalyticsData(data);
+      setQuestionData(data);
     } else {
       const days7 = new Date(
         Date.now() - 7 * 24 * 60 * 60 * 1000
@@ -192,7 +194,7 @@ const ReportAndAnalyticsPage = () => {
         });
         return;
       }
-      setAnalyticsData(data);
+      setQuestionData(data);
     }
 
     setLoading(false);
@@ -263,11 +265,11 @@ const ReportAndAnalyticsPage = () => {
 
     switch (activeTab) {
       case "quiz":
-        return <Quiz analyticsData={analyticsData} />;
+        return <Quiz analyticsData={quizData} />;
       case "question":
-        return <Question analyticsData={analyticsData} />;
+        return <Question analyticsData={questionData} />;
       default:
-        return <Quiz analyticsData={analyticsData} />;
+        return <Quiz analyticsData={quizData} />;
     }
   };
 
@@ -296,9 +298,10 @@ const ReportAndAnalyticsPage = () => {
       <FilterAnalytics
         filter={filter}
         setFilter={setFilter}
-        generalData={generalData}
-        analyticsData={analyticsData}
         hasResult={!hasResult}
+        quizData={quizData}
+        questionData={questionData}
+        generalData={generalData}
       />
       {generalLoading ? (
         <></>

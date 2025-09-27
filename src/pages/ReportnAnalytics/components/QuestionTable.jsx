@@ -71,25 +71,21 @@ const QuestionTable = ({ detailed_que_analysis }) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-  var visibleQuestions =
-    questions == null
-      ? []
-      : useMemo(
-          () =>
-            [...questions]
-              .filter((q) => {
-                const matchesSearch = q.question
-                  .toLowerCase()
-                  .includes(filter.search.toLowerCase());
-                const matchesType =
-                  filter.type === "All" || q.type === filter.type;
-                const matchesLevel =
-                  filter.level === "All" || q.bloom === filter.level;
-                return matchesSearch && matchesType && matchesLevel;
-              })
-              .slice(page * rowsPerPage, (page + 1) * rowsPerPage),
-          [questions, filter, page, rowsPerPage]
-        );
+
+  const visibleQuestions = useMemo(() => {
+    if (!questions) return [];
+
+    return [...questions]
+      .filter((q) => {
+        const matchesSearch = q.question
+          .toLowerCase()
+          .includes(filter.search.toLowerCase());
+        const matchesType = filter.type === "All" || q.type === filter.type;
+        const matchesLevel = filter.level === "All" || q.bloom === filter.level;
+        return matchesSearch && matchesType && matchesLevel;
+      })
+      .slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+  }, [questions, filter, page, rowsPerPage]);
 
   return (
     <div

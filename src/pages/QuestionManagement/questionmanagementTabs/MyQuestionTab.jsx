@@ -27,6 +27,7 @@ import { userContext } from "../../../App";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import Export from "../../../components/elements/Export";
 import MyQuestionCsv from "../../../components/printables/MyQuestion_csv";
+import MyQuestionPdf from "../../../components/printables/MyQuestion_pdf";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -129,7 +130,9 @@ function MyQuestionTab() {
   const dlCsv = () => {
     MyQuestionCsv(rows, user);
   };
-  const dlPdf = () => {};
+  const dlPdf = () => {
+    MyQuestionPdf(rows, user);
+  };
 
   if (rows.length <= 0) {
     return (

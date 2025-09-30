@@ -30,6 +30,7 @@ import { userContext } from "../../../App";
 import { similarityCheck } from "../../../helper/SimlarityChecker";
 import GenQuestionDialog from "../../../components/elements/GeneralDialog";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import BloomsTextField from "../../../components/elements/BloomsTextField";
 
 function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
   const { setSnackbar } = useContext(userContext);
@@ -434,14 +435,11 @@ function NewQuestionTab({ hidden, lessonOptions, addToExam, repository }) {
           <Grid container columnGap={1}>
             {/* question */}
             <Grid flex={5}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Question"
+              <BloomsTextField
                 value={newItem.question}
-                required
-                name="question"
-                onChange={(e) => handleChangeItem(e)}
+                onChange={handleChangeItem}
+                cognitive_level={newItem.cognitive_level}
+                onUseSuggest={handleChangeItem}
               />
             </Grid>
             {/* lesson */}

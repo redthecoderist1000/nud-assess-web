@@ -28,6 +28,7 @@ import AddPhotoAlternateRoundedIcon from "@mui/icons-material/AddPhotoAlternateR
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import { userContext } from "../../../../App";
 import { similarityCheck } from "../../../../helper/SimlarityChecker";
+import BloomsTextField from "../../../../components/elements/BloomsTextField";
 
 function AnswerCard(props) {
   const { setSnackbar } = useContext(userContext);
@@ -293,14 +294,11 @@ function AnswerCard(props) {
               </Stack>
               <Grid container spacing={4} mb={2}>
                 <Grid flex={5}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Question"
+                  <BloomsTextField
                     value={data.question}
-                    required
-                    name="question"
+                    cognitive_level={data.specification}
                     onChange={(e) => handleChangeItem(e, index)}
+                    onUseSuggest={(e) => handleChangeItem(e, index)}
                   />
                 </Grid>
                 <Grid flex={1}>

@@ -1,12 +1,24 @@
 import React, { useContext, useState } from "react";
 import LogoutDialog from "./LogoutDialog";
-import { Button, Stack, TextField } from "@mui/material";
+import {
+  Button,
+  FormControl,
+  IconButton,
+  InputLabel,
+  OutlinedInput,
+  Stack,
+  TextField,
+  Tooltip,
+} from "@mui/material";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import Person2RoundedIcon from "@mui/icons-material/Person2Rounded";
+import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
+import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
+const env = import.meta.env;
 
 const Privacy = () => {
   const { user, setSnackbar } = useContext(userContext);
@@ -17,12 +29,42 @@ const Privacy = () => {
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
+  const [showCurPassword, setShowCurPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showCPassword, setShowCPassword] = useState(false);
 
   const hasInput = Object.values(formData).some((value) => value !== "");
 
+  const passwordRequirements = (
+    <div className="text-xs">
+      <p>Password must be at least:</p>
+      <ul className="list-disc list-inside">
+        <li>8 characters</li>
+        <li>One uppercase letter (A-Z)</li>
+        <li>One lowercase letter (a-z)</li>
+        <li>One number (0-9)</li>
+        <li>One special character (@$#!%*?&)</li>
+      </ul>
+    </div>
+  );
+
+  const checkPasswordStrength = () => {
+    const regex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$#!%*?&])[A-Za-z\d@$#!%*?&]{8,}$/;
+    return regex.test(formData.newPassword);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.newPassword !== formData.confirmPassword) {
+
+    if (!checkPasswordStrength() && env.VITE_ENVIRONMENT === "deployed") {
+      setSnackbar({
+        open: true,
+        message: "Password must satisfy the requirements.",
+        severity: "error",
+      });
+      return;
+    } else if (formData.newPassword !== formData.confirmPassword) {
       setSnackbar({
         open: true,
         message: "New password and confirmation do not match.",
@@ -101,42 +143,73 @@ const Privacy = () => {
       </div>
       <form onSubmit={handleSubmit}>
         <Stack rowGap={2}>
-          <TextField
-            required
-            value={formData.currentPassword}
-            label="Current Password"
-            variant="outlined"
-            size="small"
-            onChange={(e) =>
-              setFormData({ ...formData, currentPassword: e.target.value })
-            }
-            fullWidth
-            sx={{ backgroundColor: "#f3f4f6" }}
-          />
-          <TextField
-            required
-            value={formData.newPassword}
-            label="Enter New Password"
-            variant="outlined"
-            size="small"
-            onChange={(e) =>
-              setFormData({ ...formData, newPassword: e.target.value })
-            }
-            fullWidth
-            sx={{ backgroundColor: "#f3f4f6" }}
-          />
-          <TextField
-            required
-            value={formData.confirmPassword}
-            label="Confirm Password"
-            variant="outlined"
-            size="small"
-            onChange={(e) =>
-              setFormData({ ...formData, confirmPassword: e.target.value })
-            }
-            fullWidth
-            sx={{ backgroundColor: "#f3f4f6" }}
-          />
+          <FormControl required variant="outlined" size="small" fullWidth>
+            <InputLabel>Current Password</InputLabel>
+            <OutlinedInput
+              value={formData.currentPassword}
+              label="Current Password"
+              type={showCurPassword ? "text" : "password"}
+              onChange={(e) =>
+                setFormData({ ...formData, currentPassword: e.target.value })
+              }
+              sx={{ backgroundColor: "#f3f4f6" }}
+              endAdornment={
+                <IconButton onClick={() => setShowCurPassword((prev) => !prev)}>
+                  {showCurPassword ? (
+                    <VisibilityOffRoundedIcon />
+                  ) : (
+                    <VisibilityRoundedIcon />
+                  )}
+                </IconButton>
+              }
+            />
+          </FormControl>
+          <Tooltip title={passwordRequirements} arrow placement="right">
+            <FormControl required variant="outlined" size="small" fullWidth>
+              <InputLabel>Enter New Password</InputLabel>
+              <OutlinedInput
+                value={formData.newPassword}
+                type={showPassword ? "text" : "password"}
+                label="Enter New Password"
+                onChange={(e) =>
+                  setFormData({ ...formData, newPassword: e.target.value })
+                }
+                sx={{ backgroundColor: "#f3f4f6" }}
+                endAdornment={
+                  <IconButton onClick={() => setShowPassword((prev) => !prev)}>
+                    {showPassword ? (
+                      <VisibilityOffRoundedIcon />
+                    ) : (
+                      <VisibilityRoundedIcon />
+                    )}
+                  </IconButton>
+                }
+              />
+            </FormControl>
+          </Tooltip>
+
+          <FormControl required variant="outlined" size="small" fullWidth>
+            <InputLabel>Confirm New Password</InputLabel>
+            <OutlinedInput
+              value={formData.confirmPassword}
+              label="Confirm New Password"
+              type={showCPassword ? "text" : "password"}
+              onChange={(e) =>
+                setFormData({ ...formData, confirmPassword: e.target.value })
+              }
+              sx={{ backgroundColor: "#f3f4f6" }}
+              endAdornment={
+                <IconButton onClick={() => setShowCPassword((prev) => !prev)}>
+                  {showCPassword ? (
+                    <VisibilityOffRoundedIcon />
+                  ) : (
+                    <VisibilityRoundedIcon />
+                  )}
+                </IconButton>
+              }
+            />
+          </FormControl>
+
           <Button
             fullWidth
             type="submit"

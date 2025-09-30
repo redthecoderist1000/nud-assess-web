@@ -101,13 +101,9 @@ function SharedQuizTab() {
     () =>
       rows
         .filter((row) => {
-          const matchExamName = row.exam_name
-            .toLowerCase()
-            .includes(filter.search.toLowerCase());
-
-          const searchSubject = row.subject_name
-            .toLowerCase()
-            .includes(filter.search.toLowerCase());
+          const matchExamName =
+            row.exam_name.toLowerCase().includes(filter.search.toLowerCase()) ||
+            filter.search === "";
 
           const matchSubject =
             row.subject_name
@@ -121,7 +117,7 @@ function SharedQuizTab() {
               .includes(filter.repository.toLowerCase()) ||
             filter.repository === "All";
 
-          return matchExamName && searchSubject && matchSubject && matchRepo;
+          return matchExamName && matchSubject && matchRepo;
         })
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
 

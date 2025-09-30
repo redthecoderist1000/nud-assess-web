@@ -25,6 +25,7 @@ import TFArea from "./TFArea";
 import IdArea from "./IdArea";
 import { similarityCheck } from "../../../../helper/SimlarityChecker";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import BloomsTextField from "../../../../components/elements/BloomsTextField";
 
 function QuestionBuilder(props) {
   const { items, setItems, index, repository } = props;
@@ -293,7 +294,7 @@ function QuestionBuilder(props) {
                 {/* question */}
                 <Grid container spacing={4} mb={2} alignItems="center">
                   <Grid flex={5}>
-                    <TextField
+                    {/* <TextField
                       multiline
                       fullWidth
                       size="small"
@@ -302,6 +303,13 @@ function QuestionBuilder(props) {
                       required
                       name="question"
                       onChange={(e) => handleChangeQuestion(e)}
+                      disabled={hasId}
+                    /> */}
+                    <BloomsTextField
+                      value={data.question}
+                      onChange={handleChangeQuestion}
+                      cognitive_level={data.specification}
+                      onUseSuggest={handleChangeQuestion}
                       disabled={hasId}
                     />
                   </Grid>

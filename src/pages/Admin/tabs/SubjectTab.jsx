@@ -120,23 +120,19 @@ function SubjectTab() {
     () =>
       [...rows]
         .filter((value) => {
-          const matchSubName = value.tbl_subject.name
+          const matchSubName = value.name
             .toLowerCase()
             .includes(search.toLowerCase());
 
-          const matchSubCode = value.tbl_subject.subject_code
+          const matchSubCode = value.subject_code
             .toLowerCase()
             .includes(search.toLowerCase());
 
-          const matchFname = value.tbl_subject.tbl_users?.f_name
+          const matchFacIncharge = value.faculty_incharge
             .toLowerCase()
             .includes(search.toLowerCase());
 
-          const matchLname = value.tbl_subject.tbl_users?.l_name
-            .toLowerCase()
-            .includes(search.toLowerCase());
-
-          return matchSubName || matchSubCode || matchFname || matchLname;
+          return matchSubName || matchSubCode || matchFacIncharge;
         })
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [order, orderBy, page, rowsPerPage, rows, search]
@@ -162,15 +158,10 @@ function SubjectTab() {
   }, []);
 
   const fetchData = async () => {
-    let { data, error } = await supabase
-      .from("tbl_program")
-      .select(
-        "tbl_program_subject(id,tbl_subject(id, name, subject_code,tbl_users(id, suffix, f_name, m_name, l_name)))"
-      )
-      .eq("program_chair", user.user_id)
-      .single();
+    let { data, error } = await supabase.from("vw_adminsubjects").select("*");
 
     if (error) {
+      console.log(error);
       setSnackbar({
         open: true,
         message: "Error fetching subject data. Refresh the page.",
@@ -179,7 +170,7 @@ function SubjectTab() {
       return;
     }
     // console.log("data", data);
-    setRows(data.tbl_program_subject);
+    setRows(data);
   };
 
   const goToSubject = (subjectId, progSubId) => {
@@ -255,11 +246,11 @@ function SubjectTab() {
           </TableHead>
           <TableBody>
             {visibleRows.map((row, index) => {
-              const assigned = row.tbl_subject.tbl_users == null ? false : true;
-              const user = row.tbl_subject.tbl_users;
-              const incharge = assigned
-                ? user.suffix + " " + user.f_name + " " + user.l_name
-                : "";
+              // const assigned = row.tbl_subject.tbl_users == null ? false : true;
+              // const user = row.tbl_subject.tbl_users;
+              // const incharge = assigned
+              //   ? user.suffix + " " + user.f_name + " " + user.l_name
+              //   : "";
 
               return (
                 <TableRow
@@ -267,14 +258,16 @@ function SubjectTab() {
                   hover
                   tabIndex={-1}
                   sx={{ cursor: "pointer" }}
-                  onClick={() => goToSubject(row.tbl_subject.id, row.id)}
+                  onClick={() =>
+                    goToSubject(row.subject_id, row.program_subject_id)
+                  }
                 >
                   <StyledTableCell component="th" scope="row">
-                    {row.tbl_subject.subject_code}
+                    {row.subject_code}
                   </StyledTableCell>
-                  <StyledTableCell>{row.tbl_subject.name}</StyledTableCell>
-                  {assigned ? (
-                    <StyledTableCell>{incharge}</StyledTableCell>
+                  <StyledTableCell>{row.name}</StyledTableCell>
+                  {row.faculty_incharge ? (
+                    <StyledTableCell>{row.faculty_incharge}</StyledTableCell>
                   ) : (
                     <StyledTableCell>
                       <p className="text-gray-500">

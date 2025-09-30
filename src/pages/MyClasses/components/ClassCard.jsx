@@ -84,7 +84,9 @@ const ClassCard = ({
             <div className="font-bold text-base text-gray-900">
               {cls.class_name}
             </div>
-            <div className="text-sm text-gray-500">{cls.description}</div>
+            <div className="text-sm text-gray-500 line-clamp-2">
+              {cls.description}
+            </div>
           </div>
           <IconButton
             size="small"

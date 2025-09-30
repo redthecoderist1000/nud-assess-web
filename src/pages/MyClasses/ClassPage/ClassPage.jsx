@@ -159,7 +159,9 @@ const ClassPage = () => {
         (payload) => {
           const row = payload.new || payload.old;
           const event = payload.eventType;
-          if (row.class_id === classData.id || event === "DELETE") {
+          console.log(row);
+          console.log(classData.id);
+          if (row.class_id === class_id || event === "DELETE") {
             fetchAllPeople();
           }
         }

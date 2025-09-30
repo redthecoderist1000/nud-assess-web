@@ -52,10 +52,7 @@ function RemMemberDialog(props) {
       message: "Member removed successfully",
       severity: "success",
     });
-    setTimeout(() => {
-      setId(null);
-      setLoading(false);
-    }, 2000);
+    setId(null);
   };
 
   return (

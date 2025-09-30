@@ -27,7 +27,6 @@ function SignUpForm() {
     firstName: "",
     middleName: "",
     lastName: "",
-    agreeTerms: false,
     department: "",
   });
 
@@ -56,15 +55,6 @@ function SignUpForm() {
         severity: "error",
       });
 
-      setLoading(false);
-      return;
-    }
-    if (!formData.agreeTerms) {
-      setSnackbar({
-        open: true,
-        message: "You must agree to Terms and Privacy Policies to continue.",
-        severity: "error",
-      });
       setLoading(false);
       return;
     }

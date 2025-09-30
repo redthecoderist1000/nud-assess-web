@@ -279,11 +279,10 @@ const QuizResultPage = () => {
   const handleEditDetail = (e) => {
     const value = e.target.value;
     const name = e.target.name;
-
     if (name === "is_random") {
       setQuizDetails((prev) => ({
         ...prev,
-        [name]: e.target.checked,
+        [name]: !e.target.checked,
       }));
       return;
     }
@@ -392,7 +391,8 @@ const QuizResultPage = () => {
               <Checkbox
                 checked={quizDetails.is_random}
                 name="is_random"
-                onChange={handleEditDetail}
+                // onChange={handleEditDetail}
+                onClick={handleEditDetail}
               />
             }
             label="Randomize quiz items"

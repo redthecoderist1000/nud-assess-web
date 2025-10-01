@@ -25,6 +25,7 @@ import {
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 
 import { supabase } from "../../../helper/Supabase";
+import QuizInfoDialog from "../components/QuizInfoDialog";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -53,6 +54,7 @@ function SharedQuizTab() {
   });
   const [subOptions, setSubOptions] = useState([]);
   const [repoOptions, setRepoOptions] = useState([]);
+  const [openInfo, setOpenInfo] = useState({ open: false, exam_id: null });
 
   const fetchData = async () => {
     // fetch incharge
@@ -250,6 +252,11 @@ function SharedQuizTab() {
                 sx={{
                   "&:last-child td, &:last-child th": { border: 0 },
                 }}
+                hover
+                onClick={() =>
+                  setOpenInfo({ open: true, exam_id: row.exam_id })
+                }
+                style={{ cursor: "pointer" }}
               >
                 <TableCell component="th" scope="row">
                   <Box>
@@ -290,6 +297,8 @@ function SharedQuizTab() {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
+
+      <QuizInfoDialog openInfo={openInfo} setOpen={setOpenInfo} />
     </>
   );
 }

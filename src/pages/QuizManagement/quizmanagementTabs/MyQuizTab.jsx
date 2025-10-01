@@ -24,6 +24,7 @@ import styled from "@emotion/styled";
 import Export from "../../../components/elements/Export";
 import MyQuiz_csv from "../../../components/printables/MyQuiz_csv";
 import MyQuiz_pdf from "../../../components/printables/MyQuiz_pdf";
+import QuizInfoDialog from "../components/QuizInfoDialog";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -39,6 +40,7 @@ function MyQuizTab() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [exportAnchor, setExportAnchor] = useState(null);
+  const [openInfo, setOpenInfo] = useState({ open: false, exam_id: null });
 
   useEffect(() => {
     fetchData();
@@ -157,6 +159,11 @@ function MyQuizTab() {
                 sx={{
                   "&:last-child td, &:last-child th": { border: 0 },
                 }}
+                hover
+                onClick={() =>
+                  setOpenInfo({ open: true, exam_id: row.exam_id })
+                }
+                style={{ cursor: "pointer" }}
               >
                 <TableCell component="th" scope="row">
                   <Box>
@@ -195,6 +202,7 @@ function MyQuizTab() {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
+      <QuizInfoDialog openInfo={openInfo} setOpen={setOpenInfo} />
     </>
   );
 }

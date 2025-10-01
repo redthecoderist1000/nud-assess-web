@@ -13,12 +13,16 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Typography,
 } from "@mui/material";
 import { useState, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../helper/Supabase";
 
 import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
+import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
+import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
+import TaskRoundedIcon from "@mui/icons-material/TaskRounded";
 import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
 import QuestionBuilder from "./components/resultPage/QuestionBuilder";
 import { userContext } from "../../App";
@@ -26,6 +30,8 @@ import GenQuestionDialog from "../../components/elements/GeneralDialog";
 import Export from "../../components/elements/Export";
 import TOS_pdf_export from "../../components/printables/TOS_pdf";
 import TOS_csv_export from "../../components/printables/TOS_csv";
+import Exam_pdf from "../../components/printables/Exam_pdf";
+import ExamKey_pdf from "../../components/printables/ExamKey_pdf";
 
 const QuizResultPage = () => {
   const { setSnackbar } = useContext(userContext);
@@ -50,6 +56,7 @@ const QuizResultPage = () => {
     action: null,
   });
   const [tosExportAnchor, setTosExportAnchor] = useState(null);
+  const [examExportAnchor, setExamExportAnchor] = useState(null);
 
   // Ref for print area
   const tosRef = useRef();
@@ -312,6 +319,23 @@ const QuizResultPage = () => {
     setTosExportAnchor(null);
   };
 
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  const exportExamPDF = () => {
+    const forExport = quizResult;
+    if (quizDetails.is_random) {
+      shuffleArray(forExport);
+    }
+
+    Exam_pdf(forExport, quizDetails);
+    ExamKey_pdf(forExport, quizDetails);
+  };
+
   return (
     <Container maxWidth="xl" sx={{ my: 5 }}>
       <div className="bg-white border-b border-gray-200 pt-6 pb-2 mb-6">
@@ -333,9 +357,10 @@ const QuizResultPage = () => {
             variant={editQDetail ? "contained" : "outlined"}
             onClick={() => setEditQDetail(!editQDetail)}
             color="warning"
+            startIcon={<ModeEditRoundedIcon />}
             disableElevation
           >
-            {editQDetail ? "Editing " : "Edit "} <ModeEditRoundedIcon />
+            {editQDetail ? "Editing " : "Edit "}
           </Button>
         </Stack>
         <div className="grid grid-cols-3 gap-4">
@@ -538,6 +563,11 @@ const QuizResultPage = () => {
                 Print <PrintRoundedIcon />
               </Button>
             </Stack> */}
+            <Export
+              anchorEl={examExportAnchor}
+              setAnchorEl={setExamExportAnchor}
+              dlPdf={exportExamPDF}
+            />
           </Stack>
           {/* mismong questions */}
           {quizResult.map((data, index) => {

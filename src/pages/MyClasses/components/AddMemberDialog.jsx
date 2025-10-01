@@ -128,7 +128,7 @@ function AddMemberDialog({ open, setOpen, classId }) {
       return;
     }
 
-    setLoading(false);
+    // setLoading(false);
     // close dialog
     setOpen(false);
   };
@@ -369,6 +369,7 @@ function AddMemberDialog({ open, setOpen, classId }) {
               variant="contained"
               color="success"
               disabled={studentToAdd.length == 0}
+              loading={loading}
               disableElevation
             >
               Add

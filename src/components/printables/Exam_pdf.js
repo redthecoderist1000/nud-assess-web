@@ -71,47 +71,61 @@ const Exam_pdf = (rows, exam_info) => {
   let currentY = 95;
 
   rows.forEach((q, index) => {
-    let imageDrawn = false;
     autoTable(doc, {
       startY: index === 0 ? currentY : doc.lastAutoTable.finalY + 5,
       theme: "plain",
       showHead: "firstPage",
-      styles: { fontSize: 10 },
+      styles: { fontSize: 10, halign: "left", valign: "middle" },
       head: [["___________", `${index + 1}. ${q.question}`]],
+      headStyles: {},
       columnStyles: { 0: { cellWidth: 30 } },
-      body: q.answers.map((a, i) => [
-        ``,
-        `${String.fromCharCode(97 + i)}. ${a.answer}`,
-      ]),
+      body: [["", ""]],
+    });
 
-      didDrawCell: function (data) {
-        if (imageDrawn || !q.image) return;
+    if (q.image != null) {
+      doc.addImage(
+        q.image,
+        "JPEG",
+        doc.internal.pageSize.getWidth() / 2 - 40,
+        doc.lastAutoTable.finalY - 5,
+        80,
+        40
+      );
+    }
 
-        const desiredHeight = 40;
-        const img = new Image();
-        img.src = q.image;
-        console.log("img:", img);
+    const generateAnswers = () => {
+      if (q.type === "T/F") {
+      }
 
-        if (data.row.index === 0 && data.column.index === 1) {
-          const x = data.cell.x;
-          const y = data.cell.y + data.cell.height;
-          const imageWidth = 60;
+      switch (q.type) {
+        case "T/F":
+          return [["", "True or False"]];
 
-          const test = {
-            image: q.image,
-            x: data.cell.x,
-            y: data.cell.y,
-            cellHeight: data.cell.height,
-            width: imageWidth,
-            rowIndex: data.row.index,
-            columnIndex: data.column.index,
-          };
+        case "Multiple Choice":
+          return q.answers.map((a, i) => [
+            ``,
+            `${String.fromCharCode(97 + i)}. ${a.answer}`,
+          ]);
 
-          doc.addImage(q.image, "JPEG", x, y, imageWidth, desiredHeight);
-          imageDrawn = true;
-          // console.log(test);
-        }
-      },
+        case "Identification":
+          return [["", "Write your answer on the space provided."]];
+
+        default:
+          return q.answers.map((a, i) => [
+            ``,
+            `${String.fromCharCode(97 + i)}. ${a.answer}`,
+          ]);
+      }
+    };
+
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + (q.image ? 40 : -5),
+      theme: "plain",
+      showHead: "never",
+      styles: { fontSize: 10 },
+      head: [],
+      columnStyles: { 0: { cellWidth: 30 } },
+      body: generateAnswers(),
     });
   });
 

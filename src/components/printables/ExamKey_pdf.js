@@ -22,6 +22,28 @@ const ExamKey_pdf = (rows, exam_info) => {
   doc.setFont("helvetica", "bold");
   doc.text(`Answer Key for ${exam_info.name}`, 105, 45, { align: "center" });
 
+  const generateAnswers = (row) => {
+    switch (row.type) {
+      case "T/F":
+        return `${row.answers[0].answer}`;
+
+      case "Multiple Choice":
+        return row.answers
+          .filter((ans) => ans.is_correct)
+          .map((ans) => ans.answer)
+          .join(", ");
+
+      case "Identification":
+        return row.answers[0].answer;
+
+      default:
+        return row.answers
+          .filter((ans) => ans.is_correct)
+          .map((ans) => ans.answer)
+          .join(", ");
+    }
+  };
+
   autoTable(doc, {
     theme: "grid",
     startY: 55,
@@ -31,10 +53,7 @@ const ExamKey_pdf = (rows, exam_info) => {
     body: rows.map((row, index) => [
       `${index + 1}`,
       row.question,
-      row.answers
-        .filter((ans) => ans.is_correct)
-        .map((ans) => ans.answer)
-        .join(", "),
+      generateAnswers(row),
     ]),
   });
 

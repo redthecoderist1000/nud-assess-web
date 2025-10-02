@@ -411,6 +411,15 @@ function CartPage() {
       .from("tbl_exam_question")
       .insert(examQuestionPayload);
 
+    // insert tos
+    const tosPayload = tosDetail.map((d) => {
+      return { ...d, exam_id: exam_id };
+    });
+
+    const { data: tosData, error: tosErr } = await supabase
+      .from("tbl_tos")
+      .insert(tosPayload);
+
     if (eqError) {
       setLoading(false);
       setSnackbar({

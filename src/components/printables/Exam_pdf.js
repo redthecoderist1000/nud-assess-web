@@ -75,12 +75,57 @@ const Exam_pdf = (rows, exam_info) => {
       startY: index === 0 ? currentY : doc.lastAutoTable.finalY + 5,
       theme: "plain",
       showHead: "firstPage",
-      styles: { fontSize: 10 },
+      styles: { fontSize: 10, halign: "left", valign: "middle" },
       head: [["___________", `${index + 1}. ${q.question}`]],
-      body: q.answers.map((a, i) => [
-        ``,
-        `${String.fromCharCode(97 + i)}. ${a.answer}`,
-      ]),
+      headStyles: {},
+      columnStyles: { 0: { cellWidth: 30 } },
+      body: [["", ""]],
+    });
+
+    if (q.image != null) {
+      doc.addImage(
+        q.image,
+        "JPEG",
+        doc.internal.pageSize.getWidth() / 2 - 40,
+        doc.lastAutoTable.finalY - 5,
+        80,
+        40
+      );
+    }
+
+    const generateAnswers = () => {
+      if (q.type === "T/F") {
+      }
+
+      switch (q.type) {
+        case "T/F":
+          return [["", "True or False"]];
+
+        case "Multiple Choice":
+          return q.answers.map((a, i) => [
+            ``,
+            `${String.fromCharCode(97 + i)}. ${a.answer}`,
+          ]);
+
+        case "Identification":
+          return [["", "Write your answer on the space provided."]];
+
+        default:
+          return q.answers.map((a, i) => [
+            ``,
+            `${String.fromCharCode(97 + i)}. ${a.answer}`,
+          ]);
+      }
+    };
+
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + (q.image ? 40 : -5),
+      theme: "plain",
+      showHead: "never",
+      styles: { fontSize: 10 },
+      head: [],
+      columnStyles: { 0: { cellWidth: 30 } },
+      body: generateAnswers(),
     });
   });
 

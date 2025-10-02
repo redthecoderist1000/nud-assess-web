@@ -271,6 +271,7 @@ function StudentSummary(props) {
                             <Grid flex={1} alignContent="center">
                               <LinearProgress
                                 value={score}
+                                sx={{ borderRadius: 10 }}
                                 variant="determinate"
                                 color={
                                   score > 80

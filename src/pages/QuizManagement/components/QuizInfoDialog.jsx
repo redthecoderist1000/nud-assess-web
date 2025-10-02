@@ -5,11 +5,16 @@ import {
   AccordionSummary,
   Box,
   Button,
+  Card,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Divider,
+  Grid,
+  IconButton,
   Paper,
   Stack,
   styled,
@@ -26,6 +31,7 @@ import {
 import { useEffect, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
 import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
+import ImageRoundedIcon from "@mui/icons-material/ImageRounded";
 import TOS_pdf_export from "../../../components/printables/TOS_pdf";
 import Exam_pdf from "../../../components/printables/Exam_pdf";
 import ExamKey_pdf from "../../../components/printables/ExamKey_pdf";
@@ -65,28 +71,48 @@ const QuizInfoDialog = ({ openInfo, setOpen }) => {
   const [data, setData] = useState(null);
   const [tosAnchor, setTosAnchor] = useState(null);
   const [questionAnchor, setQuestionAnchor] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!openInfo.open) {
+      setLoading(true);
       setValue(0);
       setData(null);
       return;
     }
-    // console.log("fetching...");
     fetchData();
   }, [openInfo.open]);
 
   const fetchData = async () => {
-    const { data, error } = await supabase
-      .rpc("get_exam_info", { p_exam_id: openInfo.exam_id })
-      .single();
+    try {
+      const { data: exam_data, error } = await supabase
+        .rpc("get_exam_info", { p_exam_id: openInfo.exam_id })
+        .single();
 
-    if (error) {
-      //   setOpen({ open: false, exam_id: null });
-      console.log(error);
-      return;
+      if (error) {
+        console.error("Error fetching exam data:", error);
+        return;
+      }
+
+      if (exam_data.exam?.length > 0) {
+        const examWithImages = await Promise.all(
+          exam_data.exam.map(async (item) => {
+            const imageUrl = item.image
+              ? await fetchImage(item.image).catch(() => null)
+              : null;
+            return { ...item, image: imageUrl };
+          })
+        );
+
+        exam_data.exam = examWithImages;
+      }
+
+      setData(exam_data);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    } finally {
+      setLoading(false);
     }
-    setData(data);
   };
 
   const summarizeLessons = (rows) => {
@@ -148,6 +174,14 @@ const QuizInfoDialog = ({ openInfo, setOpen }) => {
     setValue(newValue);
   };
 
+  const fetchImage = async (image) => {
+    const { data: imageData } = await supabase.storage
+      .from("question_image")
+      .createSignedUrl(image, 3600);
+
+    return imageData?.signedUrl;
+  };
+
   return (
     <Dialog
       fullWidth
@@ -160,182 +194,333 @@ const QuizInfoDialog = ({ openInfo, setOpen }) => {
       <DialogTitle id="quiz-info-title">Quiz Information</DialogTitle>
 
       <DialogContent>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs
-            value={value}
-            onChange={handleChange}
-            aria-label="quiz info tabs"
-          >
-            <Tab label="TOS" />
-            <Tab
-              label="Questions"
-              disabled={data?.exam == null || data?.exam.length === 0}
-            />
-          </Tabs>
-        </Box>
-        <CustomTabPanel value={value} index={0}>
-          <Export
-            anchorEl={tosAnchor}
-            setAnchorEl={setTosAnchor}
-            dlCsv={exportTOScsv}
-            dlPdf={exportTOSpdf}
-          />
-          <TableContainer
-            component={Paper}
-            variant="outlined"
-            sx={{ borderRadius: 3 }}
-          >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TosTableCell rowSpan={2}>
-                    <b>Lesson</b>
-                  </TosTableCell>
-                  <TosTableCell rowSpan={2}>
-                    <b>Hours</b>
-                  </TosTableCell>
-                  <TosTableCell rowSpan={2}>
-                    <b>Percentage</b>
-                  </TosTableCell>
-                  <TosTableCell colSpan={2} bgcolor="#e3f2fd">
-                    <b>EASY</b>
-                  </TosTableCell>
-                  <TosTableCell colSpan={2} bgcolor="#fffde7">
-                    <b>MEDIUM</b>
-                  </TosTableCell>
-                  <TosTableCell colSpan={2} bgcolor="#ffebee">
-                    <b>HARD</b>
-                  </TosTableCell>
-                  <TosTableCell rowSpan={2}>
-                    <b>Total Items</b>
-                  </TosTableCell>
-                </TableRow>
-                <TableRow>
-                  <TosTableCell bgcolor="#e3f2fd">
-                    <b>Remembering (30%)</b>
-                  </TosTableCell>
-                  <TosTableCell bgcolor="#e3f2fd">
-                    <b>Understanding (20%)</b>
-                  </TosTableCell>
-                  <TosTableCell bgcolor="#fffde7">
-                    <b>Applying (20%)</b>
-                  </TosTableCell>
-                  <TosTableCell bgcolor="#fffde7">
-                    <b>Analyzing (10%)</b>
-                  </TosTableCell>
-                  <TosTableCell bgcolor="#ffebee">
-                    <b>Creating (10%)</b>
-                  </TosTableCell>
-                  <TosTableCell bgcolor="#ffebee">
-                    <b>Evaluating (10%)</b>
-                  </TosTableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data != null &&
-                  data.tos.map((row, index) => (
-                    <TableRow key={index}>
-                      <TosTableCell>{row.topic}</TosTableCell>
-                      <TosTableCell>{row.hours}</TosTableCell>
-                      <TosTableCell>{row.percentage} %</TosTableCell>
-                      <TosTableCell bgcolor="#e3f2fd">
-                        {row.remembering}
-                      </TosTableCell>
-                      <TosTableCell bgcolor="#e3f2fd">
-                        {row.understanding}
-                      </TosTableCell>
-                      <TosTableCell bgcolor="#fffde7">
-                        {row.applying}
-                      </TosTableCell>
-                      <TosTableCell bgcolor="#fffde7">
-                        {row.analyzing}
-                      </TosTableCell>
-                      <TosTableCell bgcolor="#ffebee">
-                        {row.creating}
-                      </TosTableCell>
-                      <TosTableCell bgcolor="#ffebee">
-                        {row.evaluating}
-                      </TosTableCell>
-                      <TosTableCell>{row.totalItems}</TosTableCell>
-                    </TableRow>
-                  ))}
-                <TableRow>
-                  <TosTableCell>
-                    <b>Total</b>
-                  </TosTableCell>
-                  <TosTableCell>{tosTotal.hours}</TosTableCell>
-                  <TosTableCell>100%</TosTableCell>
-                  <TosTableCell bgcolor="#e3f2fd">
-                    {tosTotal.remembering}
-                  </TosTableCell>
-                  <TosTableCell bgcolor="#e3f2fd">
-                    {tosTotal.understanding}
-                  </TosTableCell>
-                  <TosTableCell bgcolor="#fffde7">
-                    {tosTotal.applying}
-                  </TosTableCell>
-                  <TosTableCell bgcolor="#fffde7">
-                    {tosTotal.analyzing}
-                  </TosTableCell>
-                  <TosTableCell bgcolor="#ffebee">
-                    {tosTotal.creating}
-                  </TosTableCell>
-                  <TosTableCell bgcolor="#ffebee">
-                    {tosTotal.evaluating}
-                  </TosTableCell>
-                  <TosTableCell bgcolor="#e0e0e0">
-                    {tosTotal.totalItems}
-                  </TosTableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={1}>
-          <Export
-            anchorEl={questionAnchor}
-            setAnchorEl={setQuestionAnchor}
-            dlPdf={export_Exam}
-          />
-          <Stack maxHeight={500} overflow="auto">
-            {data != null &&
-              data.exam != null &&
-              data.exam.map((item, index) => {
-                return (
-                  <Accordion key={index} disableGutters elevation={0}>
-                    <AccordionSummary>
-                      <Typography variant="body2">
-                        {index + 1}. {item.question}
-                      </Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      {item.type === "Multiple Choice" ? (
-                        <Stack spacing={1} ml={2}>
-                          <Typography variant="body2">Options:</Typography>
-                          {item.answers.map((ans, idx) => {
-                            return (
-                              <Typography
-                                key={idx}
-                                variant="body2"
-                                fontWeight={ans.is_correct ? 600 : 400}
-                                color={ans.is_correct ? "green" : "inherit"}
-                              >
-                                {ans.answer}
-                              </Typography>
-                            );
-                          })}
-                        </Stack>
-                      ) : (
-                        <Typography variant="body2">
-                          Correct Answer: {item.answers[0].answer}
-                        </Typography>
-                      )}
-                    </AccordionDetails>
-                  </Accordion>
-                );
-              })}
+        {loading ? (
+          <Stack alignItems="center" justifyContent="center" m={5}>
+            <CircularProgress />
           </Stack>
-        </CustomTabPanel>
+        ) : (
+          <>
+            {/* details */}
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+              <Stack direction="row" justifyContent="space-between">
+                <Stack>
+                  <Typography variant="caption" fontWeight="bold">
+                    Exam Name
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.exam_details.name}
+                  </Typography>
+                </Stack>
+                <Stack>
+                  <Typography variant="caption" fontWeight="bold">
+                    Subject
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.exam_details.subject}
+                  </Typography>
+                </Stack>
+                <Stack>
+                  <Typography variant="caption" fontWeight="bold">
+                    Mode
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.exam_details.mode}
+                  </Typography>
+                </Stack>
+                <Stack>
+                  <Typography variant="caption" fontWeight="bold">
+                    Created By
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.exam_details.created_by}
+                  </Typography>
+                </Stack>
+                <Stack>
+                  <Typography variant="caption" fontWeight="bold">
+                    Created At
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.exam_details.created_at}
+                  </Typography>
+                </Stack>
+              </Stack>
+              <Divider sx={{ my: 2 }} />
+              <Grid container>
+                <Grid flex={1}>
+                  <Stack>
+                    <Typography variant="caption" fontWeight="bold">
+                      Total Items
+                    </Typography>
+                    <Typography variant="body2">
+                      {data.exam_details.total_items}
+                    </Typography>
+                  </Stack>
+                </Grid>
+                <Grid flex={1}>
+                  <Stack>
+                    <Typography variant="caption" fontWeight="bold">
+                      Time Limit (mins)
+                    </Typography>
+                    <Typography variant="body2">
+                      {data.exam_details.time_limit ?? "No time limit"}
+                    </Typography>
+                  </Stack>
+                </Grid>
+                <Grid flex={1}>
+                  <Stack>
+                    <Typography variant="caption" fontWeight="bold">
+                      Shuffled Items
+                    </Typography>
+                    <Typography variant="body2">
+                      {data.exam_details.is_random ? "True" : "False"}
+                    </Typography>
+                  </Stack>
+                </Grid>
+                <Grid flex={3}>
+                  <Stack>
+                    <Typography variant="caption" fontWeight="bold">
+                      Description
+                    </Typography>
+                    <Stack maxHeight={100} overflow="auto">
+                      <Typography variant="body2">
+                        {data.exam_details.desciption ?? "No description"}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Grid>
+                <Grid flex={3}>
+                  <Stack>
+                    <Typography variant="caption" fontWeight="bold">
+                      Objective
+                    </Typography>
+                    <Stack maxHeight={100} overflow="auto">
+                      <Typography variant="body2">
+                        {data.exam_details.objective ?? "No objective"}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Grid>
+              </Grid>
+            </Paper>
+            {/* tab bar */}
+            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+              <Tabs
+                value={value}
+                onChange={handleChange}
+                aria-label="quiz info tabs"
+              >
+                <Tab label="TOS" />
+                <Tab
+                  label="Questions"
+                  disabled={data?.exam == null || data?.exam.length === 0}
+                />
+              </Tabs>
+            </Box>
+            {/* tab panels */}
+            <CustomTabPanel value={value} index={0}>
+              <Stack alignItems="end">
+                <Export
+                  anchorEl={tosAnchor}
+                  setAnchorEl={setTosAnchor}
+                  dlCsv={exportTOScsv}
+                  dlPdf={exportTOSpdf}
+                />
+              </Stack>
+              <TableContainer
+                component={Paper}
+                variant="outlined"
+                sx={{ borderRadius: 3 }}
+              >
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TosTableCell rowSpan={2}>
+                        <b>Lesson</b>
+                      </TosTableCell>
+                      <TosTableCell rowSpan={2}>
+                        <b>Hours</b>
+                      </TosTableCell>
+                      <TosTableCell rowSpan={2}>
+                        <b>Percentage</b>
+                      </TosTableCell>
+                      <TosTableCell colSpan={2} bgcolor="#e3f2fd">
+                        <b>EASY</b>
+                      </TosTableCell>
+                      <TosTableCell colSpan={2} bgcolor="#fffde7">
+                        <b>MEDIUM</b>
+                      </TosTableCell>
+                      <TosTableCell colSpan={2} bgcolor="#ffebee">
+                        <b>HARD</b>
+                      </TosTableCell>
+                      <TosTableCell rowSpan={2}>
+                        <b>Total Items</b>
+                      </TosTableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TosTableCell bgcolor="#e3f2fd">
+                        <b>Remembering (30%)</b>
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#e3f2fd">
+                        <b>Understanding (20%)</b>
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#fffde7">
+                        <b>Applying (20%)</b>
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#fffde7">
+                        <b>Analyzing (10%)</b>
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#ffebee">
+                        <b>Creating (10%)</b>
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#ffebee">
+                        <b>Evaluating (10%)</b>
+                      </TosTableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {data != null &&
+                      data.tos.map((row, index) => (
+                        <TableRow key={index}>
+                          <TosTableCell>{row.topic}</TosTableCell>
+                          <TosTableCell>{row.hours}</TosTableCell>
+                          <TosTableCell>{row.percentage} %</TosTableCell>
+                          <TosTableCell bgcolor="#e3f2fd">
+                            {row.remembering}
+                          </TosTableCell>
+                          <TosTableCell bgcolor="#e3f2fd">
+                            {row.understanding}
+                          </TosTableCell>
+                          <TosTableCell bgcolor="#fffde7">
+                            {row.applying}
+                          </TosTableCell>
+                          <TosTableCell bgcolor="#fffde7">
+                            {row.analyzing}
+                          </TosTableCell>
+                          <TosTableCell bgcolor="#ffebee">
+                            {row.creating}
+                          </TosTableCell>
+                          <TosTableCell bgcolor="#ffebee">
+                            {row.evaluating}
+                          </TosTableCell>
+                          <TosTableCell>{row.totalItems}</TosTableCell>
+                        </TableRow>
+                      ))}
+                    <TableRow>
+                      <TosTableCell>
+                        <b>Total</b>
+                      </TosTableCell>
+                      <TosTableCell>{tosTotal.hours}</TosTableCell>
+                      <TosTableCell>100%</TosTableCell>
+                      <TosTableCell bgcolor="#e3f2fd">
+                        {tosTotal.remembering}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#e3f2fd">
+                        {tosTotal.understanding}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#fffde7">
+                        {tosTotal.applying}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#fffde7">
+                        {tosTotal.analyzing}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#ffebee">
+                        {tosTotal.creating}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#ffebee">
+                        {tosTotal.evaluating}
+                      </TosTableCell>
+                      <TosTableCell bgcolor="#e0e0e0">
+                        {tosTotal.totalItems}
+                      </TosTableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={1}>
+              <Stack alignItems={"end"}>
+                <Export
+                  anchorEl={questionAnchor}
+                  setAnchorEl={setQuestionAnchor}
+                  dlPdf={export_Exam}
+                />
+              </Stack>
+              <Stack maxHeight={500} overflow="auto">
+                {data != null &&
+                  data.exam != null &&
+                  data.exam.map((item, index) => {
+                    return (
+                      <Accordion key={index} disableGutters variant="outlined">
+                        <AccordionSummary>
+                          {/* <Stack alignItems={"start"}> */}
+                          {item.image != null && (
+                            <img
+                              src={item.image}
+                              alt={`question ${index + 1} image preview`}
+                              style={{
+                                height: 30,
+                                width: 30,
+                                objectFit: "cover",
+                                marginRight: 10,
+                                borderRadius: 5,
+                              }}
+                            />
+                          )}
+                          <Typography variant="body2">
+                            {index + 1}. {item.question}
+                          </Typography>
+
+                          {/* <Button
+                              size="small"
+                              variant="text"
+                              color="success"
+                              disableElevation
+                              startIcon={<ImageRoundedIcon />}
+                              sx={{ textTransform: "none" }}
+                            >
+                              View Image
+                            </Button>
+                          </Stack> */}
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          {item.type === "Multiple Choice" ? (
+                            <Stack spacing={1} ml={2}>
+                              <Typography
+                                variant="caption"
+                                color="textDisabled"
+                              >
+                                Options:
+                              </Typography>
+                              {item.answers.map((ans, idx) => {
+                                return (
+                                  <Typography
+                                    key={idx}
+                                    variant="body2"
+                                    fontWeight={ans.is_correct ? 600 : 400}
+                                    color={ans.is_correct ? "green" : "inherit"}
+                                  >
+                                    {ans.answer}
+                                  </Typography>
+                                );
+                              })}
+                            </Stack>
+                          ) : (
+                            <Typography
+                              variant="body2"
+                              color="green"
+                              fontWeight={600}
+                            >
+                              Correct Answer: {item.answers[0].answer}
+                            </Typography>
+                          )}
+                        </AccordionDetails>
+                      </Accordion>
+                    );
+                  })}
+              </Stack>
+            </CustomTabPanel>
+          </>
+        )}
       </DialogContent>
       <DialogActions sx={{ justifyContent: "left" }}>
         <Button onClick={handleClose} color="error">

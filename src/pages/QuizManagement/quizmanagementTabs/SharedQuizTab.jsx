@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import { userContext } from "../../../App";
 import {
   Box,
+  CircularProgress,
   FormControl,
   Grid,
   IconButton,
@@ -38,7 +39,7 @@ const headCells = [
   { id: "exam_name", label: "Exam Name" },
   { id: "subject_name", label: "Subject" },
   { id: "total_items", label: "Total Items" },
-  { id: "answered_count", label: "Answered Count" },
+  { id: "usage_count", label: "Usage Count" },
   { id: "created_by", label: "Created By" },
 ];
 
@@ -46,6 +47,8 @@ function SharedQuizTab() {
   const { setSnackbar, user } = useContext(userContext);
   const [rows, setRows] = useState([]);
   const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(true);
+
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [filter, setFilter] = useState({
     subject: "All",
@@ -93,6 +96,7 @@ function SharedQuizTab() {
     setRepoOptions(uniqueRepo);
     setSubOptions(uniqueSubjects);
     setRows(quizData);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -143,7 +147,13 @@ function SharedQuizTab() {
     });
   };
 
-  if (rows.length <= 0) {
+  if (loading) {
+    return (
+      <Stack alignItems={"center"}>
+        <CircularProgress />
+      </Stack>
+    );
+  } else if (rows.length <= 0) {
     return (
       <Typography color="textDisabled" align="center" variant="body2">
         No quizzes found
@@ -246,45 +256,53 @@ function SharedQuizTab() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleRows.map((row, index) => (
-              <TableRow
-                key={index}
-                sx={{
-                  "&:last-child td, &:last-child th": { border: 0 },
-                }}
-                hover
-                onClick={() =>
-                  setOpenInfo({ open: true, exam_id: row.exam_id })
-                }
-                style={{ cursor: "pointer" }}
-              >
-                <TableCell component="th" scope="row">
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ color: "#2C388F", fontWeight: 600 }}
-                    >
-                      {row.exam_name}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: "#6b7280" }}>
-                      {row.repository}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.subject_name}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.total_items}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.usage_count}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.created_by}</Typography>
+            {visibleRows.length == 0 ? (
+              <TableRow>
+                <TableCell align="center" colSpan={5}>
+                  <Typography variant="body2">no results found</Typography>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              visibleRows.map((row, index) => (
+                <TableRow
+                  key={index}
+                  sx={{
+                    "&:last-child td, &:last-child th": { border: 0 },
+                  }}
+                  hover
+                  onClick={() =>
+                    setOpenInfo({ open: true, exam_id: row.exam_id })
+                  }
+                  style={{ cursor: "pointer" }}
+                >
+                  <TableCell component="th" scope="row">
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ color: "#2C388F", fontWeight: 600 }}
+                      >
+                        {row.exam_name}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "#6b7280" }}>
+                        {row.repository}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">{row.subject_name}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">{row.total_items}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">{row.usage_count}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">{row.created_by}</Typography>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

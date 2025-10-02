@@ -71,16 +71,47 @@ const Exam_pdf = (rows, exam_info) => {
   let currentY = 95;
 
   rows.forEach((q, index) => {
+    let imageDrawn = false;
     autoTable(doc, {
       startY: index === 0 ? currentY : doc.lastAutoTable.finalY + 5,
       theme: "plain",
       showHead: "firstPage",
       styles: { fontSize: 10 },
       head: [["___________", `${index + 1}. ${q.question}`]],
+      columnStyles: { 0: { cellWidth: 30 } },
       body: q.answers.map((a, i) => [
         ``,
         `${String.fromCharCode(97 + i)}. ${a.answer}`,
       ]),
+
+      didDrawCell: function (data) {
+        if (imageDrawn || !q.image) return;
+
+        const desiredHeight = 40;
+        const img = new Image();
+        img.src = q.image;
+        console.log("img:", img);
+
+        if (data.row.index === 0 && data.column.index === 1) {
+          const x = data.cell.x;
+          const y = data.cell.y + data.cell.height;
+          const imageWidth = 60;
+
+          const test = {
+            image: q.image,
+            x: data.cell.x,
+            y: data.cell.y,
+            cellHeight: data.cell.height,
+            width: imageWidth,
+            rowIndex: data.row.index,
+            columnIndex: data.column.index,
+          };
+
+          doc.addImage(q.image, "JPEG", x, y, imageWidth, desiredHeight);
+          imageDrawn = true;
+          // console.log(test);
+        }
+      },
     });
   });
 

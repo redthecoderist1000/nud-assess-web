@@ -16,6 +16,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
@@ -37,6 +38,7 @@ function MyQuizTab() {
   const { user, setSnackbar } = useContext(userContext);
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [exportAnchor, setExportAnchor] = useState(null);
@@ -59,6 +61,7 @@ function MyQuizTab() {
     }
 
     setRows(data);
+    setLoading(false);
   };
 
   const visibleRows = useMemo(
@@ -103,7 +106,13 @@ function MyQuizTab() {
     MyQuiz_pdf(rows, user);
   };
 
-  if (rows.length <= 0) {
+  if (loading) {
+    return (
+      <Stack alignItems={"center"}>
+        <CircularProgress />
+      </Stack>
+    );
+  } else if (rows.length <= 0) {
     return (
       <Typography color="textDisabled" align="center" variant="body2">
         No quiz created yet
@@ -153,42 +162,50 @@ function MyQuizTab() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleRows.map((row, index) => (
-              <TableRow
-                key={index}
-                sx={{
-                  "&:last-child td, &:last-child th": { border: 0 },
-                }}
-                hover
-                onClick={() =>
-                  setOpenInfo({ open: true, exam_id: row.exam_id })
-                }
-                style={{ cursor: "pointer" }}
-              >
-                <TableCell component="th" scope="row">
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ color: "#2C388F", fontWeight: 600 }}
-                    >
-                      {row.exam_name}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: "#6b7280" }}>
-                      {row.repository}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.subject_name}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.total_items}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.usage_count}</Typography>
+            {visibleRows.length == 0 ? (
+              <TableRow>
+                <TableCell align="center" colSpan={4}>
+                  <Typography variant="body2">no results found</Typography>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              visibleRows.map((row, index) => (
+                <TableRow
+                  key={index}
+                  sx={{
+                    "&:last-child td, &:last-child th": { border: 0 },
+                  }}
+                  hover
+                  onClick={() =>
+                    setOpenInfo({ open: true, exam_id: row.exam_id })
+                  }
+                  style={{ cursor: "pointer" }}
+                >
+                  <TableCell component="th" scope="row">
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ color: "#2C388F", fontWeight: 600 }}
+                      >
+                        {row.exam_name}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "#6b7280" }}>
+                        {row.repository}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">{row.subject_name}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">{row.total_items}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">{row.usage_count}</Typography>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

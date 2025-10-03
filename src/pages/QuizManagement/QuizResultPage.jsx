@@ -76,6 +76,7 @@ const QuizResultPage = () => {
         subject_id: quizDetails.subject_id,
         total_items: total.totalItems,
         is_random: quizDetails.is_random,
+        allow_review: quizDetails.allow_review,
         time_limit:
           quizDetails.time_limit == "none" ? null : quizDetails.time_limit,
       })
@@ -193,6 +194,7 @@ const QuizResultPage = () => {
         subject_id: quizDetails.subject_id,
         total_items: total.totalItems,
         is_random: quizDetails.is_random,
+        allow_review: quizDetails.allow_review,
         time_limit:
           quizDetails.time_limit == "none" ? null : quizDetails.time_limit,
       })
@@ -286,7 +288,7 @@ const QuizResultPage = () => {
   const handleEditDetail = (e) => {
     const value = e.target.value;
     const name = e.target.name;
-    if (name === "is_random") {
+    if (name === "is_random" || name === "allow_review") {
       setQuizDetails((prev) => ({
         ...prev,
         [name]: !e.target.checked,
@@ -421,6 +423,18 @@ const QuizResultPage = () => {
               />
             }
             label="Randomize quiz items"
+          />
+          <FormControlLabel
+            disabled={!editQDetail}
+            control={
+              <Checkbox
+                checked={quizDetails.allow_review}
+                name="allow_review"
+                // onChange={handleEditDetail}
+                onClick={handleEditDetail}
+              />
+            }
+            label="Allow students to review answers after quiz"
           />
         </div>
       </Card>

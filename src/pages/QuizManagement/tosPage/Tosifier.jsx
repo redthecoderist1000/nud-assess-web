@@ -65,6 +65,7 @@ function Tosifier() {
     subject_name: "",
     is_random: false,
     time_limit: "none",
+    allow_review: true,
   });
   const [rows, setRows] = useState([
     {
@@ -790,6 +791,26 @@ function Tosifier() {
                   value={quizDetail.is_random}
                   onChange={handleQuizDetail}
                   name="is_random"
+                  sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
+                >
+                  <MenuItem value={true} dense>
+                    Yes
+                  </MenuItem>
+                  <MenuItem value={false} dense>
+                    No
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid flex={1}>
+              <FormControl size="small" fullWidth>
+                <InputLabel id="allowReviewLabel">Allow Review</InputLabel>
+                <Select
+                  label="Allow Review"
+                  labelId="allowReviewLabel"
+                  value={quizDetail.allow_review}
+                  onChange={handleQuizDetail}
+                  name="allow_review"
                   sx={{ bgcolor: "#fafafa", borderRadius: 2 }}
                 >
                   <MenuItem value={true} dense>

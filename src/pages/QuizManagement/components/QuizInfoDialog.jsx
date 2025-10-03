@@ -247,7 +247,36 @@ const QuizInfoDialog = ({ openInfo, setOpen }) => {
                     </Typography>
                   </Stack>
                 </Stack>
+
                 <Divider sx={{ my: 2 }} />
+                <Grid container>
+                  <Grid flex={3}>
+                    <Stack>
+                      <Typography variant="caption" fontWeight="bold">
+                        Description
+                      </Typography>
+                      <Stack maxHeight={100} overflow="auto">
+                        <Typography variant="body2">
+                          {data.exam_details.desciption ?? "No description"}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  </Grid>
+                  <Grid flex={3}>
+                    <Stack>
+                      <Typography variant="caption" fontWeight="bold">
+                        Objective
+                      </Typography>
+                      <Stack maxHeight={100} overflow="auto">
+                        <Typography variant="body2">
+                          {data.exam_details.objective ?? "No objective"}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  </Grid>
+                </Grid>
+                <Divider sx={{ my: 2 }} />
+
                 <Grid container>
                   <Grid flex={1}>
                     <Stack>
@@ -279,28 +308,14 @@ const QuizInfoDialog = ({ openInfo, setOpen }) => {
                       </Typography>
                     </Stack>
                   </Grid>
-                  <Grid flex={3}>
+                  <Grid flex={1}>
                     <Stack>
                       <Typography variant="caption" fontWeight="bold">
-                        Description
+                        Allow Review
                       </Typography>
-                      <Stack maxHeight={100} overflow="auto">
-                        <Typography variant="body2">
-                          {data.exam_details.desciption ?? "No description"}
-                        </Typography>
-                      </Stack>
-                    </Stack>
-                  </Grid>
-                  <Grid flex={3}>
-                    <Stack>
-                      <Typography variant="caption" fontWeight="bold">
-                        Objective
+                      <Typography variant="body2">
+                        {data.exam_details.allow_review ? "True" : "False"}
                       </Typography>
-                      <Stack maxHeight={100} overflow="auto">
-                        <Typography variant="body2">
-                          {data.exam_details.objective ?? "No objective"}
-                        </Typography>
-                      </Stack>
                     </Stack>
                   </Grid>
                 </Grid>

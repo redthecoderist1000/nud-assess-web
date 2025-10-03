@@ -79,6 +79,12 @@ function TransferDeptDialog({ open, setOpen, selectedFaculty, currDept }) {
       .delete()
       .eq("faculty_id", selectedFaculty);
 
+    // remove assistant program chair
+    await supabase
+      .from("tbl_program")
+      .update({ assistant_program_chair: null })
+      .eq("assistant_program_chair", selectedFaculty);
+
     // remove incharge
     await supabase
       .from("tbl_subject")
@@ -91,8 +97,8 @@ function TransferDeptDialog({ open, setOpen, selectedFaculty, currDept }) {
       severity: "success",
     });
 
-    navigate(-1);
     setOpen(false);
+    navigate(-1);
   };
 
   useEffect(() => {

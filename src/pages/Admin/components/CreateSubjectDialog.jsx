@@ -7,10 +7,14 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   TextField,
 } from "@mui/material";
-import { act, useContext, useState } from "react";
+import { act, useContext, useEffect, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
 import { userContext } from "../../../App";
 import GeneralDialog from "../../../components/elements/GeneralDialog";
@@ -25,6 +29,7 @@ function CreateSubjectDialog({ open, onClose }) {
     content: "",
     actions: null,
   });
+  const [deptOptions, setDeptOptions] = useState([]);
 
   const handleSubFormChange = (e) => {
     setSubForm({ ...subForm, [e.target.name]: e.target.value });
@@ -139,12 +144,31 @@ function CreateSubjectDialog({ open, onClose }) {
     setSubForm({});
   };
 
-  useState(() => {
+  useEffect(() => {
     if (!open) {
       setSubForm({});
       setLoading(false);
+      return;
     }
+    fetchDeptOptions();
   }, [open]);
+
+  const fetchDeptOptions = async () => {
+    const { data: deptData, error } = await supabase
+      .from("tbl_department")
+      .select("id, name, shorthand_name");
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch departments. Please try again.",
+        severity: "error",
+      });
+      onClose();
+      return;
+    }
+    setDeptOptions(deptData);
+  };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth={true} maxWidth="sm">
@@ -169,6 +193,26 @@ function CreateSubjectDialog({ open, onClose }) {
               size="small"
               onChange={handleSubFormChange}
             />
+            {/* <FormControl size="small" fullWidth>
+              <InputLabel id="department_label">Sub Department</InputLabel>
+              <Select
+                label="Sub Department"
+                labelId="department_label"
+                defaultValue=""
+                value={subForm.sub_department}
+                onChange={handleSubFormChange}
+                name="sub_department"
+              >
+                <MenuItem value={""} disabled>
+                  Select Department
+                </MenuItem>
+                {deptOptions.map((dept) => (
+                  <MenuItem key={dept.id} value={dept.id}>
+                    {dept.name} ({dept.shorthand_name})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl> */}
           </Stack>
         </DialogContent>
 

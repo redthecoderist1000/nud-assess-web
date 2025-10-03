@@ -123,16 +123,35 @@ function SignUpForm() {
         </motion.p>
         <Stack rowGap={2}>
           <Stack direction={"row"} spacing={2}>
-            <TextField
+            {/* <TextField
               fullWidth
-              required
-              label="Suffix"
+              label="Prefix"
               name="suffix"
               size="small"
               value={formData.suffix}
               onChange={handleChange}
               variant="outlined"
-            />
+            /> */}
+            <FormControl size="small" fullWidth>
+              <InputLabel id="suffix_label">Preffix</InputLabel>
+              <Select
+                label="Preffix"
+                labelId="suffix_label"
+                id="suffix_select"
+                name="suffix"
+                onChange={handleChange}
+              >
+                <MenuItem value={0} disabled>
+                  --Select Preffix--
+                </MenuItem>
+                <MenuItem value="Jr">Jr.</MenuItem>
+                <MenuItem value="Sr">Sr.</MenuItem>
+                <MenuItem value="I">I</MenuItem>
+                <MenuItem value="II">II</MenuItem>
+                <MenuItem value="III">III</MenuItem>
+                <MenuItem value="IV">IV</MenuItem>
+              </Select>
+            </FormControl>
             <TextField
               required
               fullWidth

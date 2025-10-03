@@ -17,11 +17,40 @@ import { supabase } from "../../../../helper/Supabase";
 import { userContext } from "../../../../App";
 
 function PromoteDialog({ open, setOpen, facultyId, name, role }) {
-  const { setSnackbar } = useContext(userContext);
+  const { user, setSnackbar } = useContext(userContext);
   const [loading, setLoading] = useState(false);
+  const [programData, setProgramData] = useState({});
 
   const promote = async () => {
     setLoading(true);
+
+    console.log("program data", programData);
+    console.log("faculty id", facultyId);
+    console.log("role", role);
+    const payload = {
+      assistant_program_chair: role == "Faculty" ? facultyId : null,
+    };
+    console.log("payload", payload);
+    // update assistant program chair
+    const { data, error: updateError } = await supabase
+      .from("tbl_program")
+      .update(payload)
+      .eq("id", programData.id)
+      .select();
+
+    if (updateError) {
+      console.log("update program error", updateError);
+      setSnackbar({
+        open: true,
+        message: "Failed to update program information. Please try again.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    console.log("update program data", data);
+    // update to admin or faculty
     const { error } = await supabase
       .from("tbl_users")
       .update({ role: role == "Faculty" ? "Admin" : "Faculty" })
@@ -47,8 +76,31 @@ function PromoteDialog({ open, setOpen, facultyId, name, role }) {
   useEffect(() => {
     if (!open) {
       setLoading(false);
+      return;
     }
+    fetchProgramData();
   }, [open]);
+
+  const fetchProgramData = async () => {
+    // get program id
+    const { data, error } = await supabase
+      .from("tbl_program")
+      .select("id, name, assistant_program_chair")
+      .eq("program_chair", user.id)
+      .single();
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to retrieve program information. Please try again.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+    setProgramData(data);
+    // console.log("program data", data);
+  };
 
   return (
     <Dialog
@@ -68,12 +120,16 @@ function PromoteDialog({ open, setOpen, facultyId, name, role }) {
               This action will give <b>{name}</b> Administrator access to NUD
               Assess, including managing faculties and subjects. Do you want to
               proceed?
+              <Typography>Affected Program:</Typography>
+              <Typography fontWeight={"bold"}>{programData.name}</Typography>
             </DialogContentText>
           ) : (
             <DialogContentText>
               This action will revoke <b>{name}</b>'s Administrator access to
               NUD Assess, including managing faculties and subjects. Do you want
               to proceed?
+              <Typography>Affected Program:</Typography>
+              <Typography fontWeight={"bold"}>{programData.name}</Typography>
             </DialogContentText>
           )}
         </Stack>

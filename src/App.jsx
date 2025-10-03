@@ -178,9 +178,7 @@ const AnimatedRoutes = () => {
         });
         setLoading(false);
         return;
-      }
-
-      if (data === null) {
+      } else if (data === null) {
         navigate("/setup", {
           replace: true,
           state: {
@@ -188,6 +186,15 @@ const AnimatedRoutes = () => {
             email: session.user.email,
           },
         });
+        return;
+      } else if (data.role === "Student") {
+        setSnackbar({
+          open: true,
+          message: "Access denied. Students cannot access this platform.",
+          severity: "error",
+        });
+        await supabase.auth.signOut();
+        setLoading(false);
         return;
       }
 
@@ -214,10 +221,29 @@ const AnimatedRoutes = () => {
       }
     );
 
-    return () => authListener.subscription.unsubscribe();
+    const userChannel = supabase
+      .channel("public-tbl_users")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tbl_users",
+          filter: `id=eq.${user.user_id}`,
+        },
+        (payload) => {
+          // console.log("User channel payload:", payload);
+          initAuth();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      authListener.subscription.unsubscribe();
+      supabase.removeChannel(userChannel);
+    };
   }, []);
 
-  // setInterval(checkSession, 10000);
   return (
     <>
       <signupContext.Provider value={signupVal}>

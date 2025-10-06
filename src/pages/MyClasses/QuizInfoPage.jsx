@@ -69,7 +69,7 @@ function QuizInfoPage() {
         setTotalItems(res.total_items);
         return {
           student_id: d.id,
-          name: `${d.f_name} ${d.m_name} ${d.l_name}`,
+          name: `${d.full_name}`,
           result_id: res.id,
           score: res.correct_items,
           total_items: res.total_items,
@@ -79,7 +79,7 @@ function QuizInfoPage() {
       } else {
         return {
           student_id: d.id,
-          name: `${d.f_name} ${d.m_name} ${d.l_name}`,
+          name: `${d.full_name}`,
           is_answered: false,
         };
       }

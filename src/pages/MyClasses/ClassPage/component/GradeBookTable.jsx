@@ -74,18 +74,29 @@ const GradeBookTable = ({ classId, class_name }) => {
             scores: [],
           });
         }
-        studentsMap.get(key).scores[examIndex] = student.ave_score;
+        studentsMap.get(key).scores[examIndex] = {
+          correct_items: student.correct_items,
+          total_items: student.total_items,
+        };
       });
     });
 
     studentsMap.forEach((student) => {
-      const total = student.scores.reduce((sum, score) => sum + score, 0);
-      const average =
-        student.scores.length > 0 ? total / student.scores.length : 0;
-      student.average_score = Math.round(average * 100) / 100;
+      const total_correct = student.scores.reduce(
+        (sum, score) => sum + score.correct_items,
+        0
+      );
+      const total_items = student.scores.reduce(
+        (sum, score) => sum + score.total_items,
+        0
+      );
+      const total = (total_correct / total_items) * 100 || 0;
+      const average = total / student.scores.length;
+      student.score = Math.round(average * 100) / 100;
     });
 
     setBody(Array.from(studentsMap.values()));
+    console.log(Array.from(studentsMap.values()));
 
     setLoading(false);
   };
@@ -160,62 +171,70 @@ const GradeBookTable = ({ classId, class_name }) => {
           </thead>
           <tbody>
             {/* scores */}
-            {filteredBody.map((s, idx) => (
-              <tr key={idx} className="border-b last:border-b-0">
-                <td
-                  className={`py-2 px-3 flex items-center gap-2 sticky left-0 bg-white z-10`}
-                >
-                  <span>{s.student_name}</span>
+            {filteredBody.length === 0 ? (
+              <tr>
+                <td colSpan={headers.length + 2} className="py-4 text-center">
+                  No result available.
                 </td>
-                {s.scores.map((g, i) => (
-                  <td key={i} className="py-2 px-3 font-medium text-center">
+              </tr>
+            ) : (
+              filteredBody.map((s, idx) => (
+                <tr key={idx} className="border-b last:border-b-0">
+                  <td
+                    className={`py-2 px-3 flex items-center gap-2 sticky left-0 bg-white z-10`}
+                  >
+                    <span>{s.student_name}</span>
+                  </td>
+                  {s.scores.map((g, i) => (
+                    <td key={i} className="py-2 px-3 font-medium text-center">
+                      <span
+                        className={
+                          g >= 90
+                            ? "text-green-700"
+                            : g >= 80
+                              ? "text-blue-700"
+                              : g >= 70
+                                ? "text-yellow-700"
+                                : "text-gray-700"
+                        }
+                      >
+                        {g.correct_items}/{g.total_items}
+                      </span>
+                    </td>
+                  ))}
+                  {/* average */}
+                  <td className="py-2 px-3 font-medium sticky right-0 bg-white z-10">
                     <span
                       className={
-                        g >= 90
+                        s.score >= 90
                           ? "text-green-700"
-                          : g >= 80
+                          : s.score >= 80
                             ? "text-blue-700"
-                            : g >= 70
+                            : s.score >= 70
                               ? "text-yellow-700"
                               : "text-gray-700"
                       }
                     >
-                      {g}
+                      {s.score ? `${s.score}%` : "-"}
                     </span>
+                    <LinearProgress
+                      variant="determinate"
+                      value={s.score}
+                      color={
+                        s.score >= 90
+                          ? "success"
+                          : s.score >= 80
+                            ? "info"
+                            : s.score >= 70
+                              ? "warning"
+                              : "error"
+                      }
+                      sx={{ height: 6, borderRadius: 3 }}
+                    />
                   </td>
-                ))}
-                {/* average */}
-                <td className="py-2 px-3 font-medium sticky right-0 bg-white z-10">
-                  <span
-                    className={
-                      s.average_score >= 90
-                        ? "text-green-700"
-                        : s.average_score >= 80
-                          ? "text-blue-700"
-                          : s.average_score >= 70
-                            ? "text-yellow-700"
-                            : "text-gray-700"
-                    }
-                  >
-                    {s.average_score ? `${s.average_score}%` : "-"}
-                  </span>
-                  <LinearProgress
-                    variant="determinate"
-                    value={s.average_score}
-                    color={
-                      s.average_score >= 90
-                        ? "success"
-                        : s.average_score >= 80
-                          ? "info"
-                          : s.average_score >= 70
-                            ? "warning"
-                            : "error"
-                    }
-                    sx={{ height: 6, borderRadius: 3 }}
-                  />
-                </td>
-              </tr>
-            ))}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

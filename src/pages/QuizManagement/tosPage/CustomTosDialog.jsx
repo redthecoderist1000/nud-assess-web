@@ -14,11 +14,13 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import PercentRoundedIcon from "@mui/icons-material/PercentRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import { userContext } from "../../../App";
 
 function CustomTosDialog({ open, setOpen, setTosAllocation, onCancel }) {
+  const { setSnackBar } = useContext(userContext);
   const [tempTos, setTempTos] = useState({
     remembering: 0,
     understanding: 0,
@@ -66,7 +68,11 @@ function CustomTosDialog({ open, setOpen, setTosAllocation, onCancel }) {
     // setOpen(false);
 
     if (total !== 100) {
-      alert("The total percentage must be equal to 100%");
+      setSnackBar({
+        open: true,
+        message: "The total percentage must be equal to 100%",
+        severity: "error",
+      });
       return;
     }
 

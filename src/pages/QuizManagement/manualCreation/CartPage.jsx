@@ -310,6 +310,7 @@ function CartPage() {
       mode: "Manual",
       total_items: yourExam.length,
       repository: quizDetail.repository,
+      allow_review: quizDetail.allow_review,
     };
     // console.log(quizDetail);
     // console.log(examPayload);
@@ -498,6 +499,10 @@ function CartPage() {
               <QuestionDetailItem
                 title="Is Random"
                 body={quizDetail.is_random ? "True" : "False"}
+              />
+              <QuestionDetailItem
+                title="Allow Review"
+                body={quizDetail.allow_review ? "True" : "False"}
               />
             </Stack>
           </Card>

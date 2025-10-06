@@ -163,7 +163,7 @@ const LoginPage = () => {
       password: password,
     });
     if (error) {
-      // console.log("error code:", error.code);
+      console.log("error code:", error.code);
       if (error.code === "email_not_confirmed") {
         setSnackbar({
           open: true,
@@ -174,6 +174,12 @@ const LoginPage = () => {
         setSnackbar({
           open: true,
           message: "Invalid email or password.",
+          severity: "error",
+        });
+      } else if (error.code === "user_banned") {
+        setSnackbar({
+          open: true,
+          message: "This account no longer has access to the system.",
           severity: "error",
         });
       } else {

@@ -1,21 +1,16 @@
 import {
   Accordion,
-  AccordionActions,
   AccordionDetails,
   AccordionSummary,
   Box,
   Button,
-  Card,
   CircularProgress,
-  ClickAwayListener,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   Divider,
   Grid,
-  IconButton,
   Paper,
   Stack,
   styled,
@@ -30,16 +25,15 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
-import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
-import ImageRoundedIcon from "@mui/icons-material/ImageRounded";
 import TOS_pdf_export from "../../../components/printables/TOS_pdf";
 import Exam_pdf from "../../../components/printables/Exam_pdf";
 import ExamKey_pdf from "../../../components/printables/ExamKey_pdf";
 import Export from "../../../components/elements/Export";
 import TOS_csv_export from "../../../components/printables/TOS_csv";
 import ImagePreview from "./resultPage/ImagePreview";
+import { userContext } from "../../../App";
 
 const TosTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -67,6 +61,7 @@ function CustomTabPanel(props) {
 }
 
 const QuizInfoDialog = ({ openInfo, setOpen }) => {
+  const { setSnackbar } = useContext(userContext);
   const handleClose = () => {
     setOpen({ open: false, exam_id: null });
   };
@@ -94,7 +89,10 @@ const QuizInfoDialog = ({ openInfo, setOpen }) => {
         .single();
 
       if (error) {
-        console.error("Error fetching exam data:", error);
+        setSnackbar({
+          open: true,
+          message: "Error fetching exam data",
+        });
         return;
       }
 
@@ -249,7 +247,36 @@ const QuizInfoDialog = ({ openInfo, setOpen }) => {
                     </Typography>
                   </Stack>
                 </Stack>
+
                 <Divider sx={{ my: 2 }} />
+                <Grid container>
+                  <Grid flex={3}>
+                    <Stack>
+                      <Typography variant="caption" fontWeight="bold">
+                        Description
+                      </Typography>
+                      <Stack maxHeight={100} overflow="auto">
+                        <Typography variant="body2">
+                          {data.exam_details.desciption ?? "No description"}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  </Grid>
+                  <Grid flex={3}>
+                    <Stack>
+                      <Typography variant="caption" fontWeight="bold">
+                        Objective
+                      </Typography>
+                      <Stack maxHeight={100} overflow="auto">
+                        <Typography variant="body2">
+                          {data.exam_details.objective ?? "No objective"}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  </Grid>
+                </Grid>
+                <Divider sx={{ my: 2 }} />
+
                 <Grid container>
                   <Grid flex={1}>
                     <Stack>
@@ -281,28 +308,14 @@ const QuizInfoDialog = ({ openInfo, setOpen }) => {
                       </Typography>
                     </Stack>
                   </Grid>
-                  <Grid flex={3}>
+                  <Grid flex={1}>
                     <Stack>
                       <Typography variant="caption" fontWeight="bold">
-                        Description
+                        Allow Review
                       </Typography>
-                      <Stack maxHeight={100} overflow="auto">
-                        <Typography variant="body2">
-                          {data.exam_details.desciption ?? "No description"}
-                        </Typography>
-                      </Stack>
-                    </Stack>
-                  </Grid>
-                  <Grid flex={3}>
-                    <Stack>
-                      <Typography variant="caption" fontWeight="bold">
-                        Objective
+                      <Typography variant="body2">
+                        {data.exam_details.allow_review ? "True" : "False"}
                       </Typography>
-                      <Stack maxHeight={100} overflow="auto">
-                        <Typography variant="body2">
-                          {data.exam_details.objective ?? "No objective"}
-                        </Typography>
-                      </Stack>
                     </Stack>
                   </Grid>
                 </Grid>

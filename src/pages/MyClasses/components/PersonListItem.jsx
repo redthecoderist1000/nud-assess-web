@@ -9,7 +9,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 
 function PersonListItem({ person, setRemDialog }) {
-  const name = `${person.f_name || ""} ${person.l_name || ""}`.trim();
+  const name = `${person.full_name}`.trim();
 
   const getInitials = () => {
     if (!name) return "";

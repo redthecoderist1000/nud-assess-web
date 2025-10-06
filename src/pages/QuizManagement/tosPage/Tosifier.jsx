@@ -17,6 +17,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -28,7 +29,9 @@ import { aiRun } from "../../../helper/Gemini";
 import { supabase } from "../../../helper/Supabase";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import InfoOutlineRoundedIcon from "@mui/icons-material/InfoOutlineRounded";
 import { relevanceCheck } from "../../../helper/RelevanceCheck";
+import CustomTosDialog from "./CustomTosDialog";
 
 const env = import.meta.env;
 
@@ -97,7 +100,16 @@ function Tosifier() {
   });
   const [lessonOption, setLessonOption] = useState([]);
   const [files, setFiles] = useState([]);
-
+  const [tosAllocation, setTosAllocation] = useState({
+    remembering: 0.3,
+    understanding: 0.2,
+    applying: 0.2,
+    analyzing: 0.1,
+    creating: 0.1,
+    evaluating: 0.1,
+  });
+  const [tosDialog, setTosDialog] = useState(false);
+  const [tosDropdown, setTosDropdown] = useState("default");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null);
 
@@ -163,21 +175,21 @@ function Tosifier() {
       const itemsPerRow = Math.round((total.items * percentage) / 100);
 
       // Calculate exact values
-      const percents = {
-        remembering: 0.3,
-        understanding: 0.2,
-        applying: 0.2,
-        analyzing: 0.1,
-        creating: 0.1,
-        evaluating: 0.1,
-      };
+      // const percents = {
+      //   remembering: 0.3,
+      //   understanding: 0.2,
+      //   applying: 0.2,
+      //   analyzing: 0.1,
+      //   creating: 0.1,
+      //   evaluating: 0.1,
+      // };
 
       // Compute exact and floored values
       const exacts = {};
       const floors = {};
       const remainders = [];
       let sumFloors = 0;
-      Object.entries(percents).forEach(([key, percent]) => {
+      Object.entries(tosAllocation).forEach(([key, percent]) => {
         const exact = itemsPerRow * percent;
         exacts[key] = exact;
         floors[key] = Math.floor(exact);
@@ -224,7 +236,7 @@ function Tosifier() {
     });
 
     setRows(updatedRows);
-  }, [total.hours, total.items]);
+  }, [total.hours, total.items, tosAllocation]);
 
   //   fetch subjects by user department
   const fetchSubjects = async () => {
@@ -660,6 +672,57 @@ function Tosifier() {
     navigate(-1);
   };
 
+  useEffect(() => {
+    switch (tosDropdown) {
+      case "default":
+        setTosAllocation({
+          remembering: 0.3,
+          understanding: 0.2,
+          applying: 0.2,
+          analyzing: 0.1,
+          creating: 0.1,
+          evaluating: 0.1,
+        });
+        break;
+      case "custom":
+        setTosDialog(true);
+        break;
+      case "easy":
+        setTosAllocation({
+          remembering: 0.4,
+          understanding: 0.4,
+          applying: 0.1,
+          analyzing: 0.1,
+          creating: 0.0,
+          evaluating: 0.0,
+        });
+        break;
+      case "medium":
+        setTosAllocation({
+          remembering: 0.0,
+          understanding: 0.0,
+          applying: 0.5,
+          analyzing: 0.5,
+          creating: 0.0,
+          evaluating: 0.0,
+        });
+        break;
+      case "hard":
+        setTosAllocation({
+          remembering: 0.0,
+          understanding: 0.0,
+          applying: 0.1,
+          analyzing: 0.1,
+          creating: 0.4,
+          evaluating: 0.4,
+        });
+        break;
+
+      default:
+        break;
+    }
+  }, [tosDropdown]);
+
   return (
     <Container maxWidth="xl" className="my-5">
       <div className="bg-white border-b border-gray-200 pt-6 pb-2 mb-6">
@@ -804,9 +867,20 @@ function Tosifier() {
             </Grid>
             <Grid flex={1}>
               <FormControl size="small" fullWidth>
-                <InputLabel id="allowReviewLabel">Allow Review</InputLabel>
+                <Tooltip
+                  title="Allow students to review their answers after submission."
+                  placement="right"
+                  arrow
+                >
+                  <InputLabel id="allowReviewLabel">
+                    Allow Review
+                    <InfoOutlineRoundedIcon
+                      sx={{ fontSize: "medium", ml: 1 }}
+                    />
+                  </InputLabel>
+                </Tooltip>
                 <Select
-                  label="Allow Review"
+                  label="Allow Review ----"
                   labelId="allowReviewLabel"
                   value={quizDetail.allow_review}
                   onChange={handleQuizDetail}
@@ -839,22 +913,52 @@ function Tosifier() {
             {quizDetail.mode == "AI-Generated" && (
               <FileUpload files={files} setFiles={setFiles} />
             )}
-            <TextField
-              label="Total Items"
-              size="small"
-              required
-              className="itemInput"
-              type="number"
-              inputProps={{
-                min: 1,
-                ...(quizDetail.mode === "AI-Generated" ? { max: 50 } : {}),
-              }}
-              onChange={changeTotalItems}
-              sx={{
-                width: { xs: "100%", sm: "150px" },
-                bgcolor: "#fafafa",
-              }}
-            />
+
+            <Stack direction="row" spacing={2}>
+              <FormControl
+                size="small"
+                required
+                sx={{
+                  width: { xs: "100%", sm: "150px" },
+                  bgcolor: "#fafafa",
+                }}
+              >
+                <InputLabel id="tosAllocationLabel" required>
+                  TOS Allocation
+                </InputLabel>
+                <Select
+                  label="TOS Allocation"
+                  labelId="tosAllocationLabel"
+                  defaultValue="default"
+                  value={tosDropdown}
+                  onChange={(e) => setTosDropdown(e.target.value)}
+                >
+                  <MenuItem value="default">Default</MenuItem>
+                  <MenuItem value="easy">Easy</MenuItem>
+                  <MenuItem value="medium">Medium</MenuItem>
+                  <MenuItem value="hard">Hard</MenuItem>
+                  <MenuItem value="custom">Custom</MenuItem>
+                </Select>
+              </FormControl>
+
+              <TextField
+                label="Total Items"
+                size="small"
+                required
+                className="itemInput"
+                type="number"
+                inputProps={{
+                  min: 1,
+                  ...(quizDetail.mode === "AI-Generated" ? { max: 50 } : {}),
+                }}
+                onChange={changeTotalItems}
+                sx={{
+                  width: { xs: "100%", sm: "150px" },
+                  bgcolor: "#fafafa",
+                }}
+              />
+            </Stack>
+
             <Card sx={{ borderRadius: 3, boxShadow: "none" }}>
               <TableContainer
                 component={Paper}
@@ -891,22 +995,24 @@ function Tosifier() {
                     </TableRow>
                     <TableRow>
                       <TosTableCell bgcolor="#e3f2fd">
-                        <b>Remembering (30%)</b>
+                        <b>Remembering ({tosAllocation.remembering * 100}%)</b>
                       </TosTableCell>
                       <TosTableCell bgcolor="#e3f2fd">
-                        <b>Understanding (20%)</b>
+                        <b>
+                          Understanding ({tosAllocation.understanding * 100}%)
+                        </b>
                       </TosTableCell>
                       <TosTableCell bgcolor="#fffde7">
-                        <b>Applying (20%)</b>
+                        <b>Applying ({tosAllocation.applying * 100}%)</b>
                       </TosTableCell>
                       <TosTableCell bgcolor="#fffde7">
-                        <b>Analyzing (10%)</b>
+                        <b>Analyzing ({tosAllocation.analyzing * 100}%)</b>
                       </TosTableCell>
                       <TosTableCell bgcolor="#ffebee">
-                        <b>Creating (10%)</b>
+                        <b>Creating ({tosAllocation.creating * 100}%)</b>
                       </TosTableCell>
                       <TosTableCell bgcolor="#ffebee">
-                        <b>Evaluating (10%)</b>
+                        <b>Evaluating ({tosAllocation.evaluating * 100}%)</b>
                       </TosTableCell>
                     </TableRow>
                   </TableHead>
@@ -1020,7 +1126,7 @@ function Tosifier() {
                         <b>Total</b>
                       </TosTableCell>
                       <TosTableCell>{total.hours}</TosTableCell>
-                      <TosTableCell>100%</TosTableCell>
+                      <TosTableCell>{total.percentage}%</TosTableCell>
                       <TosTableCell bgcolor="#e3f2fd">
                         {total.remembering}
                       </TosTableCell>
@@ -1098,6 +1204,15 @@ function Tosifier() {
           </Stack>
         </SectionCard>
       </form>
+      <CustomTosDialog
+        open={tosDialog}
+        setOpen={() => setTosDialog(false)}
+        setTosAllocation={setTosAllocation}
+        onCancel={() => {
+          setTosDropdown("default");
+          setTosDialog(false);
+        }}
+      />
     </Container>
   );
 }

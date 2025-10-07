@@ -55,6 +55,8 @@ const GradeBookTable = ({ classId, class_name }) => {
         message: "Error fetching gradebook. Please try again.",
         severity: "error",
       });
+      setLoading(false);
+
       return;
     }
 

@@ -19,11 +19,13 @@ import {
   Stack,
   TextField,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import TermsDialog from "./components/TermsDialog";
 import PolicyDialog from "./components/PolicyDialog";
+import ForgotPasswordDialog from "./components/ForgotPasswordDialog";
 
 const LoginPage = () => {
   const env = import.meta.env;
@@ -35,6 +37,7 @@ const LoginPage = () => {
   const [showCPassword, setShowCPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { setSnackbar } = useContext(userContext);
+  const [forgotPassword, setForgotPassword] = useState(false);
 
   const [signUp, setSignUp] = useState(false);
   const [formSignUp, setFormSignUp] = useState({
@@ -434,6 +437,18 @@ const LoginPage = () => {
                 </FormControl>
 
                 {/* Login Button */}
+                <Typography
+                  variant="body2"
+                  textAlign="right"
+                  sx={{
+                    cursor: "pointer",
+                    color: "#35408E",
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                  onClick={() => setForgotPassword(true)}
+                >
+                  Forgot Password?
+                </Typography>
 
                 <Button
                   type="submit"
@@ -485,6 +500,11 @@ const LoginPage = () => {
       <TermsDialog open={terms} onClose={() => setTerms(false)} />
 
       <PolicyDialog open={privacy} onClose={() => setPrivacy(false)} />
+
+      <ForgotPasswordDialog
+        open={forgotPassword}
+        onClose={() => setForgotPassword(false)}
+      />
     </motion.div>
   );
 };

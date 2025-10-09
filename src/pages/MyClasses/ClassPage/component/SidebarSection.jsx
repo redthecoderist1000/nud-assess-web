@@ -38,7 +38,7 @@ const SidebarSection = ({ classData, people = [], quizzes = [] }) => {
         <p className="text-base font-semibold mb-3">{classData.desc}</p>
         <p className="text-sm text-gray-300 mb-1">Class join code</p>
         <div className="flex items-center gap-2 mb-2">
-          <span className="bg-[#23286b] px-2 py-1 rounded text-base font-semibold border border-gray-400">
+          <span className="bg-[#23286b] px-2 py-1 rounded text-base font-mono font-semibold border border-gray-400">
             {classData.join_code}
           </span>
           <Tooltip

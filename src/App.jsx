@@ -49,6 +49,7 @@ import CartPage from "./pages/QuizManagement/manualCreation/CartPage.jsx";
 import Tosifier from "./pages/QuizManagement/tosPage/Tosifier.jsx";
 import AutoSignOut from "./components/elements/AutoSignOut.jsx";
 import { Alert, Snackbar } from "@mui/material";
+import ResetPasswordPage from "./pages/Auth/ResetPasswordPage.jsx";
 
 export const userContext = createContext();
 export const signupContext = createContext();
@@ -158,6 +159,14 @@ const AnimatedRoutes = () => {
 
   const initAuth = async () => {
     // await supabase.auth.signOut();
+    const hash = location.hash;
+    const params = new URLSearchParams(hash.slice(1));
+    const type = params.get("type");
+
+    if (type === "recovery") {
+      setLoading(false);
+      return;
+    }
 
     const {
       data: { session },
@@ -213,7 +222,13 @@ const AnimatedRoutes = () => {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        if (!session) {
+        // console.log("Auth event:", _event);
+        // console.log("Session:", session);
+
+        if (_event === "PASSWORD_RECOVERY") {
+          // console.log("Password recovery event detected");
+          return;
+        } else if (!session) {
           setUser({});
         } else {
           initAuth();
@@ -257,6 +272,7 @@ const AnimatedRoutes = () => {
                 <Route path="/signup-otp" element={<SignupOtp />} />
                 <Route path="/setup" element={<SetUpAccount />} />
 
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 {/* di pa ayos */}
                 {/* <Route path="/class/:id" element={<ClassPage />} /> */}
                 {/* <Route path="/create-class" element={<CreateClass />} /> */}

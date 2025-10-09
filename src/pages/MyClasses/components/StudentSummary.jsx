@@ -311,7 +311,7 @@ function StudentSummary(props) {
                                 {index + 1}. {data.question}
                               </Typography>
                               <span
-                                className={`${data.is_correct ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"} px-2 py-1 rounded-full text-xs font-semibold`}
+                                className={`${data.is_correct ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"} px-2 py-1 rounded-full text-xs font-semibold max-h-fit`}
                               >
                                 {data.is_correct ? "Correct" : "Wrong"}
                               </span>

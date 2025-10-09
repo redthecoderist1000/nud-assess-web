@@ -23,6 +23,25 @@ function ItemAnalysisQuiz(props) {
 
   useEffect(() => {
     fetchData();
+
+    const classChannel = supabase
+      .channel("item-analysis-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tbl_result",
+        },
+        (payload) => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(classChannel);
+    };
   }, []);
 
   const fetchData = async () => {
@@ -50,47 +69,58 @@ function ItemAnalysisQuiz(props) {
       <Stack direction="row" mb={2} justifyContent="space-between">
         <h2 className="text-2xl font-bold ">Item Analysis</h2>
 
-        <Export
-          anchorEl={anchorEl}
-          setAnchorEl={setAnchorEl}
-          dlCsv={dlCsv}
-          dlPdf={dlpdf}
-        />
+        {itemAnalysis.length > 0 && (
+          <Export
+            anchorEl={anchorEl}
+            setAnchorEl={setAnchorEl}
+            dlCsv={dlCsv}
+            dlPdf={dlpdf}
+          />
+        )}
       </Stack>
-      {itemAnalysis.length <= 0 ? (
-        <Typography align="center" variant="body2" color="textDisabled">
-          No data available.
-        </Typography>
-      ) : (
-        <TableContainer component={Paper} variant="outlined">
-          <Table sx={{ minWidth: 650 }} size="small">
-            <TableHead>
+
+      <TableContainer component={Paper} variant="outlined">
+        <Table sx={{ minWidth: 650 }} size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>
+                <b>No.</b>
+              </TableCell>
+              <TableCell>
+                <b>Question</b>
+              </TableCell>
+              <TableCell align="right">
+                <b>Correct</b>
+              </TableCell>
+              <TableCell align="right">
+                <b>Incorrect</b>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {itemAnalysis.length === 0 ? (
               <TableRow>
-                <TableCell>
-                  <b>Question</b>
-                </TableCell>
-                <TableCell align="right">
-                  <b>Correct</b>
-                </TableCell>
-                <TableCell align="right">
-                  <b>Incorrect</b>
+                <TableCell colSpan={4} align="center">
+                  <Typography variant="body2" color="text.secondary">
+                    No data available.
+                  </Typography>
                 </TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {itemAnalysis.map((row, index) => (
+            ) : (
+              itemAnalysis.map((row, index) => (
                 <TableRow key={index} sx={{ border: 0 }}>
+                  <TableCell>{index + 1}</TableCell>
                   <TableCell component="th" scope="row">
                     {row.question}
                   </TableCell>
                   <TableCell align="right">{row.correct}</TableCell>
                   <TableCell align="right">{row.in_correct}</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Card>
   );
 }

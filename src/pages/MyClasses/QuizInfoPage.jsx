@@ -3,11 +3,25 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../helper/Supabase";
 import Header from "../../assets/images/header.png";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import { Button, Card, Container, Stack } from "@mui/material";
+import {
+  Button,
+  Card,
+  Container,
+  Divider,
+  Grid,
+  IconButton,
+  Paper,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import RemoveCircleOutlineRoundedIcon from "@mui/icons-material/RemoveCircleOutlineRounded";
 import ItemAnalysisQuiz from "./components/ItemAnalysisQuiz";
 import LessonAnalysisQuiz from "./components/LessonAnalysisQuiz";
 import StudentSummaryce from "./components/StudentSummary";
 import StudentSummary from "./components/StudentSummary";
+import RetakeDialog from "./components/RetakeDialog";
+import { info } from "autoprefixer";
 
 function QuizInfoPage() {
   const location = useLocation();
@@ -21,15 +35,25 @@ function QuizInfoPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [openSummary, setOpenSummary] = useState(false);
   const [resultId, setResultId] = useState("");
+  const [retake, setRetake] = useState({
+    open: false,
+    student_name: "",
+    result_id: "",
+  });
 
   useEffect(() => {
     fetchData();
+    // console.log("class_exam_id:", class_exam_id);
 
     const classChannel = supabase
       .channel("custom-filter-channel")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "tbl_result" },
+        {
+          event: "*",
+          schema: "public",
+          table: "tbl_result",
+        },
         (payload) => {
           fetchData();
         }
@@ -74,6 +98,7 @@ function QuizInfoPage() {
           score: res.correct_items,
           total_items: res.total_items,
           is_answered: true,
+          info: res.info,
           percentage: Math.round((res.correct_items / res.total_items) * 100),
         };
       } else {
@@ -89,13 +114,23 @@ function QuizInfoPage() {
 
     const { data: examDetails } = await supabase
       .from("tbl_class_exam")
-      .select("tbl_exam(name, mode), tbl_class(class_name)")
+      .select(
+        "tbl_exam(name, mode, desc, objective, repository, tbl_subject(name), time_limit, is_random, allow_review, created_at), tbl_class(class_name)"
+      )
       .eq("id", class_exam_id)
       .single();
     setExamInfo({
       name: examDetails?.tbl_exam.name,
       mode: examDetails?.tbl_exam.mode,
       class_name: examDetails?.tbl_class.class_name,
+      desc: examDetails?.tbl_exam.desc,
+      objective: examDetails?.tbl_exam.objective,
+      repository: examDetails?.tbl_exam.repository,
+      subject: examDetails?.tbl_exam.tbl_subject.name,
+      time_limit: examDetails?.tbl_exam.time_limit,
+      is_random: examDetails?.tbl_exam.is_random,
+      allow_review: examDetails?.tbl_exam.allow_review,
+      created_at: new Date(examDetails?.tbl_exam.created_at).toLocaleString(),
     });
 
     setLoading(false);
@@ -145,6 +180,81 @@ function QuizInfoPage() {
       {/* <div className="p-8 bg-[#f5f7fb] min-h-screen"> */}
       <Container maxWidth={"xl"} sx={{ py: 5 }}>
         <Stack rowGap={4}>
+          {/* exam details */}
+          <Card variant="outlined" sx={{ p: 2 }}>
+            <Stack direction="row" justifyContent="space-between">
+              <Stack>
+                <Typography variant="caption" fontWeight="bold">
+                  Exam Name
+                </Typography>
+                <Typography variant="body1">{examInfo.name}</Typography>
+              </Stack>
+              <Stack>
+                <Typography variant="caption" fontWeight="bold">
+                  Subject
+                </Typography>
+                <Typography variant="body1">{examInfo.subject}</Typography>
+              </Stack>
+              <Stack>
+                <Typography variant="caption" fontWeight="bold">
+                  Mode
+                </Typography>
+                <Typography variant="body1">{examInfo.mode}</Typography>
+              </Stack>
+              <Stack>
+                <Typography variant="caption" fontWeight="bold">
+                  Time Limit (mins)
+                </Typography>
+                <Typography variant="body2">
+                  {examInfo.time_limit ?? "No time limit"}
+                </Typography>
+              </Stack>
+              <Stack>
+                <Typography variant="caption" fontWeight="bold">
+                  Shuffled Items
+                </Typography>
+                <Typography variant="body2">
+                  {examInfo.is_random ? "Yes" : "No"}
+                </Typography>
+              </Stack>
+              <Stack>
+                <Typography variant="caption" fontWeight="bold">
+                  Allow Review
+                </Typography>
+                <Typography variant="body2">
+                  {examInfo.allow_review ? "Yes" : "No"}
+                </Typography>
+              </Stack>
+            </Stack>
+            <Divider sx={{ my: 2 }} />
+            <Grid container>
+              <Grid flex={1}>
+                <Stack>
+                  <Typography variant="caption" fontWeight="bold">
+                    Description
+                  </Typography>
+                  <Stack maxHeight={100} overflow="auto">
+                    <Typography variant="body2">
+                      {examInfo.desc ?? "No description"}
+                    </Typography>
+                  </Stack>
+                </Stack>
+              </Grid>
+              <Grid flex={1}>
+                <Stack>
+                  <Typography variant="caption" fontWeight="bold">
+                    Objective
+                  </Typography>
+                  <Stack maxHeight={100} overflow="auto">
+                    <Typography variant="body2">
+                      {examInfo.objective ?? "No objective"}
+                    </Typography>
+                  </Stack>
+                </Stack>
+              </Grid>
+            </Grid>
+          </Card>
+
           {/* Stat Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className=" p-4 rounded-xl shadow bg-white">
@@ -168,11 +278,15 @@ function QuizInfoPage() {
             <div className="bg-indigo-50 p-4 rounded-xl shadow">
               <p className="text-sm text-gray-500">Average Score</p>
               <h2 className="text-2xl font-semibold text-indigo-600">
-                {submittedCount == 0 ? "0" : totalScore / submittedCount}/
-                {totalItems} --{" "}
                 {submittedCount == 0
                   ? "0"
-                  : (totalScore / submittedCount / totalItems) * 100}
+                  : (totalScore / submittedCount).toFixed(0)}
+                /{totalItems} --{" "}
+                {submittedCount == 0
+                  ? "0"
+                  : ((totalScore / submittedCount / totalItems) * 100).toFixed(
+                      2
+                    )}
                 %
               </h2>
             </div>
@@ -191,6 +305,8 @@ function QuizInfoPage() {
                     <th className="py-3 px-4">Status</th>
                     <th className="py-3 px-4">Score</th>
                     <th className="py-3 px-4">Percentage</th>
+                    <th className="py-3 px-4">Info</th>
+                    <th className="py-3 px-4">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -216,6 +332,30 @@ function QuizInfoPage() {
                       <td className="py-3 px-4 text-gray-700">
                         {s.is_answered ? `${s.percentage} %` : ""}
                       </td>
+                      <td className="py-3 px-4 text-gray-700">
+                        {s.is_answered && s.info ? s.info : "No issue"}
+                      </td>
+                      <td className="py-3 px-4 text-gray-700">
+                        {s.is_answered && (
+                          <Tooltip title="Allow retake" placement="top" arrow>
+                            <IconButton
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setRetake({
+                                  open: true,
+                                  student_name: s.name,
+                                  result_id: s.result_id,
+                                });
+                              }}
+                            >
+                              <RemoveCircleOutlineRoundedIcon
+                                color="error"
+                                sx={{ fontSize: 20 }}
+                              />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -240,6 +380,17 @@ function QuizInfoPage() {
         open={openSummary}
         close={handleCloseSummary}
         result_id={resultId}
+      />
+
+      <RetakeDialog
+        retake={retake}
+        onClose={() =>
+          setRetake({
+            open: false,
+            student_name: "",
+            result_id: "",
+          })
+        }
       />
     </div>
   );

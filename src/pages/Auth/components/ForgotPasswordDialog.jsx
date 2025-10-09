@@ -31,26 +31,31 @@ const ForgotPasswordDialog = ({ open, onClose }) => {
       return;
     }
     setIsLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo:
-        env.VITE_ENVIRONMENT === "deployed"
-          ? "http://nud-assess-test.onrender.com/reset-password"
-          : "http://localhost:5173/reset-password",
-    });
 
-    if (error) {
+    try {
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo:
+          env.VITE_ENVIRONMENT === "deployed"
+            ? "http://nud-assess-test.onrender.com/reset-password"
+            : "http://localhost:5173/reset-password",
+      });
+
+      setSnackbar({
+        open: true,
+        message: `Link to reset password has been sent to your ${email}`,
+        severity: "success",
+      });
+      setEmail("");
+    } catch (error) {
+      // console.log(error);
       setSnackbar({
         open: true,
         message: error.message,
         severity: "error",
       });
+      return;
     }
-    setSnackbar({
-      open: true,
-      message: `Link to reset password has been sent to your ${email}`,
-      severity: "success",
-    });
-    setEmail("");
+
     setIsLoading(false);
     onClose();
   };

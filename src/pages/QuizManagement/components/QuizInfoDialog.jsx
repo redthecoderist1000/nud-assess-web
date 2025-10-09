@@ -249,6 +249,7 @@ const QuizInfoDialog = ({ openInfo, setOpen }) => {
                 </Stack>
 
                 <Divider sx={{ my: 2 }} />
+
                 <Grid container>
                   <Grid flex={3}>
                     <Stack>

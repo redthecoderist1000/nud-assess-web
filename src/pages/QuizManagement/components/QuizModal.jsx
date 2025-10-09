@@ -85,7 +85,7 @@ const QuizModal = (props) => {
             </Avatar>
             <Box>
               <Typography variant="subtitle1" fontWeight="bold" color="#2563eb">
-                Random Bank
+                Randomized Quiz
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Use random questions from the bank to create a comprehensive

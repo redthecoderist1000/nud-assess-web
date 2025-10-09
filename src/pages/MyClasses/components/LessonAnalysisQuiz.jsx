@@ -21,6 +21,25 @@ function LessonAnalysisQuiz(props) {
 
   useEffect(() => {
     fetchData();
+
+    const classChannel = supabase
+      .channel("lesson-analysis-quiz")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tbl_result",
+        },
+        (payload) => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(classChannel);
+    };
   }, []);
 
   const fetchData = async () => {
@@ -52,39 +71,49 @@ function LessonAnalysisQuiz(props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {lessonAnalysis.map((row, index) => {
-              const score = (row.correct / row.count) * 100;
+            {lessonAnalysis.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={2} align="center">
+                  <Typography variant="body2" color="text.secondary">
+                    No data available.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              lessonAnalysis.map((row, index) => {
+                const score = (row.correct / row.count) * 100;
 
-              return (
-                <TableRow key={index} sx={{ border: 0 }}>
-                  {/* <Grid container spacing={2}>
+                return (
+                  <TableRow key={index} sx={{ border: 0 }}>
+                    {/* <Grid container spacing={2}>
                     <Grid size={1} border={1}> */}
-                  <TableCell component="th" scope="row">
-                    {row.title}
-                  </TableCell>
-                  {/* </Grid>
+                    <TableCell component="th" scope="row">
+                      {row.title}
+                    </TableCell>
+                    {/* </Grid>
                     <Grid size={1} border={1}> */}
-                  <TableCell align="left" width={500}>
-                    <LinearProgress
-                      value={score}
-                      variant="determinate"
-                      color={
-                        score > 80
-                          ? "primary"
-                          : score < 50
-                            ? "error"
-                            : "warning"
-                      }
-                    />
-                    <Typography variant="body2" align="center">
-                      {score.toFixed(1)} %
-                    </Typography>
-                  </TableCell>
-                  {/* </Grid>
+                    <TableCell align="left" width={500}>
+                      <LinearProgress
+                        value={score}
+                        variant="determinate"
+                        color={
+                          score > 80
+                            ? "primary"
+                            : score < 50
+                              ? "error"
+                              : "warning"
+                        }
+                      />
+                      <Typography variant="body2" align="center">
+                        {score.toFixed(1)} %
+                      </Typography>
+                    </TableCell>
+                    {/* </Grid>
                   </Grid> */}
-                </TableRow>
-              );
-            })}
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </TableContainer>

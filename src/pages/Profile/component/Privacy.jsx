@@ -231,7 +231,7 @@ const Privacy = () => {
       <div className="mb-4">
         <h3 className="text-md font-semibold text-gray-900 mb-1">Sign Out</h3>
         <p className="text-gray-500 text-sm mb-2">
-          Sign out of your TestBank Pro account on this device
+          Sign out of your NUD Assess account on this device
         </p>
 
         <Button

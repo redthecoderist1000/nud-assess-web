@@ -30,7 +30,7 @@ import PromoteDialog from "../components/facultyInfo/PromoteDialog";
 
 function FacultyInfo() {
   const navigate = useNavigate();
-  const { setSnackbar } = useContext(userContext);
+  const { user, setSnackbar } = useContext(userContext);
   const [searchParam] = useSearchParams();
   const facultyId = searchParam.get("facultyId");
 
@@ -73,7 +73,7 @@ function FacultyInfo() {
       return;
     }
 
-    console.log("sakses info:", data.subject_load);
+    // console.log("sakses info:", data.subject_load);
     setInfo(data.faculty_info);
     setLoad(data.subject_load);
     setQuestionGen(data.question_gen);

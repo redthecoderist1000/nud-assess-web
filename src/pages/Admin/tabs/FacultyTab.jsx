@@ -211,35 +211,43 @@ const FacultyTab = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleFaculty.map((row, index) => {
-              return (
-                <TableRow
-                  key={index}
-                  hover
-                  tabIndex={-1}
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => onClickRow(row.id)}
-                >
-                  <StyledTableCell component="th" scope="row">
-                    {row.fullname}
-                  </StyledTableCell>
+            {visibleFaculty.length == 0 ? (
+              <TableRow>
+                <StyledTableCell colSpan={headCells.length}>
+                  no results found
+                </StyledTableCell>
+              </TableRow>
+            ) : (
+              visibleFaculty.map((row, index) => {
+                return (
+                  <TableRow
+                    key={index}
+                    hover
+                    tabIndex={-1}
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => onClickRow(row.id)}
+                  >
+                    <StyledTableCell component="th" scope="row">
+                      {row.fullname}
+                    </StyledTableCell>
 
-                  <StyledTableCell>
-                    {/* {row.subject} */}
-                    <Stack
-                      columnGap={4}
-                      useFlexGap
-                      sx={{ flexWrap: "wrap" }}
-                      // width="100%"
-                    >
-                      {row.subjects.map((data, index) => {
-                        return <p key={index}>{data}</p>;
-                      })}
-                    </Stack>
-                  </StyledTableCell>
-                </TableRow>
-              );
-            })}
+                    <StyledTableCell>
+                      {/* {row.subject} */}
+                      <Stack
+                        columnGap={4}
+                        useFlexGap
+                        sx={{ flexWrap: "wrap" }}
+                        // width="100%"
+                      >
+                        {row.subjects.map((data, index) => {
+                          return <p key={index}>{data}</p>;
+                        })}
+                      </Stack>
+                    </StyledTableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </TableContainer>

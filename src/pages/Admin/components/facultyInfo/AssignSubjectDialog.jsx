@@ -24,7 +24,7 @@ import { userContext } from "../../../../App";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 
 function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
-  const { setSnackbar } = useContext(userContext);
+  const { user, setSnackbar } = useContext(userContext);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [subjectOption, setSubjectOption] = useState([]);
@@ -33,7 +33,8 @@ function AssignSubjectDialog({ open, setOpen, selectedFaculty }) {
   const fetchSubjects = async () => {
     const { data, error } = await supabase
       .from("vw_subjectfaculty")
-      .select("*");
+      .select("*")
+      .eq("department_id", user.department_id);
 
     if (error) {
       setSnackbar({

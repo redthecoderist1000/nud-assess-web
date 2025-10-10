@@ -34,10 +34,11 @@ function CreateDialogStep1({ onChoose }) {
         </Avatar>
         <Box>
           <Typography variant="subtitle1" fontWeight="bold" color="#2563eb">
-            Random Bank
+            Randomized Auto-Generated
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Use random questions from the bank to create a comprehensive quiz
+            Use random questions from the bank to create a comprehensive quiz.
+            Question items will be different for each student.
           </Typography>
         </Box>
       </Box>

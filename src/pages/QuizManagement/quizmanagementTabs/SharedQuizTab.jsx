@@ -4,6 +4,8 @@ import {
   Box,
   CircularProgress,
   FormControl,
+  FormControlLabel,
+  FormGroup,
   Grid,
   IconButton,
   InputLabel,
@@ -12,6 +14,7 @@ import {
   Select,
   Stack,
   styled,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -24,6 +27,7 @@ import {
   Typography,
 } from "@mui/material";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import InfoOutlineRoundedIcon from "@mui/icons-material/InfoOutlineRounded";
 
 import { supabase } from "../../../helper/Supabase";
 import QuizInfoDialog from "../components/QuizInfoDialog";
@@ -41,6 +45,7 @@ const headCells = [
   { id: "total_items", label: "Total Items" },
   { id: "usage_count", label: "Usage Count" },
   { id: "created_by", label: "Created By" },
+  { id: "archived_at", label: "Archived At" },
 ];
 
 function SharedQuizTab() {
@@ -54,6 +59,7 @@ function SharedQuizTab() {
     subject: "All",
     repository: "All",
     search: "",
+    show_archive: false,
   });
   const [subOptions, setSubOptions] = useState([]);
   const [repoOptions, setRepoOptions] = useState([]);
@@ -123,7 +129,11 @@ function SharedQuizTab() {
               .includes(filter.repository.toLowerCase()) ||
             filter.repository === "All";
 
-          return matchExamName && matchSubject && matchRepo;
+          const isArchived = filter.show_archive
+            ? row.archived_at !== null
+            : row.archived_at === null;
+
+          return matchExamName && matchSubject && matchRepo && isArchived;
         })
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
 
@@ -144,6 +154,7 @@ function SharedQuizTab() {
       subject: "All",
       repository: "All",
       search: "",
+      show_archive: false,
     });
   };
 
@@ -163,7 +174,7 @@ function SharedQuizTab() {
 
   return (
     <>
-      <Grid container direction={"row"} spacing={2}>
+      <Grid container direction={"row"} spacing={2} alignItems="center">
         <Grid flex={2}>
           <TextField
             fullWidth
@@ -231,6 +242,24 @@ function SharedQuizTab() {
             </Select>
           </FormControl>
         </Grid>
+        <FormGroup>
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={filter.show_archive}
+                onClick={() =>
+                  setFilter({ ...filter, show_archive: !filter.show_archive })
+                }
+              />
+            }
+            label={
+              <Typography variant="caption" color="textSecondary">
+                Show archived
+              </Typography>
+            }
+          />
+        </FormGroup>
         <Tooltip title="Clear Filters" placement="top" arrow>
           <IconButton onClick={resetFilters} size="small">
             <RestartAltRoundedIcon size="small" color="error" />
@@ -250,58 +279,99 @@ function SharedQuizTab() {
         <Table sx={{ minWidth: 650 }} size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ background: "#f6f7fb" }}>
-              {headCells.map((headCell, index) => (
-                <StyledTableCell key={index}>{headCell.label}</StyledTableCell>
-              ))}
+              {headCells.map((headCell, index) => {
+                if (headCell.id === "archived_at") {
+                  return (
+                    <StyledTableCell key={index}>
+                      <Tooltip
+                        title="Quizzes created 3 years ago are archived"
+                        placement="top"
+                        arrow
+                      >
+                        <InfoOutlineRoundedIcon
+                          sx={{ fontSize: "small", mr: 0.5 }}
+                        />
+                      </Tooltip>
+                      {headCell.label}
+                    </StyledTableCell>
+                  );
+                }
+
+                return (
+                  <StyledTableCell key={index}>
+                    {headCell.label}
+                  </StyledTableCell>
+                );
+              })}
             </TableRow>
           </TableHead>
           <TableBody>
             {visibleRows.length == 0 ? (
               <TableRow>
-                <TableCell align="center" colSpan={5}>
+                <TableCell align="center" colSpan={6}>
                   <Typography variant="body2">no results found</Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              visibleRows.map((row, index) => (
-                <TableRow
-                  key={index}
-                  sx={{
-                    "&:last-child td, &:last-child th": { border: 0 },
-                  }}
-                  hover
-                  onClick={() =>
-                    setOpenInfo({ open: true, exam_id: row.exam_id })
+              visibleRows.map((row, index) => {
+                const formatted = new Date(row.archived_at).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
                   }
-                  style={{ cursor: "pointer" }}
-                >
-                  <TableCell component="th" scope="row">
-                    <Box>
+                );
+                return (
+                  <TableRow
+                    key={index}
+                    sx={{
+                      "&:last-child td, &:last-child th": { border: 0 },
+                    }}
+                    hover
+                    onClick={() =>
+                      setOpenInfo({ open: true, exam_id: row.exam_id })
+                    }
+                    style={{ cursor: "pointer" }}
+                  >
+                    <TableCell component="th" scope="row">
+                      <Box>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{ color: "#2C388F", fontWeight: 600 }}
+                        >
+                          {row.exam_name}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "#6b7280" }}>
+                          {row.repository}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {row.subject_name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.total_items}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.usage_count}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.created_by}</Typography>
+                    </TableCell>
+                    <TableCell>
                       <Typography
-                        variant="subtitle2"
-                        sx={{ color: "#2C388F", fontWeight: 600 }}
+                        variant="body2"
+                        color={row.archived_at ? "inherit" : "textSecondary"}
                       >
-                        {row.exam_name}
+                        {row.archived_at ? formatted : "Not Archived"}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: "#6b7280" }}>
-                        {row.repository}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">{row.subject_name}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">{row.total_items}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">{row.usage_count}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">{row.created_by}</Typography>
-                  </TableCell>
-                </TableRow>
-              ))
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

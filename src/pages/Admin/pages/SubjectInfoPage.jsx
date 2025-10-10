@@ -90,15 +90,17 @@ function SubjectInfoPage() {
     const { data: infoData, error: infoErr } = await supabase
       .from("tbl_subject")
       .select(
-        "id, name, subject_code, tbl_department(id,shorthand_name), tbl_users(id, suffix, f_name, m_name, l_name)"
+        "id, name, subject_code, tbl_department!tbl_subject_department_id_fkey(id,shorthand_name), tbl_users(id, suffix, f_name, m_name, l_name)"
       )
       .eq("id", subjectId)
       .single();
 
     if (infoErr) {
       console.log("error info:", infoErr);
+
       return;
     }
+    console.log("sakses info:", infoData);
     setInfo(infoData);
   };
 

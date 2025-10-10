@@ -62,15 +62,27 @@ const ClassCard = ({
     navigate(`/class?${params.toString()}`);
   };
 
+  const formatted = new Date(cls.archived_at).toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+
+  const thirtyDaysLater = new Date(cls.archived_at);
+  thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
+  const formatted30DaysLater = new Date(thirtyDaysLater).toLocaleDateString(
+    "en-US",
+    {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    }
+  );
+
   return (
     <>
       <div
-        className="
-      relative flex flex-col bg-white border border-gray-200 rounded-xl p-4 shadow-sm
-      transition duration-300 ease-in-out hover:shadow-md
-      w-full
-      cursor-pointer
-    "
+        className=" bg-white border border-gray-200 rounded-xl p-4 shadow-sm transition duration-300 ease-in-out hover:shadow-md cursor-pointer"
         onClick={onssClick}
       >
         <div className="flex items-center mb-2">
@@ -105,6 +117,12 @@ const ClassCard = ({
           <div className="mx-4 text-sm text-[#4854a3]">
             {cls.quiz_count} quizzes
           </div>
+          {cls.archived_at && (
+            <div className="mx-4 text-sm text-[#4854a3]">
+              To be deleted on: <b>{formatted30DaysLater}</b> (archived on{" "}
+              {formatted})
+            </div>
+          )}
           <span className="ml-auto font-bold text-gray-800 text-sm">
             {cls.ave_score.toFixed(2)}% avg
           </span>

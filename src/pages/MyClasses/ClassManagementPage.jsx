@@ -94,9 +94,10 @@ const ClassManagementPage = () => {
   const handleArchive = async () => {
     setLoading(true);
 
+    const curDate = new Date();
     const { error } = await supabase
       .from("tbl_class")
-      .update({ is_active: false })
+      .update({ is_active: false, archived_at: curDate.toISOString() })
       .eq("id", selectedClass.id);
 
     if (error) {
@@ -127,14 +128,24 @@ const ClassManagementPage = () => {
 
     const { error } = await supabase
       .from("tbl_class")
-      .update({ is_active: true })
+      .update({ is_active: true, archived_at: null })
       .eq("id", cls.id);
 
     if (error) {
-      console.error("Error activating class:", error);
+      // console.error("Error activating class:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to activate class. Please try again.",
+        severity: "error",
+      });
       setLoading(false);
       return;
     }
+    setSnackbar({
+      open: true,
+      message: "Class activated successfully.",
+      severity: "success",
+    });
 
     setLoading(false);
     setAnchorEl(null);
@@ -257,6 +268,7 @@ const ClassManagementPage = () => {
               handleArchiveDialog={() => setArchiveDialog(true)}
               handleActivate={handleActivate}
               handleDeleteDialog={() => setDeleteDialog(true)}
+              activeTab={activeTab}
             />
           )}
         </Stack>
@@ -270,7 +282,6 @@ const ClassManagementPage = () => {
         {/* </div> */}
 
         <CreateClass
-          onCancel={() => {}}
           open={createModalVisible}
           setOpen={setCreateModalVisible}
         />

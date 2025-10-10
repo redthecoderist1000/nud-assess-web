@@ -73,6 +73,7 @@ function FacultyInfo() {
       return;
     }
 
+    console.log("sakses info:", data.subject_load);
     setInfo(data.faculty_info);
     setLoad(data.subject_load);
     setQuestionGen(data.question_gen);
@@ -179,7 +180,9 @@ function FacultyInfo() {
                 <Typography variant="caption" fontWeight="bold">
                   Total Load
                 </Typography>
-                <Typography variant="body1">{load.length}</Typography>
+                <Typography variant="body1">
+                  {load ? load.length : 0}
+                </Typography>
               </Paper>
             </Grid>
           </Grid>
@@ -201,7 +204,7 @@ function FacultyInfo() {
               >
                 Add
               </Button>
-              {load.length != 0 && (
+              {load && load.length != 0 && (
                 <Button
                   size="small"
                   color="error"
@@ -219,7 +222,7 @@ function FacultyInfo() {
             <Stack alignItems="center">
               <CircularProgress />
             </Stack>
-          ) : load.length == 0 ? (
+          ) : load == null ? (
             <Typography align="center" variant="body2" color="textDisabled">
               No assigned subject yet.
             </Typography>
@@ -244,7 +247,9 @@ function FacultyInfo() {
                   {load.map((data, index) => (
                     <TableRow
                       key={index}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                      sx={{
+                        "&:last-child td, &:last-child th": { border: 0 },
+                      }}
                     >
                       <TableCell>{data.subject_code}</TableCell>
                       <TableCell>{data.subject_name}</TableCell>
@@ -383,7 +388,7 @@ function FacultyInfo() {
                 <Divider />
 
                 {/* transfer dept */}
-                <Stack
+                {/* <Stack
                   direction="row"
                   justifyContent="space-between"
                   alignItems="center"
@@ -410,7 +415,7 @@ function FacultyInfo() {
                     Transfer
                   </Button>
                 </Stack>
-                <Divider />
+                <Divider /> */}
                 {/* admin privilege */}
                 <Stack
                   direction="row"

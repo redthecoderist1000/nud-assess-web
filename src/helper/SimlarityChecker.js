@@ -52,7 +52,8 @@ const fetchQuestions = async (blooms_category, repository, lesson_id) => {
     .select("id, question")
     .eq("blooms_category", blooms_category)
     .eq("repository", repository)
-    .eq("lesson_id", lesson_id);
+    .eq("lesson_id", lesson_id)
+    .eq("archived_at", null);
 
   if (questionError) {
     return { error: questionError };

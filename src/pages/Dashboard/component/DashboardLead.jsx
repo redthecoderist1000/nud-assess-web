@@ -165,7 +165,7 @@ const DashboardLead = ({}) => {
                 {stats.total_students}
               </div>
               <div className="text-white text-sm opacity-80">
-                Total Students
+                Total Students on Active Classes
               </div>
             </div>
           </div>
@@ -175,7 +175,9 @@ const DashboardLead = ({}) => {
               <div className="text-2xl font-bold text-white leading-tight">
                 {stats.total_classes}
               </div>
-              <div className="text-white text-sm opacity-80">Total Classes</div>
+              <div className="text-white text-sm opacity-80">
+                Total Active Classes
+              </div>
             </div>
           </div>
         </Stack>

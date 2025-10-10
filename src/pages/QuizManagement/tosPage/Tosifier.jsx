@@ -392,8 +392,8 @@ function Tosifier() {
       .select("id")
       .eq("repository", quizDetail.repository)
       .eq("lesson_id", lesson_id)
-      .eq("blooms_category", category);
-
+      .eq("blooms_category", category)
+      .eq("archived_at", null);
     // Conditionally add the filter
     if (quizDetail.repository === "Private") {
       query = query.eq("created_by", user.user_id);

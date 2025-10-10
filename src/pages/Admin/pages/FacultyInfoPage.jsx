@@ -388,7 +388,7 @@ function FacultyInfo() {
                 <Divider />
 
                 {/* transfer dept */}
-                <Stack
+                {/* <Stack
                   direction="row"
                   justifyContent="space-between"
                   alignItems="center"
@@ -415,7 +415,7 @@ function FacultyInfo() {
                     Transfer
                   </Button>
                 </Stack>
-                <Divider />
+                <Divider /> */}
                 {/* admin privilege */}
                 <Stack
                   direction="row"

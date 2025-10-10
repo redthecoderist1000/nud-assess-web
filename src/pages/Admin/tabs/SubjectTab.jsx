@@ -169,7 +169,7 @@ function SubjectTab() {
       });
       return;
     }
-    // console.log("data", data);
+    console.log("data", data);
     setRows(data);
   };
 
@@ -227,12 +227,6 @@ function SubjectTab() {
       </Stack>
       <TableContainer component={Paper} variant="outlined">
         <Table size="small">
-          {/* <EnhancedTableHead
-              order={order}
-              orderBy={orderBy}
-              onRequestSort={handleRequestSort}
-              // rowCount={rows.length}
-            /> */}
           <TableHead>
             <TableRow sx={{ background: "#f6f7fb" }}>
               {headCells.map((headCell, index) => {
@@ -245,39 +239,41 @@ function SubjectTab() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleRows.map((row, index) => {
-              // const assigned = row.tbl_subject.tbl_users == null ? false : true;
-              // const user = row.tbl_subject.tbl_users;
-              // const incharge = assigned
-              //   ? user.suffix + " " + user.f_name + " " + user.l_name
-              //   : "";
-
-              return (
-                <TableRow
-                  key={index}
-                  hover
-                  tabIndex={-1}
-                  sx={{ cursor: "pointer" }}
-                  onClick={() =>
-                    goToSubject(row.subject_id, row.program_subject_id)
-                  }
-                >
-                  <StyledTableCell component="th" scope="row">
-                    {row.subject_code}
-                  </StyledTableCell>
-                  <StyledTableCell>{row.name}</StyledTableCell>
-                  {row.faculty_incharge ? (
-                    <StyledTableCell>{row.faculty_incharge}</StyledTableCell>
-                  ) : (
-                    <StyledTableCell>
-                      <p className="text-gray-500">
-                        <i>unassigned</i>
-                      </p>
+            {visibleRows.length == 0 ? (
+              <TableRow>
+                <StyledTableCell colSpan={headCells.length}>
+                  no results found
+                </StyledTableCell>
+              </TableRow>
+            ) : (
+              visibleRows.map((row, index) => {
+                return (
+                  <TableRow
+                    key={index}
+                    hover
+                    tabIndex={-1}
+                    sx={{ cursor: "pointer" }}
+                    onClick={() =>
+                      goToSubject(row.subject_id, row.program_subject_id)
+                    }
+                  >
+                    <StyledTableCell component="th" scope="row">
+                      {row.subject_code}
                     </StyledTableCell>
-                  )}
-                </TableRow>
-              );
-            })}
+                    <StyledTableCell>{row.name}</StyledTableCell>
+                    {row.faculty_incharge ? (
+                      <StyledTableCell>{row.faculty_incharge}</StyledTableCell>
+                    ) : (
+                      <StyledTableCell>
+                        <p className="text-gray-500">
+                          <i>unassigned</i>
+                        </p>
+                      </StyledTableCell>
+                    )}
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </TableContainer>

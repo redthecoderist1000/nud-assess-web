@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom"; // Import useNavigate for redirection
 import { motion } from "framer-motion";
 
@@ -29,6 +29,7 @@ function SignUpForm() {
     lastName: "",
     department: "",
   });
+  const [deptOption, setDeptOption] = useState([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -100,6 +101,26 @@ function SignUpForm() {
       message: "Account setup successful",
       severity: "success",
     });
+  };
+
+  useEffect(() => {
+    fetchDept();
+  }, []);
+
+  const fetchDept = async () => {
+    const { data, error } = await supabase
+      .from("tbl_department")
+      .select("id, name");
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch departments",
+        severity: "error",
+      });
+      return;
+    }
+    setDeptOption(data);
   };
 
   return (
@@ -198,9 +219,14 @@ function SignUpForm() {
               <MenuItem value={0} disabled>
                 --Select Department--
               </MenuItem>
-              <MenuItem value="06a33d27-1c14-46b4-ade3-4be2d0a0c20a">
+              {/* <MenuItem value="06a33d27-1c14-46b4-ade3-4be2d0a0c20a">
                 Information Technology Department
-              </MenuItem>
+              </MenuItem> */}
+              {deptOption.map((item, index) => (
+                <MenuItem key={index} value={item.id}>
+                  {item.name}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
           {/* Terms and Privacy Policies */}

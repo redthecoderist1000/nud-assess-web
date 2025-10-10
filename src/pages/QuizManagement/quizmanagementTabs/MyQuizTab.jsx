@@ -17,6 +17,12 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  Tooltip,
+  FormGroup,
+  FormControlLabel,
+  Switch,
+  Grid,
+  IconButton,
 } from "@mui/material";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
@@ -26,6 +32,8 @@ import Export from "../../../components/elements/Export";
 import MyQuiz_csv from "../../../components/printables/MyQuiz_csv";
 import MyQuiz_pdf from "../../../components/printables/MyQuiz_pdf";
 import QuizInfoDialog from "../components/QuizInfoDialog";
+import InfoOutlineRoundedIcon from "@mui/icons-material/InfoOutlineRounded";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -37,12 +45,19 @@ const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
 function MyQuizTab() {
   const { user, setSnackbar } = useContext(userContext);
   const [rows, setRows] = useState([]);
-  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState({
+    search: "",
+    show_archive: false,
+    subject: "All",
+    repository: "All",
+  });
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [exportAnchor, setExportAnchor] = useState(null);
   const [openInfo, setOpenInfo] = useState({ open: false, exam_id: null });
+  const [subOptions, setSubOptions] = useState([]);
+  const [repoOptions, setRepoOptions] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -60,6 +75,24 @@ function MyQuizTab() {
       return;
     }
 
+    const uniqueRepo = Array.from(
+      new Set(data.map((exam) => exam.repository).filter(Boolean))
+    );
+
+    const uniqueSubjects = Array.from(
+      new Map(
+        data.map((data) => [
+          data.subject_id,
+          {
+            subject_id: data.subject_id,
+            subject_name: data.subject_name.trim(),
+          },
+        ])
+      ).values()
+    );
+
+    setRepoOptions(uniqueRepo);
+    setSubOptions(uniqueSubjects);
     setRows(data);
     setLoading(false);
   };
@@ -70,17 +103,38 @@ function MyQuizTab() {
         .filter((row) => {
           const matchExamName = row.exam_name
             .toLowerCase()
-            .includes(search.toLowerCase());
+            .includes(filter.search.toLowerCase());
 
           const matchSubjectName = row.subject_name
             .toLowerCase()
-            .includes(search.toLowerCase());
+            .includes(filter.search.toLowerCase());
 
-          return matchExamName || matchSubjectName;
+          const isArchived = filter.show_archive
+            ? row.archived_at !== null
+            : row.archived_at === null;
+
+          const matchSubject =
+            row.subject_name
+              .toLowerCase()
+              .includes(filter.subject.toLowerCase()) ||
+            filter.subject === "All";
+
+          const matchRepo =
+            row.repository
+              .toLowerCase()
+              .includes(filter.repository.toLowerCase()) ||
+            filter.repository === "All";
+
+          return (
+            (matchExamName || matchSubjectName) &&
+            isArchived &&
+            matchSubject &&
+            matchRepo
+          );
         })
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
 
-    [rows, search, page, rowsPerPage]
+    [rows, filter, page, rowsPerPage]
   );
 
   const handleChangePage = (event, newPage) => {
@@ -97,6 +151,7 @@ function MyQuizTab() {
     { id: "subject_name", label: "Subject" },
     { id: "total_items", label: "Total Items" },
     { id: "usage_count", label: "Usage Count" },
+    { id: "archived_at", label: "Archived At" },
   ];
 
   const dlCsv = () => {
@@ -104,6 +159,15 @@ function MyQuizTab() {
   };
   const dlPdf = () => {
     MyQuiz_pdf(rows, user);
+  };
+
+  const resetFilters = () => {
+    setFilter({
+      search: "",
+      show_archive: false,
+      subject: "All",
+      repository: "All",
+    });
   };
 
   if (loading) {
@@ -122,27 +186,104 @@ function MyQuizTab() {
 
   return (
     <>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <TextField
-          fullWidth
-          sx={{
-            maxWidth: 300,
-            background: "#f6f7fb",
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 2,
-            },
-          }}
-          size="small"
-          label="Search exams..."
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <Grid container direction={"row"} spacing={2} alignItems="center">
+        <Grid flex={2}>
+          <TextField
+            fullWidth
+            sx={{
+              background: "#f6f7fb",
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+              },
+            }}
+            size="small"
+            label="Search exams..."
+            onChange={(e) => setFilter({ ...filter, search: e.target.value })}
+          />
+        </Grid>
+        <Grid flex={1}>
+          <FormControl
+            fullWidth
+            size="small"
+            sx={{ minWidth: 140, background: "#f6f7fb", borderRadius: 2 }}
+          >
+            <InputLabel id="subject_label">Subject</InputLabel>
+            <Select
+              labelId="subject_label"
+              label="Subject"
+              defaultValue="All"
+              value={filter.subject}
+              onChange={(e) =>
+                setFilter({ ...filter, subject: e.target.value })
+              }
+              sx={{ borderRadius: 2 }}
+            >
+              <MenuItem value="All">All</MenuItem>
+              {subOptions.map((subject, index) => (
+                <MenuItem key={index} value={subject.subject_name}>
+                  {subject.subject_name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid flex={1}>
+          <FormControl
+            fullWidth
+            size="small"
+            sx={{ minWidth: 140, background: "#f6f7fb", borderRadius: 2 }}
+          >
+            <InputLabel id="subject_label">Repository</InputLabel>
+            <Select
+              labelId="subject_label"
+              label="Repository"
+              defaultValue="All"
+              value={filter.repository}
+              onChange={(e) =>
+                setFilter({ ...filter, repository: e.target.value })
+              }
+              sx={{ borderRadius: 2 }}
+            >
+              <MenuItem value="All">All</MenuItem>
+              {repoOptions.map((repository, index) => (
+                <MenuItem key={index} value={repository}>
+                  {repository}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <FormGroup>
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={filter.show_archive}
+                onClick={() =>
+                  setFilter({ ...filter, show_archive: !filter.show_archive })
+                }
+              />
+            }
+            label={
+              <Typography variant="caption" color="textSecondary">
+                Show archived
+              </Typography>
+            }
+          />
+        </FormGroup>
+        <Tooltip title="Clear Filters" placement="top" arrow>
+          <IconButton onClick={resetFilters} size="small">
+            <RestartAltRoundedIcon size="small" color="error" />
+          </IconButton>
+        </Tooltip>
         <Export
           anchorEl={exportAnchor}
           setAnchorEl={setExportAnchor}
           dlCsv={dlCsv}
           dlPdf={dlPdf}
         />
-      </Stack>
+      </Grid>
 
       <TableContainer
         component={Paper}
@@ -156,55 +297,96 @@ function MyQuizTab() {
         <Table sx={{ minWidth: 650 }} size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ background: "#f6f7fb" }}>
-              {headCells.map((headCell, index) => (
-                <StyledTableCell key={index}>{headCell.label}</StyledTableCell>
-              ))}
+              {headCells.map((headCell, index) => {
+                if (headCell.id === "archived_at") {
+                  return (
+                    <StyledTableCell key={index}>
+                      <Tooltip
+                        title="Quizzes created 3 years ago are archived"
+                        placement="top"
+                        arrow
+                      >
+                        <InfoOutlineRoundedIcon
+                          sx={{ fontSize: "small", mr: 0.5 }}
+                        />
+                      </Tooltip>
+                      {headCell.label}
+                    </StyledTableCell>
+                  );
+                }
+                return (
+                  <StyledTableCell key={index}>
+                    {headCell.label}
+                  </StyledTableCell>
+                );
+              })}
             </TableRow>
           </TableHead>
           <TableBody>
             {visibleRows.length == 0 ? (
               <TableRow>
-                <TableCell align="center" colSpan={4}>
+                <TableCell align="center" colSpan={5}>
                   <Typography variant="body2">no results found</Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              visibleRows.map((row, index) => (
-                <TableRow
-                  key={index}
-                  sx={{
-                    "&:last-child td, &:last-child th": { border: 0 },
-                  }}
-                  hover
-                  onClick={() =>
-                    setOpenInfo({ open: true, exam_id: row.exam_id })
+              visibleRows.map((row, index) => {
+                const formatted = new Date(row.archived_at).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
                   }
-                  style={{ cursor: "pointer" }}
-                >
-                  <TableCell component="th" scope="row">
-                    <Box>
+                );
+
+                return (
+                  <TableRow
+                    key={index}
+                    sx={{
+                      "&:last-child td, &:last-child th": { border: 0 },
+                    }}
+                    hover
+                    onClick={() =>
+                      setOpenInfo({ open: true, exam_id: row.exam_id })
+                    }
+                    style={{ cursor: "pointer" }}
+                  >
+                    <TableCell component="th" scope="row">
+                      <Box>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{ color: "#2C388F", fontWeight: 600 }}
+                        >
+                          {row.exam_name}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "#6b7280" }}>
+                          {row.repository}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {row.subject_name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.total_items}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.usage_count}</Typography>
+                    </TableCell>
+                    <TableCell>
                       <Typography
-                        variant="subtitle2"
-                        sx={{ color: "#2C388F", fontWeight: 600 }}
+                        variant="body2"
+                        color={row.archived_at ? "inherit" : "textSecondary"}
                       >
-                        {row.exam_name}
+                        {row.archived_at ? formatted : "Not Archived"}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: "#6b7280" }}>
-                        {row.repository}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">{row.subject_name}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">{row.total_items}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">{row.usage_count}</Typography>
-                  </TableCell>
-                </TableRow>
-              ))
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

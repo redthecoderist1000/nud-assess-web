@@ -3,6 +3,8 @@ import { userContext } from "../../../App";
 import {
   Box,
   FormControl,
+  FormControlLabel,
+  FormGroup,
   Grid,
   IconButton,
   InputLabel,
@@ -10,6 +12,7 @@ import {
   Paper,
   Select,
   styled,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -23,6 +26,7 @@ import {
 } from "@mui/material";
 import { supabase } from "../../../helper/Supabase";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import InfoOutlineRoundedIcon from "@mui/icons-material/InfoOutlineRounded";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -39,6 +43,7 @@ const headCells = [
   "Subject",
   "Usage Count",
   "Created By",
+  "Archived At",
 ];
 
 function SharedQuestionTab() {
@@ -52,6 +57,7 @@ function SharedQuestionTab() {
     search: "",
     type: "All",
     cognitive: "All",
+    showArchive: false,
   });
   const [subOptions, setSubOptions] = useState([]);
   const [typeOptions, setTypeOptions] = useState([]);
@@ -116,7 +122,17 @@ function SharedQuestionTab() {
           row.cognitive_level === filter.cognitive ||
           filter.cognitive === "All";
 
-        return matchSearch && matchSubject && matchType && matchCognitive;
+        const isArchived = filter.showArchive
+          ? row.archived_at !== null
+          : row.archived_at === null;
+
+        return (
+          matchSearch &&
+          matchSubject &&
+          matchType &&
+          matchCognitive &&
+          isArchived
+        );
       })
       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
   }, [rows, filter, page, rowsPerPage]);
@@ -245,6 +261,24 @@ function SharedQuestionTab() {
             </Select>
           </FormControl>
         </Grid>
+        <FormGroup>
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={filter.showArchive}
+                onClick={() =>
+                  setFilter({ ...filter, showArchive: !filter.showArchive })
+                }
+              />
+            }
+            label={
+              <Typography variant="caption" color="textSecondary">
+                Show archived
+              </Typography>
+            }
+          />
+        </FormGroup>
         <Tooltip title="Clear Filters" placement="top" arrow>
           <IconButton onClick={resetFilters} size="small">
             <RestartAltRoundedIcon size="small" color="error" />
@@ -263,42 +297,92 @@ function SharedQuestionTab() {
         <Table sx={{ minWidth: 650 }} size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ background: "#f6f7fb" }}>
-              {headCells.map((headCell, index) => (
-                <StyledTableCell key={index}>{headCell}</StyledTableCell>
-              ))}
+              {headCells.map((headCell, index) => {
+                if (headCell === "Archived At") {
+                  return (
+                    <StyledTableCell key={index}>
+                      <Tooltip
+                        title="Questions created 3 years ago are archived"
+                        placement="top"
+                        arrow
+                      >
+                        <InfoOutlineRoundedIcon
+                          sx={{ fontSize: "small", mr: 0.5 }}
+                        />
+                      </Tooltip>
+                      {headCell}
+                    </StyledTableCell>
+                  );
+                }
+
+                return (
+                  <StyledTableCell key={index}>{headCell}</StyledTableCell>
+                );
+              })}
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleRows.map((row, index) => (
-              <TableRow
-                key={index}
-                sx={{
-                  "&:last-child td, &:last-child th": { border: 0 },
-                }}
-              >
-                <TableCell component="th" scope="row">
-                  <Typography variant="body2">{row.question}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.type}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.cognitive_level}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.lesson_name}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.subject_name}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.usage_count}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.created_by}</Typography>
+            {visibleRows.length == 0 ? (
+              <TableRow>
+                <TableCell align="center" colSpan={8}>
+                  <Typography variant="body2">no results found</Typography>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              visibleRows.map((row, index) => {
+                const formatted = new Date(row.archived_at).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
+                  }
+                );
+
+                return (
+                  <TableRow
+                    key={index}
+                    sx={{
+                      "&:last-child td, &:last-child th": { border: 0 },
+                    }}
+                  >
+                    <TableCell component="th" scope="row">
+                      <Typography variant="body2">{row.question}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.type}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {row.cognitive_level}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.lesson_name}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {row.subject_name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.usage_count}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.created_by}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        color={row.archived_at ? "inherit" : "textSecondary"}
+                      >
+                        {row.archived_at ? formatted : "Not Archived"}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </TableContainer>

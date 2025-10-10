@@ -19,6 +19,9 @@ import {
   Button,
   Tooltip,
   IconButton,
+  FormGroup,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
@@ -28,6 +31,7 @@ import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import Export from "../../../components/elements/Export";
 import MyQuestionCsv from "../../../components/printables/MyQuestion_csv";
 import MyQuestionPdf from "../../../components/printables/MyQuestion_pdf";
+import InfoOutlineRoundedIcon from "@mui/icons-material/InfoOutlineRounded";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -44,6 +48,7 @@ function MyQuestionTab() {
   const [searchBloom, setSearchBloom] = useState("");
   const [searchSubject, setSearchSubject] = useState("");
   const [searchType, setSearchType] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [exportAnchor, setExportAnchor] = useState(null);
@@ -113,10 +118,29 @@ function MyQuestionTab() {
             matchLesson ||
             (data.subject ?? "").toLowerCase().includes(search.toLowerCase());
 
-          return searchMatch && matchBlooms && matchSubject && matchType;
+          const isArchived = showArchived
+            ? data.archived_at !== null
+            : data.archived_at === null;
+
+          return (
+            searchMatch &&
+            matchBlooms &&
+            matchSubject &&
+            matchType &&
+            isArchived
+          );
         })
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-    [rows, search, page, rowsPerPage, searchBloom, searchSubject, searchType]
+    [
+      rows,
+      search,
+      page,
+      rowsPerPage,
+      searchBloom,
+      searchSubject,
+      searchType,
+      showArchived,
+    ]
   );
 
   const headCells = [
@@ -125,6 +149,7 @@ function MyQuestionTab() {
     { id: "conlevel", label: "Cognitive Level" },
     { id: "lesson", label: "Lesson" },
     { id: "sub", label: "Subject" },
+    { id: "archived_at", label: "Archived At" },
   ];
 
   const dlCsv = () => {
@@ -242,6 +267,22 @@ function MyQuestionTab() {
             </Select>
           </FormControl>
         </Grid>
+        <FormGroup>
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={showArchived}
+                onClick={() => setShowArchived(!showArchived)}
+              />
+            }
+            label={
+              <Typography variant="caption" color="textSecondary">
+                Show archived
+              </Typography>
+            }
+          />
+        </FormGroup>
         <Tooltip title="Clear Filters" placement="top" arrow>
           <IconButton onClick={resetFilters} size="small">
             <RestartAltRoundedIcon size="small" color="error" />
@@ -267,35 +308,84 @@ function MyQuestionTab() {
         <Table sx={{ minWidth: 650 }} size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ background: "#f6f7fb" }}>
-              {headCells.map((headCell, index) => (
-                <StyledTableCell key={index}>{headCell.label}</StyledTableCell>
-              ))}
+              {headCells.map((headCell, index) => {
+                if (headCell.id === "archived_at") {
+                  return (
+                    <StyledTableCell key={index}>
+                      <Tooltip
+                        title="Quizzes created 3 years ago are archived"
+                        placement="top"
+                        arrow
+                      >
+                        <InfoOutlineRoundedIcon
+                          sx={{ fontSize: "small", mr: 0.5 }}
+                        />
+                      </Tooltip>
+                      {headCell.label}
+                    </StyledTableCell>
+                  );
+                }
+
+                return (
+                  <StyledTableCell key={index}>
+                    {headCell.label}
+                  </StyledTableCell>
+                );
+              })}
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleRows.map((row, index) => (
-              <TableRow
-                key={index}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell>
-                  <Typography variant="body2">{row.question}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.type}</Typography>
-                </TableCell>
-
-                <TableCell>
-                  <Typography variant="body2">{row.blooms_category}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.lesson}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.subject}</Typography>
+            {visibleRows.length == 0 ? (
+              <TableRow>
+                <TableCell align="center" colSpan={6}>
+                  <Typography variant="body2">no results found</Typography>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              visibleRows.map((row, index) => {
+                const formatted = new Date(row.archived_at).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
+                  }
+                );
+                return (
+                  <TableRow
+                    key={index}
+                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  >
+                    <TableCell>
+                      <Typography variant="body2">{row.question}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.type}</Typography>
+                    </TableCell>
+
+                    <TableCell>
+                      <Typography variant="body2">
+                        {row.blooms_category}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.lesson}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{row.subject}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        color={row.archived_at ? "inherit" : "textSecondary"}
+                      >
+                        {row.archived_at ? formatted : "Not Archived"}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </TableContainer>

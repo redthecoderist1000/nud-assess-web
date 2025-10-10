@@ -62,7 +62,7 @@ const headCells = [
 
 const FacultyTab = () => {
   const navigate = useNavigate();
-  const { user } = useContext(userContext);
+  const { user, setSnackbar } = useContext(userContext);
   const [search, setSearch] = useState("");
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("faculty_name");
@@ -77,7 +77,11 @@ const FacultyTab = () => {
       .eq("department_id", user.department_id);
 
     if (error) {
-      console.log("Failed to fetch data:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch faculty data.",
+        severity: "error",
+      });
       return;
     }
 
@@ -208,7 +212,6 @@ const FacultyTab = () => {
           </TableHead>
           <TableBody>
             {visibleFaculty.map((row, index) => {
-              const name = row.suffix + " " + row.f_name + " " + row.l_name;
               return (
                 <TableRow
                   key={index}
@@ -218,7 +221,7 @@ const FacultyTab = () => {
                   onClick={() => onClickRow(row.id)}
                 >
                   <StyledTableCell component="th" scope="row">
-                    {name}
+                    {row.fullname}
                   </StyledTableCell>
 
                   <StyledTableCell>

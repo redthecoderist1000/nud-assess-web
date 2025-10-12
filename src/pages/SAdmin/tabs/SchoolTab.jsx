@@ -180,22 +180,28 @@ const SchoolTab = () => {
                     <StyledTableCell>{row.dept_count}</StyledTableCell>
                     <StyledTableCell>{row.prog_count}</StyledTableCell>
                     <StyledTableCell>
-                      <IconButton
-                        color="primary"
-                        title="Edit"
-                        onClick={() => setEditDialog({ open: true, item: row })}
-                      >
-                        <BorderColorRoundedIcon sx={{ fontSize: 20 }} />
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        title="Delete"
-                        onClick={() =>
-                          setDeleteDialog({ open: true, item: row })
-                        }
-                      >
-                        <DeleteForeverRoundedIcon sx={{ fontSize: 20 }} />
-                      </IconButton>
+                      <Tooltip title="Edit" placement="top" arrow>
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() =>
+                            setEditDialog({ open: true, item: row })
+                          }
+                        >
+                          <BorderColorRoundedIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete" placement="top" arrow>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() =>
+                            setDeleteDialog({ open: true, item: row })
+                          }
+                        >
+                          <DeleteForeverRoundedIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                      </Tooltip>
                     </StyledTableCell>
                   </TableRow>
                 );

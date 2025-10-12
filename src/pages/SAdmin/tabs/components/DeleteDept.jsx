@@ -11,26 +11,27 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useContext, useState } from "react";
-import { userContext } from "../../../../App";
+import React, { useContext, useState } from "react";
 import { supabase } from "../../../../helper/Supabase";
+import { userContext } from "../../../../App";
 
-const DeleteSchool = ({ open, onClose, item }) => {
+const DeleteDept = ({ open, onClose, item }) => {
   const { setSnackbar } = useContext(userContext);
-
   const [loading, setLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
-  const deleteSchool = async () => {
-    const { error } = await supabase
-      .from("tbl_school")
-      .delete()
-      .eq("id", item.school_id);
+  const deleteDept = async () => {
+    // delete dept
+    setLoading(true);
 
+    const { error } = await supabase
+      .from("tbl_department")
+      .delete()
+      .eq("id", item.dept_id);
     if (error) {
       setSnackbar({
         open: true,
-        message: "Failed to delete school. Please try again.",
+        message: "Failed to delete department. Please try again.",
         severity: "error",
       });
       setLoading(false);
@@ -38,7 +39,7 @@ const DeleteSchool = ({ open, onClose, item }) => {
     }
     setSnackbar({
       open: true,
-      message: "School deleted successfully.",
+      message: "Department deleted successfully.",
       severity: "success",
     });
     setLoading(false);
@@ -49,25 +50,25 @@ const DeleteSchool = ({ open, onClose, item }) => {
     <Dialog
       open={open}
       onClose={onClose}
-      aria-labelledby="delete-school-dialog"
-      aria-describedby="delete-school-dialog-description"
+      aria-labelledby="delete-dept-dialog"
+      aria-describedby="delete-dept-dialog-description"
     >
-      <DialogTitle id="delete-school-dialog-title">Delete School</DialogTitle>
+      <DialogTitle id="delete-dept-dialog-title">Delete Department</DialogTitle>
       <DialogContent>
         <Stack spacing={2} justifyItems={"center"}>
           <DialogContentText
-            id="delete-school-dialog-description"
+            id="delete-dept-dialog-description"
             alignSelf="center"
           >
-            Are you sure you want to delete the school{" "}
-            <b>{item?.school_name}</b>? This action cannot be undone.
+            Are you sure you want to delete the department{" "}
+            <b>{item?.dept_name}</b>? This action cannot be undone.
           </DialogContentText>
           <Divider />
 
-          <Typography variant="caption" color="text.secondary">
-            note: This action is irreversible. All departments and programs
-            under this school will also be deleted. Please ensure you have
-            selected the correct school before proceeding.
+          <Typography variant="caption" color="text.secondary" align="justify">
+            note: This action is irreversible. All programs under this
+            department will also be deleted. Please ensure you have selected the
+            correct department before proceeding.
           </Typography>
           <FormControlLabel
             control={
@@ -97,7 +98,7 @@ const DeleteSchool = ({ open, onClose, item }) => {
           loading={loading}
           disabled={!isChecked}
           autoFocus
-          onClick={deleteSchool}
+          onClick={deleteDept}
         >
           Delete
         </Button>
@@ -106,4 +107,4 @@ const DeleteSchool = ({ open, onClose, item }) => {
   );
 };
 
-export default DeleteSchool;
+export default DeleteDept;

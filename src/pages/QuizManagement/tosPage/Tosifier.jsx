@@ -174,16 +174,6 @@ function Tosifier() {
       const percentage = Math.round((row.hours / total.hours) * 100);
       const itemsPerRow = Math.round((total.items * percentage) / 100);
 
-      // Calculate exact values
-      // const percents = {
-      //   remembering: 0.3,
-      //   understanding: 0.2,
-      //   applying: 0.2,
-      //   analyzing: 0.1,
-      //   creating: 0.1,
-      //   evaluating: 0.1,
-      // };
-
       // Compute exact and floored values
       const exacts = {};
       const floors = {};
@@ -237,6 +227,70 @@ function Tosifier() {
 
     setRows(updatedRows);
   }, [total.hours, total.items, tosAllocation]);
+
+  // test algo
+  //   useEffect(() => {
+  //   if (total.hours === 0) return;
+
+  //   const updatedRows = rows.map((row) => {
+  //     const percentage = (row.hours / total.hours) * 100;
+  //     const itemsPerRow = Math.floor((total.items * percentage) / 100); // use floor to avoid over-allocation
+
+  //     // Step 1: Calculate exact allocations
+  //     const exacts = {};
+  //     const floors = {};
+  //     const remainders = [];
+  //     let sumFloors = 0;
+
+  //     Object.entries(tosAllocation).forEach(([key, percent]) => {
+  //       const exact = itemsPerRow * percent;
+  //       const floor = Math.floor(exact);
+  //       exacts[key] = exact;
+  //       floors[key] = floor;
+  //       remainders.push({ key, remainder: exact - floor });
+  //       sumFloors += floor;
+  //     });
+
+  //     // Step 2: Distribute remaining items based on largest remainders
+  //     let remaining = itemsPerRow - sumFloors;
+  //     remainders
+  //       .sort((a, b) => b.remainder - a.remainder)
+  //       .forEach(({ key }) => {
+  //         if (remaining > 0) {
+  //           floors[key]++;
+  //           remaining--;
+  //         }
+  //       });
+
+  //     // Step 3: Final sanity check (should not be needed, but just in case)
+  //     const totalAssigned = Object.values(floors).reduce((a, b) => a + b, 0);
+  //     if (totalAssigned > itemsPerRow) {
+  //       const over = totalAssigned - itemsPerRow;
+  //       remainders
+  //         .sort((a, b) => a.remainder - b.remainder)
+  //         .forEach(({ key }) => {
+  //           if (over > 0 && floors[key] > 0) {
+  //             floors[key]--;
+  //             over--;
+  //           }
+  //         });
+  //     }
+
+  //     return {
+  //       ...row,
+  //       percentage: percentage.toFixed(2),
+  //       remembering: floors.remembering || 0,
+  //       understanding: floors.understanding || 0,
+  //       applying: floors.applying || 0,
+  //       analyzing: floors.analyzing || 0,
+  //       creating: floors.creating || 0,
+  //       evaluating: floors.evaluating || 0,
+  //       totalItems: itemsPerRow,
+  //     };
+  //   });
+
+  //   setRows(updatedRows);
+  // }, [total.hours, total.items, tosAllocation]);
 
   //   fetch subjects by user department
   const fetchSubjects = async () => {

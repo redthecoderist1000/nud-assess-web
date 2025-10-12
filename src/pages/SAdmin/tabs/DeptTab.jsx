@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import {
+  Button,
   IconButton,
   MenuItem,
   OutlinedInput,
@@ -17,10 +18,15 @@ import {
 } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
+import BorderColorRoundedIcon from "@mui/icons-material/BorderColorRounded";
 
 import { useContext, useEffect, useMemo, useState } from "react";
 import { userContext } from "../../../App";
 import { supabase } from "../../../helper/Supabase";
+import CreateDept from "./components/CreateDept";
+import EditDept from "./components/EditDept";
+import DeleteDept from "./components/DeleteDept";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -47,6 +53,10 @@ const DeptTab = () => {
   const [filter, setFilter] = useState({ search: "", school: "all" });
   const [schoolOption, setSchoolOption] = useState([]);
 
+  const [createDialog, setCreateDialog] = useState(false);
+  const [editDialog, setEditDialog] = useState({ open: false, item: null });
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, item: null });
+
   useEffect(() => {
     fetchData();
 
@@ -54,7 +64,7 @@ const DeptTab = () => {
       .channel("dept-changes")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "departments" },
+        { event: "*", schema: "public", table: "tbl_department" },
         (payload) => {
           fetchData();
         }
@@ -131,49 +141,63 @@ const DeptTab = () => {
         </h1>
         <p className="text-sm text-gray-500 mt-1 mb-0">Manage departments.</p>
       </div>
-      <Stack direction="row" spacing={2}>
-        <OutlinedInput
-          fullWidth
-          value={filter.search}
-          onChange={(e) => setFilter({ ...filter, search: e.target.value })}
-          placeholder="Search department..."
-          size="small"
-          sx={{ maxWidth: 300 }}
-          endAdornment={
-            filter.search && (
-              <CloseRoundedIcon
-                onClick={() => setFilter({ ...filter, search: "" })}
-                sx={{ cursor: "pointer", color: "grey.500" }}
-              />
-            )
-          }
-        />
-        <Select
-          size="small"
-          fullWidth
-          defaultValue={"all"}
-          value={filter.school}
-          sx={{ maxWidth: 300 }}
-          onChange={(e) => setFilter({ ...filter, school: e.target.value })}
-        >
-          <MenuItem value="all">All Schools</MenuItem>
-          {schoolOption.map((school, index) => (
-            <MenuItem key={index} value={school}>
-              {school}
-            </MenuItem>
-          ))}
-        </Select>
-        <Tooltip title="Clear Filter" placement="top" arrow>
-          <IconButton
-            color="error"
-            onClick={() => setFilter({ search: "", school: "all" })}
-            aria-label="clear filter"
+      <Stack direction={"row"} justifyContent={"space-between"}>
+        <Stack direction="row" spacing={2}>
+          <OutlinedInput
+            fullWidth
+            value={filter.search}
+            onChange={(e) => setFilter({ ...filter, search: e.target.value })}
+            placeholder="Search department..."
             size="small"
-            sx={{ alignSelf: "center" }}
+            sx={{ maxWidth: 300 }}
+            endAdornment={
+              filter.search && (
+                <CloseRoundedIcon
+                  onClick={() => setFilter({ ...filter, search: "" })}
+                  sx={{ cursor: "pointer", color: "grey.500" }}
+                />
+              )
+            }
+          />
+          <Select
+            size="small"
+            fullWidth
+            defaultValue={"all"}
+            value={filter.school}
+            sx={{ maxWidth: 300 }}
+            onChange={(e) => setFilter({ ...filter, school: e.target.value })}
           >
-            <RestartAltRoundedIcon />
-          </IconButton>
-        </Tooltip>
+            <MenuItem value="all">All Schools</MenuItem>
+            {schoolOption.map((school, index) => (
+              <MenuItem key={index} value={school}>
+                {school}
+              </MenuItem>
+            ))}
+          </Select>
+          <Tooltip title="Clear Filter" placement="top" arrow>
+            <IconButton
+              color="error"
+              onClick={() => setFilter({ search: "", school: "all" })}
+              aria-label="clear filter"
+              size="small"
+              sx={{ alignSelf: "center" }}
+            >
+              <RestartAltRoundedIcon />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+        <Button
+          variant="contained"
+          disableElevation
+          size="small"
+          sx={{
+            bgcolor: "#2D3B87",
+            "&:hover": { bgcolor: "#3d51c4ff" },
+          }}
+          onClick={() => setCreateDialog(true)}
+        >
+          New Department
+        </Button>
       </Stack>
 
       <TableContainer component={Paper} variant="outlined">
@@ -211,7 +235,30 @@ const DeptTab = () => {
                       </Tooltip>
                     </StyledTableCell>
                     <StyledTableCell>{row.prog_count}</StyledTableCell>
-                    <StyledTableCell>{}</StyledTableCell>
+                    <StyledTableCell>
+                      <Tooltip title="Edit" placement="top" arrow>
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() =>
+                            setEditDialog({ open: true, item: row })
+                          }
+                        >
+                          <BorderColorRoundedIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete" placement="top" arrow>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() =>
+                            setDeleteDialog({ open: true, item: row })
+                          }
+                        >
+                          <DeleteForeverRoundedIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </StyledTableCell>
                   </TableRow>
                 );
               })
@@ -227,6 +274,20 @@ const DeptTab = () => {
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+
+      <CreateDept open={createDialog} onClose={() => setCreateDialog(false)} />
+
+      <EditDept
+        open={editDialog.open}
+        onClose={() => setEditDialog({ open: false, item: null })}
+        item={editDialog.item}
+      />
+
+      <DeleteDept
+        open={deleteDialog.open}
+        onClose={() => setDeleteDialog({ open: false, item: null })}
+        item={deleteDialog.item}
       />
     </Stack>
   );

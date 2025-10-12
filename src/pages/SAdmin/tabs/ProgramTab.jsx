@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { userContext } from "../../../App";
 import {
+  Button,
   IconButton,
   MenuItem,
   OutlinedInput,
@@ -19,8 +20,11 @@ import {
 } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
+import BorderColorRoundedIcon from "@mui/icons-material/BorderColorRounded";
 
 import { supabase } from "../../../helper/Supabase";
+import CreateProgram from "./components/CreateProgram";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -53,8 +57,27 @@ const ProgramTab = () => {
   const [schoolOption, setSchoolOption] = useState([]);
   const [deptOption, setDeptOption] = useState([]);
 
+  const [createDialog, setCreateDialog] = useState(false);
+  const [editDialog, setEditDialog] = useState({ open: false, item: null });
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, item: null });
+
   useEffect(() => {
     fetchData();
+
+    const programListener = supabase
+      .channel("program-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tbl_program" },
+        (payload) => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      programListener.unsubscribe();
+    };
   }, []);
 
   const fetchData = async () => {
@@ -137,66 +160,80 @@ const ProgramTab = () => {
           Manage programs and assign program chairs.
         </p>
       </div>
-      <Stack direction="row" spacing={2}>
-        <OutlinedInput
-          fullWidth
-          value={filter.search}
-          onChange={(e) => setFilter({ ...filter, search: e.target.value })}
-          placeholder="Search program..."
-          size="small"
-          sx={{ maxWidth: 300 }}
-          endAdornment={
-            filter.search && (
-              <CloseRoundedIcon
-                onClick={() => setFilter({ ...filter, search: "" })}
-                sx={{ cursor: "pointer", color: "grey.500" }}
-              />
-            )
-          }
-        />
-        <Select
-          size="small"
-          fullWidth
-          defaultValue={"all"}
-          value={filter.school}
-          sx={{ maxWidth: 300 }}
-          onChange={(e) => setFilter({ ...filter, school: e.target.value })}
-        >
-          <MenuItem value="all">All Schools</MenuItem>
-          {schoolOption.map((school, index) => (
-            <MenuItem key={index} value={school}>
-              {school}
-            </MenuItem>
-          ))}
-        </Select>
-        <Select
-          size="small"
-          fullWidth
-          defaultValue={"all"}
-          value={filter.dept}
-          sx={{ maxWidth: 300 }}
-          onChange={(e) => setFilter({ ...filter, dept: e.target.value })}
-        >
-          <MenuItem value="all">All Department</MenuItem>
-          {deptOption.map((dept, index) => (
-            <MenuItem key={index} value={dept}>
-              {dept}
-            </MenuItem>
-          ))}
-        </Select>
-        <Tooltip title="Clear Filter" placement="top" arrow>
-          <IconButton
-            color="error"
-            onClick={() =>
-              setFilter({ search: "", school: "all", dept: "all" })
-            }
-            aria-label="clear filter"
+      <Stack direction="row" justifyContent="space-between">
+        <Stack direction="row" spacing={2}>
+          <OutlinedInput
+            fullWidth
+            value={filter.search}
+            onChange={(e) => setFilter({ ...filter, search: e.target.value })}
+            placeholder="Search program..."
             size="small"
-            sx={{ alignSelf: "center" }}
+            sx={{ maxWidth: 300, minWidth: 200 }}
+            endAdornment={
+              filter.search && (
+                <CloseRoundedIcon
+                  onClick={() => setFilter({ ...filter, search: "" })}
+                  sx={{ cursor: "pointer", color: "grey.500" }}
+                />
+              )
+            }
+          />
+          <Select
+            size="small"
+            fullWidth
+            defaultValue={"all"}
+            value={filter.school}
+            sx={{ maxWidth: 300 }}
+            onChange={(e) => setFilter({ ...filter, school: e.target.value })}
           >
-            <RestartAltRoundedIcon />
-          </IconButton>
-        </Tooltip>
+            <MenuItem value="all">All Schools</MenuItem>
+            {schoolOption.map((school, index) => (
+              <MenuItem key={index} value={school}>
+                {school}
+              </MenuItem>
+            ))}
+          </Select>
+          <Select
+            size="small"
+            fullWidth
+            defaultValue={"all"}
+            value={filter.dept}
+            sx={{ maxWidth: 300 }}
+            onChange={(e) => setFilter({ ...filter, dept: e.target.value })}
+          >
+            <MenuItem value="all">All Department</MenuItem>
+            {deptOption.map((dept, index) => (
+              <MenuItem key={index} value={dept}>
+                {dept}
+              </MenuItem>
+            ))}
+          </Select>
+          <Tooltip title="Clear Filter" placement="top" arrow>
+            <IconButton
+              color="error"
+              onClick={() =>
+                setFilter({ search: "", school: "all", dept: "all" })
+              }
+              aria-label="clear filter"
+              size="small"
+              sx={{ alignSelf: "center" }}
+            >
+              <RestartAltRoundedIcon />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+        <Button
+          variant="contained"
+          disableElevation
+          size="small"
+          sx={{
+            bgcolor: "#2D3B87",
+            "&:hover": { bgcolor: "#3d51c4ff" },
+          }}
+          onClick={() => setCreateDialog(true)}
+        >
+          New Program
+        </Button>
       </Stack>
       <TableContainer component={Paper} variant="outlined">
         <Table size="small">
@@ -223,7 +260,9 @@ const ProgramTab = () => {
                 return (
                   <TableRow key={index} tabIndex={-1}>
                     <StyledTableCell component="th" scope="row">
-                      {row.prog_name}
+                      <Tooltip title={row.prog_sname} placement="left">
+                        {row.prog_name}
+                      </Tooltip>
                     </StyledTableCell>
                     <StyledTableCell>
                       <Tooltip title={row.school_name} placement="left">
@@ -236,7 +275,30 @@ const ProgramTab = () => {
                       </Tooltip>
                     </StyledTableCell>
                     <StyledTableCell>{row.prog_chair}</StyledTableCell>
-                    <StyledTableCell>{}</StyledTableCell>
+                    <StyledTableCell>
+                      <Tooltip title="Edit" placement="top" arrow>
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() =>
+                            setEditDialog({ open: true, item: row })
+                          }
+                        >
+                          <BorderColorRoundedIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete" placement="top" arrow>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() =>
+                            setDeleteDialog({ open: true, item: row })
+                          }
+                        >
+                          <DeleteForeverRoundedIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </StyledTableCell>
                   </TableRow>
                 );
               })
@@ -252,6 +314,11 @@ const ProgramTab = () => {
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+
+      <CreateProgram
+        open={createDialog}
+        onClose={() => setCreateDialog(false)}
       />
     </Stack>
   );

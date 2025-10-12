@@ -36,6 +36,7 @@ import AssignmentRoundedIcon from "@mui/icons-material/AssignmentRounded";
 import FormatListNumberedRoundedIcon from "@mui/icons-material/FormatListNumberedRounded";
 import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
+import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
 
 const drawerWidth = 240;
 
@@ -109,77 +110,69 @@ const NavBar = () => {
     setOpen(!open);
   };
 
-  const navItems =
-    userCon.user.role == "Admin"
-      ? [
-          {
-            to: "/",
-            label: "Dashboard",
-            icon: <DashboardRoundedIcon fontSize="small" />,
-          },
-          {
-            to: "/quizzes",
-            label: "Quizzes",
-            icon: <FormatListNumberedRoundedIcon fontSize="small" />,
-          },
-          {
-            to: "/questions",
-            label: "Questions",
-            icon: <AssignmentRoundedIcon fontSize="small" />,
-          },
-          {
-            to: "/classes",
-            label: "My Classes",
-            icon: <GroupRoundedIcon fontSize="small" />,
-          },
-          {
-            to: "/analytics",
-            label: "Analytics",
-            icon: <AnalyticsRoundedIcon fontSize="small" />,
-          },
-          {
-            to: "/admin",
-            label: "Administrator",
-            icon: <AdminPanelSettingsRoundedIcon fontSize="small" />,
-          },
-          {
-            to: "/profile",
-            label: "Profile Settings",
-            icon: <ManageAccountsRoundedIcon fontSize="small" />,
-          },
-        ]
-      : [
-          {
-            to: "/",
-            label: "Dashboard",
-            icon: <DashboardRoundedIcon fontSize="small" />,
-          },
-          {
-            to: "/quizzes",
-            label: "Quizzes",
-            icon: <FormatListNumberedRoundedIcon fontSize="small" />,
-          },
-          {
-            to: "/questions",
-            label: "Questions",
-            icon: <AssignmentRoundedIcon fontSize="small" />,
-          },
-          {
-            to: "/classes",
-            label: "My Classes",
-            icon: <GroupRoundedIcon fontSize="small" />,
-          },
-          {
-            to: "/analytics",
-            label: "Analytics",
-            icon: <AnalyticsRoundedIcon fontSize="small" />,
-          },
-          {
-            to: "/profile",
-            label: "Profile Settings",
-            icon: <ManageAccountsRoundedIcon fontSize="small" />,
-          },
-        ];
+  const baseNavItems = [
+    {
+      to: "/",
+      label: "Dashboard",
+      icon: <DashboardRoundedIcon fontSize="small" />,
+    },
+    {
+      to: "/quizzes",
+      label: "Quizzes",
+      icon: <FormatListNumberedRoundedIcon fontSize="small" />,
+    },
+    {
+      to: "/questions",
+      label: "Questions",
+      icon: <AssignmentRoundedIcon fontSize="small" />,
+    },
+    {
+      to: "/classes",
+      label: "My Classes",
+      icon: <GroupRoundedIcon fontSize="small" />,
+    },
+    {
+      to: "/analytics",
+      label: "Analytics",
+      icon: <AnalyticsRoundedIcon fontSize="small" />,
+    },
+    {
+      to: "/profile",
+      label: "Profile Settings",
+      icon: <ManageAccountsRoundedIcon fontSize="small" />,
+    },
+  ];
+
+  let navItems = baseNavItems;
+
+  if (userCon.user.role === "Admin") {
+    navItems = [
+      ...baseNavItems,
+      {
+        to: "/admin",
+        label: "Administrator",
+        icon: <AdminPanelSettingsRoundedIcon fontSize="small" />,
+      },
+      {
+        to: "/profile",
+        label: "Profile Settings",
+        icon: <ManageAccountsRoundedIcon fontSize="small" />,
+      },
+    ];
+  } else if (userCon.user.role === "SuperAdmin") {
+    navItems = [
+      {
+        to: "/superadmin",
+        label: "Super Admin Panel",
+        icon: <SecurityRoundedIcon fontSize="small" />,
+      },
+      {
+        to: "/superadmin/profile",
+        label: "Profile Settings",
+        icon: <ManageAccountsRoundedIcon fontSize="small" />,
+      },
+    ];
+  }
 
   return (
     <Box>
@@ -191,7 +184,7 @@ const NavBar = () => {
         </DrawerHeader>
         {/* <Divider /> */}
         {/* Logo sectirn */}
-        <header className="flex justify-center mt-5">
+        <header className="flex justify-center mt-5 p-2">
           <img src={open ? logo : logo_icon} alt="Logo" className="" />
         </header>
         {/* Profile Section */}

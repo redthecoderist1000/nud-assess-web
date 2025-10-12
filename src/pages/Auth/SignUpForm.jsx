@@ -46,9 +46,35 @@ function SignUpForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+
+    // trim inputs
+    formData.firstName = formData.firstName.trim();
+    formData.middleName = formData.middleName.trim();
+    formData.lastName = formData.lastName.trim();
+    formData.suffix = formData.suffix.trim();
+    formData.department = formData.department.trim();
 
     // Basic field validations
+    if (formData.firstName == "") {
+      setSnackbar({
+        open: true,
+        message: "First name is required.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (formData.lastName == "") {
+      setSnackbar({
+        open: true,
+        message: "Last name is required.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
     if (formData.department == "") {
       setSnackbar({
         open: true,
@@ -60,14 +86,16 @@ function SignUpForm() {
       return;
     }
 
+    setLoading(true);
+
     let { data, error } = await supabase
       .from("tbl_users")
       .insert({
         id: formData.user_id,
         suffix: formData.suffix,
-        f_name: formData.firstName,
-        m_name: formData.middleName,
-        l_name: formData.lastName,
+        f_name: titleCase(formData.firstName),
+        m_name: titleCase(formData.middleName),
+        l_name: titleCase(formData.lastName),
         email: formData.email,
         role: "Faculty",
         department_id: formData.department,
@@ -121,6 +149,14 @@ function SignUpForm() {
       return;
     }
     setDeptOption(data);
+  };
+
+  const titleCase = (str) => {
+    return str
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   return (

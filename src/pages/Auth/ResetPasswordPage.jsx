@@ -24,6 +24,7 @@ const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const { setSnackbar } = useContext(userContext);
   const [error, setError] = useState({});
+  const [code, setCode] = useState(null);
   const location = useLocation();
   const [formData, setFormData] = useState({
     password: "",
@@ -37,6 +38,7 @@ const ResetPasswordPage = () => {
     const hash = location.hash;
     const params = new URLSearchParams(hash.slice(1));
 
+    const code = params.get("code");
     const error = params.get("error");
     const error_code = params.get("error_code");
     const error_description = params.get("error_description");
@@ -47,6 +49,11 @@ const ResetPasswordPage = () => {
         error_code: error_code,
         error_description: error_description,
       });
+      return;
+    }
+    if (code) {
+      // console.log("Code from URL:", code);
+      setCode(code);
       return;
     }
   }, []);
@@ -78,11 +85,40 @@ const ResetPasswordPage = () => {
     }
 
     try {
+      if (code) {
+        console.log(code);
+        const { data, error } =
+          await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          console.log("Error exchanging code:", error);
+          setSnackbar({
+            open: true,
+            message: error.message,
+            severity: "error",
+          });
+          return;
+        }
+        // console.log("Data from code exchange:", data);
+        const { error: sessionError } = await supabase.auth.setSession(
+          data?.session.access_token
+        );
+        if (sessionError) {
+          console.log("Error setting session:", sessionError);
+          setSnackbar({
+            open: true,
+            message: sessionError.message,
+            severity: "error",
+          });
+          return;
+        }
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: formData.password,
       });
 
       if (error) {
+        console.log("Error updating user:", error);
         setSnackbar({
           open: true,
           message: error.message,
@@ -91,18 +127,19 @@ const ResetPasswordPage = () => {
       } else {
         setSnackbar({
           open: true,
-          message: "Password updated successfully",
+          message: "Password updated successfully. Proceed to log in.",
           severity: "success",
         });
+        signOut();
         setFormData({ password: "", cpassword: "" });
         setIsSuccess(true);
-        signOut();
 
         setTimeout(() => {
           navigate("/login", { replace: true });
         }, 3000);
       }
     } catch (error) {
+      console.log("Unexpected error:", error);
       setSnackbar({
         open: true,
         message: error.message,

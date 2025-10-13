@@ -387,7 +387,7 @@ function QuestionBuilder(props) {
                   };
                 }}
               >
-                <Box p={2}>
+                <Box p={2} maxHeight={400} overflow={"auto"}>
                   <Typography variant="body2">Similar Question/s:</Typography>
                   <Stack
                     direction="row"

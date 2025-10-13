@@ -91,7 +91,7 @@ const QuestionTab = () => {
     const { data, error } = await supabase
       .from("vw_allquestions")
       .select("*")
-      .eq("program_id", user.prog_id);
+      .eq("program_id", user.prog_id || user.asst_prog_id);
 
     if (error) {
       setSnackbar({

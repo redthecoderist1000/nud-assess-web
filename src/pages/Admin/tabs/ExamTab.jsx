@@ -93,9 +93,9 @@ const ExamTab = () => {
 
   const fetchExams = async () => {
     const { data, error } = await supabase
-      .from("vw_allquiz")
+      .from("vw_allquizadmin")
       .select("*")
-      .eq("program_id", user.prog_id);
+      .eq("program_id", user.prog_id || user.asst_prog_id);
 
     if (error) {
       setSnackbar({

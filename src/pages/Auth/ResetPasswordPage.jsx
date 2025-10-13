@@ -90,33 +90,33 @@ const ResetPasswordPage = () => {
     }
 
     try {
-      // if (code) {
-      //   // console.log(code);
-      //   const { data, error } =
-      //     await supabase.auth.exchangeCodeForSession(code);
-      //   if (error) {
-      //     console.log("Error exchanging code:", error);
-      //     setSnackbar({
-      //       open: true,
-      //       message: error.message,
-      //       severity: "error",
-      //     });
-      //     return;
-      //   }
-      //   // console.log("Data from code exchange:", data);
-      //   const { error: sessionError } = await supabase.auth.setSession(
-      //     data?.session.access_token
-      //   );
-      //   if (sessionError) {
-      //     console.log("Error setting session:", sessionError);
-      //     setSnackbar({
-      //       open: true,
-      //       message: sessionError.message,
-      //       severity: "error",
-      //     });
-      //     return;
-      //   }
-      // }
+      if (code) {
+        // console.log(code);
+        const { data, error } =
+          await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          console.log("Error exchanging code:", error);
+          setSnackbar({
+            open: true,
+            message: error.message,
+            severity: "error",
+          });
+          return;
+        }
+        // console.log("Data from code exchange:", data);
+        const { error: sessionError } = await supabase.auth.setSession(
+          data?.session.access_token
+        );
+        if (sessionError) {
+          // console.log("Error setting session:", sessionError);
+          setSnackbar({
+            open: true,
+            message: "Error setting session: " + sessionError.message,
+            severity: "error",
+          });
+          return;
+        }
+      }
       // if (accessToken) {
       //   const { data, error } = await supabase.auth.setSession({
       //     access_token: accessToken,

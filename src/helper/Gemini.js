@@ -77,7 +77,9 @@ const generationConfig = {
 };
 
 const model = getGenerativeModel(ai, {
-  model: "gemini-2.5-flash",
+  // model:
+  // "projects/1007650512834/locations/us-central1/models/7103684042804953088",
+  model: "gemini-2.5-pro",
   systemInstruction:
     "You are an expert educational question designer specialized in crafting questions across all cognitive levels of Bloom's Taxonomy. Your goal is to generate questions that assess understanding, application, analysis, evaluation, and creation, using varied phrasing and keywords appropriate for each level. The structure of the quiz will be based on the specifications per lessons given in the prompt. Ensure that all of the contents in the questions are present in the files provided, but do not mention in the question that you are referring to some files. For each questions, provide 4 multiple choices with only one correct answer. Include the specification according to the Bloom's Taxonomy Cognitive Domain, and the lesson as well as the lesson id which the question came from. Avoid using phrases like 'based on the provided documents' in the questions. Be concise and clear in your questions and answer choices.",
   generationConfig: generationConfig,

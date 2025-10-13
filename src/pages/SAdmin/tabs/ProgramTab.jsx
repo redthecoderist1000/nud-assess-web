@@ -25,6 +25,7 @@ import BorderColorRoundedIcon from "@mui/icons-material/BorderColorRounded";
 
 import { supabase } from "../../../helper/Supabase";
 import CreateProgram from "./components/CreateProgram";
+import EditProgram from "./components/EditProgram";
 
 const StyledTableCell = styled(TableCell)(({ theme, bgcolor }) => ({
   background: bgcolor || "inherit",
@@ -319,6 +320,12 @@ const ProgramTab = () => {
       <CreateProgram
         open={createDialog}
         onClose={() => setCreateDialog(false)}
+      />
+
+      <EditProgram
+        open={editDialog.open}
+        onClose={() => setEditDialog({ open: false, item: null })}
+        item={editDialog.item}
       />
     </Stack>
   );

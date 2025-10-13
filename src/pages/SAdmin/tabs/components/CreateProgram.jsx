@@ -41,7 +41,7 @@ const CreateProgram = ({ open, onClose }) => {
   const fetchSchool = async () => {
     const { data, error } = await supabase
       .from("tbl_school")
-      .select("id, name")
+      .select("id, name, shorthand_name")
       .order("name", { ascending: true });
     if (error) {
       setSnackbar({
@@ -211,7 +211,10 @@ const CreateProgram = ({ open, onClose }) => {
               >
                 {schoolOptions.map((school, index) => (
                   <MenuItem key={index} value={school.id} dense>
-                    {school.name}
+                    <ListItemText
+                      primary={school.shorthand_name}
+                      secondary={school.name}
+                    />
                   </MenuItem>
                 ))}
               </Select>
@@ -247,12 +250,12 @@ const CreateProgram = ({ open, onClose }) => {
                 }
               >
                 {chairOptions.map((chair, index) => (
-                  <ListItem key={index} value={chair.user_id} dense>
+                  <MenuItem key={index} value={chair.user_id} dense>
                     <ListItemText
                       primary={chair.name}
                       secondary={chair.email}
                     />
-                  </ListItem>
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>

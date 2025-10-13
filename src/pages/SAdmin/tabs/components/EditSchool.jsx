@@ -128,7 +128,7 @@ const EditSchool = ({ open, onClose, item }) => {
               size="small"
               required
               type="text"
-              label="Short Hand Name"
+              label="Abbreviated Name"
               value={formData.sname}
               onChange={(e) =>
                 setFormData({ ...formData, sname: e.target.value })

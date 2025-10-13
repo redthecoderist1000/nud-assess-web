@@ -184,7 +184,7 @@ const CreateProgram = ({ open, onClose }) => {
               required
               type="text"
               size="small"
-              label="Department Name"
+              label="Program Name"
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })

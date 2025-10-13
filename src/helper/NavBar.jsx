@@ -136,11 +136,6 @@ const NavBar = () => {
       label: "Analytics",
       icon: <AnalyticsRoundedIcon fontSize="small" />,
     },
-    {
-      to: "/profile",
-      label: "Profile Settings",
-      icon: <ManageAccountsRoundedIcon fontSize="small" />,
-    },
   ];
 
   let navItems = baseNavItems;
@@ -168,6 +163,15 @@ const NavBar = () => {
       },
       {
         to: "/superadmin/profile",
+        label: "Profile Settings",
+        icon: <ManageAccountsRoundedIcon fontSize="small" />,
+      },
+    ];
+  } else if (userCon.user.role === "Faculty") {
+    navItems = [
+      ...baseNavItems,
+      {
+        to: "/profile",
         label: "Profile Settings",
         icon: <ManageAccountsRoundedIcon fontSize="small" />,
       },

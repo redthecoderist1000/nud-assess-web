@@ -32,16 +32,22 @@ const AdminNav = (props) => {
           >
             Faculty
           </span>
-          {/* <span
-          onClick={() => {
-            props.setValue(2);
-          }}
-          className={`cursor-pointer ml-15 hover:underline ${
-            props.value === 2 ? "text-amber-400 font-bold" : ""
-          }`}
-        >
-          Announcements
-        </span> */}
+          <span
+            onClick={() => setTab(2)}
+            className={`cursor-pointer ml-15 hover:underline ${
+              props.value === 2 ? "text-amber-400 font-bold" : ""
+            }`}
+          >
+            Questions
+          </span>
+          <span
+            onClick={() => setTab(3)}
+            className={`cursor-pointer ml-15 hover:underline ${
+              props.value === 3 ? "text-amber-400 font-bold" : ""
+            }`}
+          >
+            Exams
+          </span>
         </Container>
       </div>
     </div>

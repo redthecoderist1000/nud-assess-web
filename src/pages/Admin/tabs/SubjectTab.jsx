@@ -169,7 +169,7 @@ function SubjectTab() {
       });
       return;
     }
-    console.log("data", data);
+    // console.log("data", data);
     setRows(data);
   };
 

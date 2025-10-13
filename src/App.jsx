@@ -176,9 +176,8 @@ const AnimatedRoutes = () => {
 
     if (session) {
       const { data, error } = await supabase
-        .from("tbl_users")
+        .from("vw_owninfo")
         .select("*")
-        .eq("id", session.user.id)
         .maybeSingle();
 
       if (error) {
@@ -210,8 +209,6 @@ const AnimatedRoutes = () => {
       }
 
       setUser({
-        email: session.user.email,
-        user_id: session.user.id,
         ...data,
       });
     }

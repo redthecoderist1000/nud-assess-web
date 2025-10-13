@@ -25,39 +25,16 @@ import EditQuiz from "../../components/EditQuiz";
 import { userContext } from "../../../../App";
 import { supabase } from "../../../../helper/Supabase";
 
-const QuizTab = ({ quizzes, class_id }) => {
+const QuizTab = ({ quizzes, class_id, is_active }) => {
   const { setSnackbar } = useContext(userContext);
   const [assignQuiz, setAssignQuiz] = useState(false);
   const [deleteQuiz, setDeleteQuiz] = useState(null);
   const [editQuiz, setEditQuiz] = useState(null);
-  const [is_active, set_IsActive] = useState(true);
+  // const [is_active, set_IsActive] = useState(true);
   const [filter, setFilter] = useState({
     status: "All", // all, open, closed, scheduled
     search: "",
   });
-
-  const fetchData = async () => {
-    const { data, error } = await supabase
-      .from("tbl_class")
-      .select("is_active")
-      .eq("id", class_id)
-      .single();
-
-    if (error) {
-      // console.log("fail to fetch class status:", error);
-      setSnackbar({
-        open: true,
-        message: "Error fetching class status. Please try again.",
-        severity: "error",
-      });
-      return;
-    }
-    set_IsActive(data.is_active);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [class_id]);
 
   const filteredQuizzes = useMemo(() => {
     const status = filter.status;

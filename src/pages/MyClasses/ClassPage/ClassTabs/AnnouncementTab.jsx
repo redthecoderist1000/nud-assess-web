@@ -22,7 +22,7 @@ import EditAnnounce from "../../components/EditAnnounce";
 import { userContext } from "../../../../App";
 import GeneralDialog from "../../../../components/elements/GeneralDialog";
 
-const AnnouncementTab = ({ class_id }) => {
+const AnnouncementTab = ({ class_id, is_active }) => {
   const { setSnackbar } = useContext(userContext);
   const [formData, setFormData] = useState({
     content: "",
@@ -191,84 +191,86 @@ const AnnouncementTab = ({ class_id }) => {
         </div>
       </div>
       {/* Quick Announcement Card */}
-      <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm mt-6 flex items-start gap-4">
-        <NotificationsActiveIcon
-          sx={{
-            background: "#23286b",
-            color: "#fff",
-            borderRadius: "50%",
-            padding: "8px",
-            fontSize: 36,
-            marginRight: "8px",
-          }}
-        />
-        <div className="flex-1">
-          <div className="font-semibold mb-1">Post Announcement</div>
-          <form onSubmit={validate}>
-            <Stack rowGap={2}>
-              <Grid container spacing={2}>
-                <Grid flex={3}>
-                  <TextField
-                    required
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    placeholder="Title"
-                    variant="outlined"
-                    fullWidth
-                    sx={{ bgcolor: "white" }}
-                  />
-                </Grid>
-                <Grid flex={1}>
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DateTimePicker
-                      label="Post announcement on:"
-                      name="open_time"
-                      value={formData.start_date}
-                      minDateTime={dayjs()}
-                      slotProps={{
-                        textField: {
-                          sx: { width: "100%", bgcolor: "white" },
-                        },
-                      }}
-                      onChange={handleStartDate}
+      {is_active && (
+        <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm mt-6 flex items-start gap-4">
+          <NotificationsActiveIcon
+            sx={{
+              background: "#23286b",
+              color: "#fff",
+              borderRadius: "50%",
+              padding: "8px",
+              fontSize: 36,
+              marginRight: "8px",
+            }}
+          />
+          <div className="flex-1">
+            <div className="font-semibold mb-1">Post Announcement</div>
+            <form onSubmit={validate}>
+              <Stack rowGap={2}>
+                <Grid container spacing={2}>
+                  <Grid flex={3}>
+                    <TextField
+                      required
+                      value={formData.title}
+                      onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      }
+                      placeholder="Title"
+                      variant="outlined"
+                      fullWidth
+                      sx={{ bgcolor: "white" }}
                     />
-                  </LocalizationProvider>
+                  </Grid>
+                  <Grid flex={1}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <DateTimePicker
+                        label="Post announcement on:"
+                        name="open_time"
+                        value={formData.start_date}
+                        minDateTime={dayjs()}
+                        slotProps={{
+                          textField: {
+                            sx: { width: "100%", bgcolor: "white" },
+                          },
+                        }}
+                        onChange={handleStartDate}
+                      />
+                    </LocalizationProvider>
+                  </Grid>
                 </Grid>
-              </Grid>
-              <JoditEditor
-                ref={editor}
-                value={formData.content}
-                config={config}
-                onBlur={handleJodit}
-                onChange={handleEditorChange}
-              />
-              <Button
-                variant="contained"
-                disableElevation
-                sx={{
-                  maxWidth: "200px",
-                  background: "#23286b",
-                  color: "#fff",
-                  textTransform: "none",
-                  fontWeight: 500,
-                  fontSize: "0.95rem",
-                  borderRadius: "8px",
-                  "&:hover": {
+                <JoditEditor
+                  ref={editor}
+                  value={formData.content}
+                  config={config}
+                  onBlur={handleJodit}
+                  onChange={handleEditorChange}
+                />
+                <Button
+                  variant="contained"
+                  disableElevation
+                  sx={{
+                    maxWidth: "200px",
                     background: "#23286b",
-                    boxShadow: "none",
-                  },
-                }}
-                type="submit"
-                loading={loading}
-              >
-                Post Announcement
-              </Button>
-            </Stack>
-          </form>
+                    color: "#fff",
+                    textTransform: "none",
+                    fontWeight: 500,
+                    fontSize: "0.95rem",
+                    borderRadius: "8px",
+                    "&:hover": {
+                      background: "#23286b",
+                      boxShadow: "none",
+                    },
+                  }}
+                  type="submit"
+                  loading={loading}
+                >
+                  Post Announcement
+                </Button>
+              </Stack>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
       {/* Announcement List */}
       {loadingList ? (
         <div className="mt-5">

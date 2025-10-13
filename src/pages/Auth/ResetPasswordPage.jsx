@@ -34,9 +34,14 @@ const ResetPasswordPage = () => {
   const [showCPass, setShowCPass] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const [accessToken, setAccessToken] = useState(null);
+
   useEffect(() => {
     const hash = location.hash;
     const params = new URLSearchParams(hash.slice(1));
+    // const access_token = params.get("access_token");
+    // setAccessToken(access_token);
+    // console.log("Access Token from URL:", access_token);
 
     const code = params.get("code");
     const error = params.get("error");
@@ -85,33 +90,47 @@ const ResetPasswordPage = () => {
     }
 
     try {
-      if (code) {
-        console.log(code);
-        const { data, error } =
-          await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          console.log("Error exchanging code:", error);
-          setSnackbar({
-            open: true,
-            message: error.message,
-            severity: "error",
-          });
-          return;
-        }
-        // console.log("Data from code exchange:", data);
-        const { error: sessionError } = await supabase.auth.setSession(
-          data?.session.access_token
-        );
-        if (sessionError) {
-          console.log("Error setting session:", sessionError);
-          setSnackbar({
-            open: true,
-            message: sessionError.message,
-            severity: "error",
-          });
-          return;
-        }
-      }
+      // if (code) {
+      //   // console.log(code);
+      //   const { data, error } =
+      //     await supabase.auth.exchangeCodeForSession(code);
+      //   if (error) {
+      //     console.log("Error exchanging code:", error);
+      //     setSnackbar({
+      //       open: true,
+      //       message: error.message,
+      //       severity: "error",
+      //     });
+      //     return;
+      //   }
+      //   // console.log("Data from code exchange:", data);
+      //   const { error: sessionError } = await supabase.auth.setSession(
+      //     data?.session.access_token
+      //   );
+      //   if (sessionError) {
+      //     console.log("Error setting session:", sessionError);
+      //     setSnackbar({
+      //       open: true,
+      //       message: sessionError.message,
+      //       severity: "error",
+      //     });
+      //     return;
+      //   }
+      // }
+      // if (accessToken) {
+      //   const { data, error } = await supabase.auth.setSession({
+      //     access_token: accessToken,
+      //   });
+      //   if (error) {
+      //     console.log(error);
+      //     setSnackbar({
+      //       open: true,
+      //       message: "Error setting session with access token",
+      //       severity: "error",
+      //     });
+      //     return;
+      //   }
+      // }
 
       const { error } = await supabase.auth.updateUser({
         password: formData.password,

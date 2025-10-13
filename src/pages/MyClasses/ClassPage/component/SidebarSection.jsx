@@ -36,30 +36,35 @@ const SidebarSection = ({ classData, people = [], quizzes = [] }) => {
         </h2>
         <p className="text-sm text-gray-300 mb-1">Description</p>
         <p className="text-base font-semibold mb-3">{classData.desc}</p>
-        <p className="text-sm text-gray-300 mb-1">Class join code</p>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="bg-[#23286b] px-2 py-1 rounded text-base font-mono font-semibold border border-gray-400">
-            {classData.join_code}
-          </span>
-          <Tooltip
-            open={copyToolTip}
-            arrow
-            placement="top"
-            disableFocusListener
-            title="Copied to clipboard"
-          >
-            <IconButton
-              size="small"
-              onClick={() => copy(classData.join_code)}
-              sx={{ color: "white" }}
-            >
-              <ContentCopyRoundedIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </div>
-        <p className="text-xs text-gray-400 mb-3">
-          Share this code with students
-        </p>
+        {classData.archived_at === null && (
+          <>
+            <p className="text-sm text-gray-300 mb-1">Class join code</p>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-[#23286b] px-2 py-1 rounded text-base font-mono font-semibold border border-gray-400">
+                {classData.join_code}
+              </span>
+              <Tooltip
+                open={copyToolTip}
+                arrow
+                placement="top"
+                disableFocusListener
+                title="Copied to clipboard"
+              >
+                <IconButton
+                  size="small"
+                  onClick={() => copy(classData.join_code)}
+                  sx={{ color: "white" }}
+                >
+                  <ContentCopyRoundedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </div>
+            <p className="text-xs text-gray-400 mb-3">
+              Share this code with students
+            </p>
+          </>
+        )}
+
         <div className="flex gap-6 mt-3">
           <div>
             <p className="text-xs text-gray-300">Students</p>
@@ -71,82 +76,6 @@ const SidebarSection = ({ classData, people = [], quizzes = [] }) => {
           </div>
         </div>
       </div>
-
-      {/* Quick Actions */}
-      {/* <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h3 className="font-semibold text-md mb-4 flex items-center gap-2 text-[#23286b]">
-        <span role="img" aria-label="bolt">
-          ⚡
-        </span>{" "}
-        Quick Actions
-      </h3>
-      <Stack spacing={2}>
-        <Button
-          variant="outlined"
-          startIcon={<QuizIcon />}
-          sx={{
-            color: "#23286b",
-            borderColor: "#e0e0e0",
-            justifyContent: "flex-start",
-            textTransform: "none",
-            background: "#fff",
-            width: "100%",
-          }}
-          fullWidth
-          onClick={() => alert("Create Quiz")}
-        >
-          Assign Quiz
-        </Button>
-        <Button
-          variant="outlined"
-          startIcon={<GroupIcon />}
-          sx={{
-            color: "#23286b",
-            borderColor: "#e0e0e0",
-            justifyContent: "flex-start",
-            textTransform: "none",
-            background: "#fff",
-            width: "100%",
-          }}
-          fullWidth
-          onClick={() => setAddMemDia(true)}
-        >
-          Manage Students
-        </Button>
-        <Button
-          variant="outlined"
-          startIcon={<AnnouncementIcon />}
-          sx={{
-            color: "#23286b",
-            borderColor: "#e0e0e0",
-            justifyContent: "flex-start",
-            textTransform: "none",
-            background: "#fff",
-            width: "100%",
-          }}
-          fullWidth
-          onClick={() => alert("Send Announcement")}
-        >
-          Send Announcement
-        </Button>
-        <Button
-          variant="outlined"
-          startIcon={<BarChartIcon />}
-          sx={{
-            color: "#23286b",
-            borderColor: "#e0e0e0",
-            justifyContent: "flex-start",
-            textTransform: "none",
-            background: "#fff",
-            width: "100%",
-          }}
-          fullWidth
-          onClick={() => alert("View Grades")}
-        >
-          View Grades
-        </Button>
-      </Stack>
-    </div> */}
     </div>
   );
 };

@@ -53,9 +53,10 @@ const fetchQuestions = async (blooms_category, repository, lesson_id) => {
     .eq("blooms_category", blooms_category)
     .eq("repository", repository)
     .eq("lesson_id", lesson_id)
-    .eq("archived_at", null);
+    .is("archived_at", null); // Only fetch non-archived questions
 
   if (questionError) {
+    console.log(questionError);
     return { error: questionError };
   }
   // console.log(questionData);

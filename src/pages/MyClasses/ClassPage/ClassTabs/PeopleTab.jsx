@@ -6,27 +6,9 @@ import PersonListItem from "../../components/PersonListItem";
 import RemMemberDialog from "../../components/RemMemberDialog";
 import { supabase } from "../../../../helper/Supabase";
 
-const PeopleTab = ({ people = [], class_id }) => {
+const PeopleTab = ({ people = [], class_id, is_active }) => {
   const [addMembDia, setAddMemDia] = useState(false);
   const [remMembDia, setRemMemDia] = useState(null);
-  const [isActive, setIsActive] = useState(true);
-
-  useEffect(() => {
-    fetchData();
-  }, [class_id]);
-
-  const fetchData = async () => {
-    const { data, error } = await supabase
-      .from("tbl_class")
-      .select("is_active")
-      .eq("id", class_id)
-      .single();
-    if (error) {
-      console.log("fail to fetch members:", error);
-      return;
-    }
-    setIsActive(data.is_active);
-  };
 
   return (
     <div>
@@ -51,7 +33,7 @@ const PeopleTab = ({ people = [], class_id }) => {
             minWidth: "140px",
             padding: "6px 16px",
           }}
-          disabled={!isActive}
+          disabled={!is_active}
           onClick={() => setAddMemDia(true)}
         >
           Add Member

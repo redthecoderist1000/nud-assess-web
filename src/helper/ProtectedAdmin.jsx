@@ -7,7 +7,7 @@ function ProtectedAdmin() {
 
   let isAdmin = userCon.user.role == "Admin" ? true : false;
 
-  return isAdmin ? <Outlet /> : <Navigate to="/dashboard" />;
+  return isAdmin ? <Outlet /> : <Navigate to="/" />;
 }
 
 export default ProtectedAdmin;

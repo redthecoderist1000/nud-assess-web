@@ -50,6 +50,8 @@ import Tosifier from "./pages/QuizManagement/tosPage/Tosifier.jsx";
 import AutoSignOut from "./components/elements/AutoSignOut.jsx";
 import { Alert, Snackbar } from "@mui/material";
 import ResetPasswordPage from "./pages/Auth/ResetPasswordPage.jsx";
+import ProtectedSAdmin from "./helper/ProtectedSAdmin.jsx";
+import SAdminPage from "./pages/SAdmin/SAdminPage.jsx";
 
 export const userContext = createContext();
 export const signupContext = createContext();
@@ -174,9 +176,8 @@ const AnimatedRoutes = () => {
 
     if (session) {
       const { data, error } = await supabase
-        .from("tbl_users")
+        .from("vw_owninfo")
         .select("*")
-        .eq("id", session.user.id)
         .maybeSingle();
 
       if (error) {
@@ -208,8 +209,6 @@ const AnimatedRoutes = () => {
       }
 
       setUser({
-        email: session.user.email,
-        user_id: session.user.id,
         ...data,
       });
     }
@@ -299,8 +298,6 @@ const AnimatedRoutes = () => {
                   />
                   <Route path="profile" element={<ProfileSettingsPage />} />
 
-                  {/* <Route path="/class/:id" element={<ClassPage />} />
-                <Route path="/create-class" element={<CreateClass />} /> */}
                   <Route
                     path="CreateAutomatically"
                     element={<CreateAutomaticallyPage />}
@@ -326,6 +323,17 @@ const AnimatedRoutes = () => {
                       element={<SubjectInfoPage />}
                     />
                   </Route>
+                </Route>
+              </Route>
+
+              {/* super admin only */}
+              <Route element={<ProtectedSAdmin />}>
+                <Route path="/superadmin" element={<DashboardLayout />}>
+                  <Route index element={<SAdminPage />} />
+                  <Route
+                    path="/superadmin/profile"
+                    element={<ProfileSettingsPage />}
+                  />
                 </Route>
               </Route>
 

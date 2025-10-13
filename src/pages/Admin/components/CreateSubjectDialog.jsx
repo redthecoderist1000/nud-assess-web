@@ -1,18 +1,22 @@
 import {
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Divider,
   FormControl,
+  FormControlLabel,
   InputLabel,
   MenuItem,
   Select,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 import { act, useContext, useEffect, useState } from "react";
 import { supabase } from "../../../helper/Supabase";
@@ -23,6 +27,7 @@ function CreateSubjectDialog({ open, onClose }) {
   const { user, setSnackbar } = useContext(userContext);
   const [loading, setLoading] = useState(false);
   const [subForm, setSubForm] = useState({});
+  const [isChecked, setIsChecked] = useState(false);
   const [dialog, setDialog] = useState({
     open: false,
     title: "",
@@ -95,26 +100,39 @@ function CreateSubjectDialog({ open, onClose }) {
     await submitForm(finalName);
   };
 
-  const submitForm = async (finalName) => {
-    setDialog({ open: false, title: "", content: "", actions: null });
-    setLoading(true);
+  const submitForm = async (e) => {
+    e.preventDefault();
+    // setDialog({ open: false, title: "", content: "", actions: null });
 
+    setLoading(true);
     const { data: subjectData, error } = await supabase
       .from("tbl_subject")
       .insert({
-        name: finalName,
+        name: subForm.name,
         subject_code: subForm.subject_code,
         department_id: user.department_id,
+        sub_department: subForm.sub_department || null,
       })
       .select("*")
       .single();
 
     if (error) {
-      setSnackbar({
-        open: true,
-        message: "Error creating subject. Please try again.",
-        severity: "error",
-      });
+      // console.log(error);
+
+      if (error.code === "23505") {
+        setSnackbar({
+          open: true,
+          message:
+            "Subject name or code already exists. Please choose a different identifier.",
+          severity: "error",
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: "Error creating subject. Please try again.",
+          severity: "error",
+        });
+      }
       onClose();
       setLoading(false);
       setSubForm({});
@@ -156,7 +174,9 @@ function CreateSubjectDialog({ open, onClose }) {
   const fetchDeptOptions = async () => {
     const { data: deptData, error } = await supabase
       .from("tbl_department")
-      .select("id, name, shorthand_name");
+      .select("id, name, shorthand_name")
+      .neq("id", user.department_id)
+      .order("name", { ascending: true });
 
     if (error) {
       setSnackbar({
@@ -172,11 +192,13 @@ function CreateSubjectDialog({ open, onClose }) {
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth={true} maxWidth="sm">
-      <form onSubmit={validate}>
+      <form onSubmit={submitForm}>
         <DialogTitle>Add subject</DialogTitle>
         <DialogContent>
-          <DialogContentText>Add subject into your program?</DialogContentText>
-          <Stack direction="column" gap={1}>
+          <Stack direction="column" spacing={2}>
+            <DialogContentText>
+              Add subject into your program?
+            </DialogContentText>
             <TextField
               required
               id="subject_name"
@@ -193,7 +215,16 @@ function CreateSubjectDialog({ open, onClose }) {
               size="small"
               onChange={handleSubFormChange}
             />
-            {/* <FormControl size="small" fullWidth>
+            <Divider />
+            <Typography
+              variant="caption"
+              color="textDisabled"
+              textAlign={"justify"}
+            >
+              Assign to Sub Department (optional). Allow this subject to be
+              managed in other department.
+            </Typography>
+            <FormControl size="small" fullWidth>
               <InputLabel id="department_label">Sub Department</InputLabel>
               <Select
                 label="Sub Department"
@@ -212,7 +243,21 @@ function CreateSubjectDialog({ open, onClose }) {
                   </MenuItem>
                 ))}
               </Select>
-            </FormControl> */}
+            </FormControl>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  onClick={(e) => setIsChecked(e.target.checked)}
+                  color="success"
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  I confirm that the information provided is accurate.
+                </Typography>
+              }
+              sx={{ color: "text.secondary", mt: 1, fontSize: 10 }}
+            />
           </Stack>
         </DialogContent>
 
@@ -233,6 +278,7 @@ function CreateSubjectDialog({ open, onClose }) {
               color="success"
               variant="contained"
               loading={loading}
+              disabled={!isChecked}
             >
               Confirm
             </Button>

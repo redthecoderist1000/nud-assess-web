@@ -245,12 +245,25 @@ const ClassPage = () => {
             </div>
             {/* Content Section */}
             {activeTab === 0 && (
-              <QuizTab quizzes={quizzes} class_id={class_id} />
+              <QuizTab
+                quizzes={quizzes}
+                class_id={class_id}
+                is_active={classData.archived_at === null}
+              />
             )}
             {activeTab === 1 && (
-              <PeopleTab people={people} class_id={class_id} />
+              <PeopleTab
+                people={people}
+                class_id={class_id}
+                is_active={classData.archived_at === null}
+              />
             )}
-            {activeTab === 2 && <AnnouncementTab class_id={class_id} />}
+            {activeTab === 2 && (
+              <AnnouncementTab
+                class_id={class_id}
+                is_active={classData.archived_at === null}
+              />
+            )}
             {activeTab === 3 && (
               <GradeTab class_id={class_id} class_name={classData.class_name} />
             )}

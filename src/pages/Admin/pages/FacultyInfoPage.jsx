@@ -385,65 +385,68 @@ function FacultyInfo() {
                     {!info.allow_ai ? "Enable" : "Disable"}
                   </Button>
                 </Stack>
-                <Divider />
-
-                {/* transfer dept */}
-                {/* <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  <div>
-                    <Typography
-                      variant="body1"
-                      fontWeight="bold"
-                      alignSelf="center"
+                {user.is_progchair && (
+                  <>
+                    <Divider />
+                    {/* transfer dept */}
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
                     >
-                      Transfer department
-                    </Typography>
-                    <Typography variant="caption" alignSelf="center">
-                      Transfer faculty to another department.
-                    </Typography>
-                  </div>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    color="error"
-                    disableElevation
-                    onClick={() => setTransferDialog(true)}
-                  >
-                    Transfer
-                  </Button>
-                </Stack>
-                <Divider /> */}
-                {/* admin privilege */}
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  <div>
-                    <Typography
-                      variant="body1"
-                      fontWeight="bold"
-                      alignSelf="center"
+                      <div>
+                        <Typography
+                          variant="body1"
+                          fontWeight="bold"
+                          alignSelf="center"
+                        >
+                          Transfer department
+                        </Typography>
+                        <Typography variant="caption" alignSelf="center">
+                          Transfer faculty to another department.
+                        </Typography>
+                      </div>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        color="error"
+                        disableElevation
+                        onClick={() => setTransferDialog(true)}
+                      >
+                        Transfer
+                      </Button>
+                    </Stack>
+                    <Divider />
+                    {/* admin privilege */}
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
                     >
-                      Administrator access
-                    </Typography>
-                    <Typography variant="caption" alignSelf="center">
-                      Give or revoke admin access
-                    </Typography>
-                  </div>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    color={info.role == "Faculty" ? "success" : "error"}
-                    disableElevation
-                    onClick={() => setPromoteDialog(true)}
-                  >
-                    {info.role == "Faculty" ? "promote" : "revoke"}
-                  </Button>
-                </Stack>
+                      <div>
+                        <Typography
+                          variant="body1"
+                          fontWeight="bold"
+                          alignSelf="center"
+                        >
+                          Administrator access
+                        </Typography>
+                        <Typography variant="caption" alignSelf="center">
+                          Give or revoke admin access
+                        </Typography>
+                      </div>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        color={info.role == "Faculty" ? "success" : "error"}
+                        disableElevation
+                        onClick={() => setPromoteDialog(true)}
+                      >
+                        {info.role == "Faculty" ? "promote" : "revoke"}
+                      </Button>
+                    </Stack>
+                  </>
+                )}
               </>
             )}
           </Stack>

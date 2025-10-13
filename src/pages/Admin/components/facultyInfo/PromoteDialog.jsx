@@ -24,13 +24,49 @@ function PromoteDialog({ open, setOpen, facultyId, name, role }) {
   const promote = async () => {
     setLoading(true);
 
-    console.log("program data", programData);
-    console.log("faculty id", facultyId);
-    console.log("role", role);
+    // console.log("program data", programData);
+    // console.log("faculty id", facultyId);
+    // console.log("role", role);
+
+    // get old assistant program chair
+    const { data: prevProg, error: fetchError } = await supabase
+      .from("tbl_program")
+      .select("assistant_program_chair")
+      .eq("id", programData.id)
+      .single();
+
+    if (fetchError) {
+      setSnackbar({
+        open: true,
+        message: "Failed to retrieve program information. Please try again.",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    // demote old assistant program chair to faculty if exists
+    if (prevProg.assistant_program_chair) {
+      const { error: demoteError } = await supabase
+        .from("tbl_users")
+        .update({ role: "Faculty" })
+        .eq("id", prevProg.assistant_program_chair);
+      if (demoteError) {
+        setSnackbar({
+          open: true,
+          message:
+            "Failed to demote previous assistant program chair. Please try again.",
+          severity: "error",
+        });
+        setLoading(false);
+        return;
+      }
+    }
+
     const payload = {
       assistant_program_chair: role == "Faculty" ? facultyId : null,
     };
-    console.log("payload", payload);
+    // console.log("payload", payload);
     // update assistant program chair
     const { data, error: updateError } = await supabase
       .from("tbl_program")
@@ -39,7 +75,7 @@ function PromoteDialog({ open, setOpen, facultyId, name, role }) {
       .select();
 
     if (updateError) {
-      console.log("update program error", updateError);
+      // console.log("update program error", updateError);
       setSnackbar({
         open: true,
         message: "Failed to update program information. Please try again.",
@@ -49,7 +85,7 @@ function PromoteDialog({ open, setOpen, facultyId, name, role }) {
       return;
     }
 
-    console.log("update program data", data);
+    // console.log("update program data", data);
     // update to admin or faculty
     const { error } = await supabase
       .from("tbl_users")

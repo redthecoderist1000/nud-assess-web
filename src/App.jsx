@@ -165,6 +165,13 @@ const AnimatedRoutes = () => {
     const params = new URLSearchParams(hash.slice(1));
     const type = params.get("type");
 
+    // if in reset-password flow, do not check session
+    // console.log(location.pathname);
+    if (location.pathname === "/reset-password") {
+      setLoading(false);
+      return;
+    }
+
     if (type === "recovery") {
       setLoading(false);
       return;

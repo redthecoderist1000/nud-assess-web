@@ -56,11 +56,6 @@ const ResetPasswordPage = () => {
       });
       return;
     }
-    if (code) {
-      // console.log("Code from URL:", code);
-      setCode(code);
-      return;
-    }
   }, []);
 
   const signOut = async () => {

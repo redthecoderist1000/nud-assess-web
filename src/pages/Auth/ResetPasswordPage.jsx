@@ -88,6 +88,7 @@ const ResetPasswordPage = () => {
     if (code) {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (error) {
+        console.log(error);
         setSnackbar({
           open: true,
           message:

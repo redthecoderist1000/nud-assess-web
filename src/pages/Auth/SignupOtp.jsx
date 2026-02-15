@@ -13,10 +13,23 @@ function SignupOtp() {
   const navigate = useNavigate();
   const { setSnackbar } = useContext(userContext);
   const location = useLocation();
-  const email = location.state.email;
-  const password = location.state.password;
+  const email = location.state?.email;
+  const password = location.state?.password;
+
   const [secondsRemaining, setSecondsRemaining] = useState(60);
   const [loading, setLoading] = useState(false);
+
+  // Validation: Check if email and password are defined
+  useEffect(() => {
+    if (!email || !password) {
+      setSnackbar({
+        open: true,
+        message: "Invalid session. Please sign up again.",
+        severity: "error",
+      });
+      navigate("/login", { replace: true });
+    }
+  }, [email, password, navigate, setSnackbar]);
 
   useEffect(() => {
     if (secondsRemaining <= 0) return;

@@ -245,7 +245,7 @@ const LoginPage = () => {
                 <Typography variant="h4">Sign Up</Typography>
                 <Typography className="text-gray-600" variant="body1">
                   Enter your valid NU faculty email to recieve a confirmation
-                  link
+                  code
                 </Typography>
                 <div>
                   <Typography

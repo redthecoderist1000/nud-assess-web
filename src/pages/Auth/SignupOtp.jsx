@@ -1,20 +1,35 @@
 import React, { useContext, useEffect, useState } from "react";
 import { signupContext, userContext } from "../../App";
-import { Button, FormControl } from "@mui/material";
+import { Button, FormControl, Stack, Typography } from "@mui/material";
 import { OtpInput } from "reactjs-otp-input";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "../../assets/images/logo.png";
 import signupImage from "../../assets/images/signup_image.png";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../helper/Supabase";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 
 function SignupOtp() {
+  const navigate = useNavigate();
   const { setSnackbar } = useContext(userContext);
   const location = useLocation();
-  const email = location.state.email;
-  const password = location.state.password;
+  const email = location.state?.email;
+  const password = location.state?.password;
+
   const [secondsRemaining, setSecondsRemaining] = useState(60);
   const [loading, setLoading] = useState(false);
+
+  // Validation: Check if email and password are defined
+  useEffect(() => {
+    if (!email || !password) {
+      setSnackbar({
+        open: true,
+        message: "Invalid session. Please sign up again.",
+        severity: "error",
+      });
+      navigate("/login", { replace: true });
+    }
+  }, [email, password, navigate, setSnackbar]);
 
   useEffect(() => {
     if (secondsRemaining <= 0) return;
@@ -99,117 +114,134 @@ function SignupOtp() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="h-screen flex items-center justify-center bg-white relative"
-    >
-      <header className="absolute top-6 left-10">
-        <motion.img
-          src={logo}
-          alt="NUD Assess Logo"
-          className="h-10 "
-          initial={{ opacity: 0, x: -100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        />
-      </header>
-      <div className="h-screen flex ">
-        <motion.div
-          className="flex justify-center items-center "
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <img
-            src={signupImage}
-            alt="Sign up image"
-            className="max-w-full h-auto "
-          />
-        </motion.div>
-        <motion.div
-          className="w-3/5 flex items-center justify-center p-8 "
-          initial={{ opacity: 0, x: -100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        ></motion.div>
+    <div className="h-screen flex flex-col bg-white relative">
+      <div className="flex flex-grow">
+        {/* left side */}
+        <div className="flex-1 bg-[url('/src/assets/images/nu_facade.webp')] bg-cover bg-center relative">
+          {/*blue bg overlay*/}
+          <div className="absolute inset-0 bg-[rgba(53,64,142,0.8)]"></div>
+          <div className="relative h-full p-15 z-10">
+            <div className="h-full flex ">
+              <div className="absolute ">
+                {/* logo */}
+                <img src={logo} alt="logo" className="w-50" />
+              </div>
+              <div className="self-center flex flex-col gap-10">
+                {/* title */}
+                <Typography variant="h3" color="white">
+                  Almost There!
+                </Typography>
+                <div className="w-3/4">
+                  <Typography variant="body1" color="white">
+                    We've sent a verification code to your email address. Please
+                    enter the 6-digit code to verify your account and complete
+                    your registration for NUD Assess.
+                  </Typography>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* right side */}
+        <div className="flex flex-1 justify-center items-center">
+          <form className="w-full max-w-md">
+            <Stack rowGap={3}>
+              {/* bacl tbn */}
+              <div className="flex justify-start">
+                <Button
+                  variant="text"
+                  startIcon={<ArrowBackRoundedIcon />}
+                  onClick={() => navigate("/login", { replace: true })}
+                  sx={{
+                    textTransform: "none",
+                    bgcolor: "transparent",
+                    color: "#9CA3AF",
+                    "&:hover": {
+                      textDecoration: "underline",
+                      color: "#6B7280",
+                    },
+                  }}
+                >
+                  Back to Sign up
+                </Button>
+              </div>
+
+              {/* verify otp form */}
+              <Typography variant="h4">Verify OTP</Typography>
+              <Typography className="text-gray-600" variant="body1">
+                We've sent a verification code to <br />
+                <b>{email}</b>
+              </Typography>
+
+              <div>
+                <Typography
+                  variant="body2"
+                  className="text-gray-600"
+                  gutterBottom
+                >
+                  Enter OTP
+                </Typography>
+                <OtpInput
+                  value={otp}
+                  numInputs={6}
+                  isInputNum={true}
+                  onChange={changeOtp}
+                  containerStyle={{
+                    justifyContent: "space-evenly",
+                    gap: "10px",
+                  }}
+                  inputStyle={{
+                    border: "2px solid #d1d5db",
+                    borderRadius: "5px",
+                    width: "50px",
+                    height: "50px",
+                    fontSize: "20px",
+                    fontWeight: "bold",
+                  }}
+                />
+              </div>
+
+              {/* Verify Button */}
+              <Button
+                variant="contained"
+                onClick={verifyOtp}
+                loading={loading}
+                disableElevation
+                fullWidth
+                sx={{
+                  bgcolor: "#35408E",
+                  color: "white",
+                  "&:hover": { bgcolor: "#2c347a" },
+                }}
+              >
+                Verify
+              </Button>
+
+              {/* Resend Link */}
+              <Typography variant="body2" className="text-center text-gray-600">
+                Don't have any OTP?{" "}
+                <Button
+                  variant="text"
+                  onClick={resend}
+                  disabled={secondsRemaining > 0}
+                  loading={loading}
+                  sx={{
+                    textTransform: "none",
+                    padding: "0 4px",
+                    color: "#35408E",
+                    fontWeight: "bold",
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                >
+                  Resend ({secondsRemaining}s)
+                </Button>
+              </Typography>
+            </Stack>
+          </form>
+        </div>
       </div>
-      <FormControl className="w-1/4">
-        <motion.h1
-          className="text-5xl font-bold mb-4"
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          Verify OTP
-        </motion.h1>
-        <motion.p
-          className="text-gray-600 mb-3"
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          We already sent an OTP to your email <b>{email}</b> . Please verify
-          the OTP.
-        </motion.p>
-        <OtpInput
-          value={otp}
-          numInputs={6}
-          // separator={<span>-</span>}
-          isInputNum={true}
-          onChange={changeOtp}
-          containerStyle={{
-            justifyContent: "space-evenly",
-            gap: "20px",
-          }}
-          inputStyle={{
-            border: "2px solid gray",
-            borderRadius: "5px",
-            width: "100%",
-            height: "50px",
-            fontSize: "20px",
-          }}
-        />
-        <motion.p
-          className="text-gray-600 mb-10 test-red-500 text-center align-middle"
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          Don't have any OTP?
-          <Button
-            variant="text"
-            onClick={resend}
-            disabled={secondsRemaining > 0}
-            loading={loading}
-            sx={{
-              textTransform: "none",
-              marginLeft: "8px",
-              color: "#35408E",
-              fontWeight: "bold",
-            }}
-          >
-            Resend ({secondsRemaining}s)
-          </Button>
-        </motion.p>
-        <Button
-          variant="contained"
-          onClick={verifyOtp}
-          loading={loading}
-          size="large"
-          disableElevation
-          sx={{
-            color: "white",
-            bgcolor: "#35408E",
-            "&:hover": { backgroundColor: "#2c357e" },
-            textTransform: "none",
-          }}
-        >
-          Submit
-        </Button>
-      </FormControl>
-    </motion.div>
+    </div>
   );
 }
 

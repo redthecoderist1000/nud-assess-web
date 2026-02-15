@@ -205,12 +205,7 @@ const LoginPage = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="h-screen flex flex-col bg-white relative"
-    >
+    <div className="h-screen flex flex-col bg-white relative">
       <div className="flex flex-grow">
         {/* left side */}
         <div className="flex-1 bg-[url('/src/assets/images/nu_facade.webp')] bg-cover bg-center relative">
@@ -533,7 +528,7 @@ const LoginPage = () => {
         open={forgotPassword}
         onClose={() => setForgotPassword(false)}
       />
-    </motion.div>
+    </div>
   );
 };
 

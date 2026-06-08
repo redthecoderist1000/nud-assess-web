@@ -42,7 +42,7 @@ This project is part of a multi-platform assessment system:
 
 ### Mobile Client for Students
 
-- **Repository**: [NUDAssess Mobile Client](https://github.com/your-org/nudassess-mobile-client)
+- **Repository**: [NUDAssess Mobile Client](https://github.com/redthecoderist1000/NUD-Assess)
 - **Purpose**: Native mobile application for students to take quizzes and exams on iOS and Android devices
 - **Technology**: Built with Flutter
 - **Features**:

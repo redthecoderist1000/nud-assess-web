@@ -210,7 +210,7 @@ VITE_FIREBASE_APP_ID=your_firebase_app_id
 
 # Supabase Configuration
 VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 
 # Google Generative AI
 VITE_GOOGLE_GENERATIVE_AI_KEY=your_google_generative_ai_key
